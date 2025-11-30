@@ -179,7 +179,7 @@ public final class RegistryEntries {
         entry(Registries.DATA_COMPONENT_TYPE, DataComponents.class, DataComponentType.class, "Paper").preload(DataComponentTypes.class).apiAccessName("of"),
         entry(Registries.GAME_RULE, GameRules.class, GameRule.class).genericArgCount(1),/*.preload(org.bukkit.GameRules.class)*/ // only preload once the old names are removed
         entry(Registries.CUSTOM_STAT, Stats.class, CustomStatistic.class, "Paper").preload(CustomStatistics.class),
-        entry(Registries.STAT_TYPE, Stats.class, StatisticType.class, "Paper").preload(StatisticTypes.class).genericArgCount(1).apiAccessName("create")
+        entry(Registries.STAT_TYPE, Stats.class, StatisticType.class, "Paper").genericArgCount(1).preload(StatisticTypes.class).apiAccessName("create")
     );
 
     public static final List<RegistryEntry<?>> DATA_DRIVEN = List.of(
