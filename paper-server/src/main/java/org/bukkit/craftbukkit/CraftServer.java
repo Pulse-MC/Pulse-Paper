@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -113,6 +114,7 @@ import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.PlayerDataStorage;
 import net.minecraft.world.level.storage.PrimaryLevelData;
 import net.minecraft.world.level.validation.ContentValidationException;
+import net.minecraft.world.level.validation.DirectoryValidator;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
@@ -1180,7 +1182,7 @@ public final class CraftServer implements Server {
         String name = creator.name();
         ChunkGenerator chunkGenerator = creator.generator();
         BiomeProvider biomeProvider = creator.biomeProvider();
-        File folder = new File(this.getWorldContainer(), name);
+        File folder = new File(creator.parentDirectory().toFile(), name);
         World world = this.getWorld(name);
 
         // Paper start
@@ -1214,7 +1216,12 @@ public final class CraftServer implements Server {
 
         LevelStorageSource.LevelStorageAccess levelStorageAccess;
         try {
-            levelStorageAccess = LevelStorageSource.createDefault(this.getWorldContainer().toPath()).validateAndCreateAccess(name, actualDimension);
+            Path serverRoot = this.getWorldContainer().toPath();
+            // Make sure parsing off server root for symlinks
+            DirectoryValidator directoryValidator = LevelStorageSource.parseValidator(serverRoot.resolve("allowed_symlinks.txt"));
+            LevelStorageSource levelStorageSource = new LevelStorageSource(creator.parentDirectory(), serverRoot.resolve("../backups"), directoryValidator, DataFixers.getDataFixer());
+
+            levelStorageAccess = levelStorageSource.validateAndCreateAccess(name, actualDimension);
         } catch (IOException | ContentValidationException ex) {
             throw new RuntimeException(ex);
         }
@@ -1306,7 +1313,7 @@ public final class CraftServer implements Server {
         }
 
         this.console.addLevel(serverLevel); // Paper - Put world into worldlist before initing the world; move up
-        this.console.initWorld(serverLevel, primaryLevelData, primaryLevelData.worldGenOptions());
+        this.console.initWorld(serverLevel, primaryLevelData, primaryLevelData.worldGenOptions(), creator);
 
         serverLevel.setSpawnSettings(true);
         // Paper - Put world into worldlist before initing the world; move up
