@@ -136,6 +136,7 @@ import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.scores.ScoreHolder;
 import org.bukkit.BanEntry;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
@@ -257,6 +258,11 @@ public class CraftPlayer extends CraftHumanEntity implements Player, PluginMessa
     @Override
     public ServerPlayer getHandle() {
         return (ServerPlayer) this.entity;
+    }
+
+    @Override
+    public ScoreHolder asNmsScoreHolder() {
+        return this.entity;
     }
 
     @Override

@@ -14,6 +14,7 @@ import org.bukkit.block.Biome;
 import org.bukkit.damage.DamageEffect;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.scoreboard.ScoreHolder;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NullMarked;
@@ -100,4 +101,12 @@ public interface InternalAPIBridge {
     Component defaultMannequinDescription();
 
     <MODERN, LEGACY> GameRule<LEGACY> legacyGameRuleBridge(GameRule<MODERN> rule, Function<LEGACY, MODERN> fromLegacyToModern, Function<MODERN, LEGACY> toLegacyFromModern, Class<LEGACY> legacyClass);
+
+    /**
+     * Creates a wrapping score holder
+     *
+     * @param entry the entry to wrap
+     * @return a wrapping ScoreHolder
+     */
+    ScoreHolder scoreHolderOf(String entry);
 }
