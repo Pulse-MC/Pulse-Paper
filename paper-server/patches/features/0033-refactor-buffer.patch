@@ -1,0 +1,62 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: justc2t <justc2t@gmail.com>
+Date: Tue, 13 Jan 2026 17:47:14 +0200
+Subject: [PATCH] refactor buffer
+
+
+diff --git a/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java b/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java
+index cb0dd1aa58b8b5972cd8410e1e22fda64f329105..99dd8f94614a134db75e4e07c9217772c2e7bd46 100644
+--- a/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java
++++ b/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java
+@@ -17,8 +17,10 @@ public class ClientboundSectionBlocksUpdatePacket implements Packet<ClientGamePa
+         ClientboundSectionBlocksUpdatePacket::write, ClientboundSectionBlocksUpdatePacket::new
+     );
+     private static final int POS_IN_SECTION_BITS = 12;
+-    private final SectionPos sectionPos;
+-    private final short[] positions;
++    // Pulse start
++    public final SectionPos sectionPos;
++    public final short[] positions;
++    // Pulse end
+     private final BlockState[] states;
+ 
+     public ClientboundSectionBlocksUpdatePacket(SectionPos sectionPos, ShortSet positions, LevelChunkSection section) {
+diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
+index 7e6de4f07dccb9e4284dc704bd7a8a78f5374623..c8e36a9f1e5043b0e74a28d5886882d98b641631 100644
+--- a/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -317,7 +317,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+         }
+ 
+         // Pulse start - Init Config and Commands
+-        dev.pulsemc.api.config.PulseConfig.load();
++        dev.pulsemc.config.ConfigManager.load();
+         dev.pulsemc.network.PulseMetrics.start();
+         this.server.getCommandMap().register("pulse", "Pulse", new org.bukkit.command.defaults.BukkitCommand("pulse") {
+             private final dev.pulsemc.command.PulseCommand executor = new dev.pulsemc.command.PulseCommand();
+diff --git a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
+index e6dbed341ed5b414f5d8feb90fa3e03461ec5315..3a4de7ec7d0f8b29cf5c74b65df69ecb2781f53b 100644
+--- a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
++++ b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
+@@ -297,7 +297,7 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+ 
+             // If packet close connection send it as "Instant"
+             if (packet.isTerminal()) {
+-                this.pulseBuffer.flush("Instant");
++                this.pulseBuffer.flush();
+                 this.close();
+             }
+             return;
+diff --git a/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+index b0e28d0edaa18cc9e7e336ce3203de533ffa4296..3e0a328f361934464bc990c82070519017971938 100644
+--- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
++++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+@@ -368,7 +368,7 @@ public class ServerGamePacketListenerImpl
+             }
+         }
+         // Pulse start
+-        if (this.pulseBuffer != null) this.pulseBuffer.flush("Tick");
++        if (this.pulseBuffer != null) this.pulseBuffer.flush();
+         // Pulse end
+     }
+ 

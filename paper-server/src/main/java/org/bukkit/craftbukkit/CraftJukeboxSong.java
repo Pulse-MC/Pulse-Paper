@@ -1,0 +1,53 @@
+package org.bukkit.craftbukkit;
+
+import io.papermc.paper.adventure.PaperAdventure;
+import io.papermc.paper.registry.HolderableBase;
+import net.kyori.adventure.text.Component;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import org.bukkit.JukeboxSong;
+import org.bukkit.Sound;
+import org.jspecify.annotations.NullMarked;
+
+@NullMarked
+public class CraftJukeboxSong extends HolderableBase<net.minecraft.world.item.JukeboxSong> implements JukeboxSong {
+
+    public static JukeboxSong minecraftHolderToBukkit(Holder<net.minecraft.world.item.JukeboxSong> minecraft) {
+        return CraftRegistry.minecraftHolderToBukkit(minecraft, Registries.JUKEBOX_SONG);
+    }
+
+    public static Holder<net.minecraft.world.item.JukeboxSong> bukkitToMinecraftHolder(JukeboxSong bukkit) {
+        return CraftRegistry.bukkitToMinecraftHolder(bukkit);
+    }
+
+    public CraftJukeboxSong(final Holder<net.minecraft.world.item.JukeboxSong> holder) {
+        super(holder);
+    }
+
+    @Override
+    public String getTranslationKey() {
+        if (!(this.getHandle().description().getContents() instanceof TranslatableContents)) throw new UnsupportedOperationException("Description isn't translatable!"); // Paper
+        return ((TranslatableContents) this.getHandle().description().getContents()).getKey();
+    }
+
+    @Override
+    public Sound getSound() {
+        return CraftSound.minecraftHolderToBukkit(this.getHandle().soundEvent());
+    }
+
+    @Override
+    public Component getDescription() {
+        return PaperAdventure.asAdventure(this.getHandle().description());
+    }
+
+    @Override
+    public float getLengthInSeconds() {
+        return this.getHandle().lengthInSeconds();
+    }
+
+    @Override
+    public int getComparatorOutput() {
+        return this.getHandle().comparatorOutput();
+    }
+}
