@@ -33,15 +33,15 @@ import java.util.List;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.TextColor.color;
 import static io.papermc.paper.ServerBuildInfo.StringRepresentation.VERSION_SIMPLE;
-
+// PULSE_MODIFIED
 @DefaultQualifier(NonNull.class)
 public class PaperVersionFetcher implements VersionFetcher {
     private static final Logger LOGGER = LogUtils.getClassLogger();
     private static final ComponentLogger COMPONENT_LOGGER = ComponentLogger.logger(LogManager.getRootLogger().getName());
     private static final int DISTANCE_ERROR = -1;
     private static final int DISTANCE_UNKNOWN = -2;
-    private static final String DOWNLOAD_PAGE = "https://papermc.io/downloads/paper";
-    private static final String REPOSITORY = "PaperMC/Paper";
+    private static final String DOWNLOAD_PAGE = "https://github.com/Pulse-MC/Pulse-Paper/releases"; // Pulse
+    private static final String REPOSITORY = "Pulse-MC/Pulse-Paper";
     private static final ServerBuildInfo BUILD_INFO = ServerBuildInfo.buildInfo();
     private static final String USER_AGENT = BUILD_INFO.brandName() + "/" + BUILD_INFO.asString(VERSION_SIMPLE) + " (https://papermc.io)";
     private static final Gson GSON = new Gson();
@@ -63,45 +63,29 @@ public class PaperVersionFetcher implements VersionFetcher {
 
         return history != null ? Component.textOfChildren(updateMessage, Component.newline(), history) : updateMessage;
     }
-
+    // Pulse start
     public static void getUpdateStatusStartupMessage() {
         int distance = DISTANCE_ERROR;
 
-        final OptionalInt buildNumber = BUILD_INFO.buildNumber();
-        if (buildNumber.isEmpty() && BUILD_INFO.gitCommit().isEmpty()) {
-            COMPONENT_LOGGER.warn(text("*** You are running a development version without access to version information ***"));
-        } else {
-            final Optional<MinecraftVersionFetcher> apiResult = fetchMinecraftVersionList();
-            if (buildNumber.isPresent()) {
-                distance = fetchDistanceFromSiteApi(buildNumber.getAsInt());
-            } else {
-                final Optional<String> gitBranch = BUILD_INFO.gitBranch();
-                final Optional<String> gitCommit = BUILD_INFO.gitCommit();
-                if (gitBranch.isPresent() && gitCommit.isPresent()) {
-                    distance = fetchDistanceFromGitHub(gitBranch.get(), gitCommit.get());
-                }
-            }
+        // PulseMC: Всегда используем GitHub для проверки, игнорируем Build Number от Paper
+        final Optional<String> gitBranch = BUILD_INFO.gitBranch();
+        final Optional<String> gitCommit = BUILD_INFO.gitCommit();
 
-            switch (distance) {
-                case DISTANCE_ERROR -> COMPONENT_LOGGER.error(text("*** Error obtaining version information! Cannot fetch version info ***"));
-                case 0 -> apiResult.ifPresent(result -> {
-                    COMPONENT_LOGGER.warn(text("*************************************************************************************"));
-                    COMPONENT_LOGGER.warn(text("You are running the latest build for your Minecraft version (" + BUILD_INFO.minecraftVersionId() + ")"));
-                    COMPONENT_LOGGER.warn(text("However, you are " + result.distance() + " release(s) behind the latest stable release (" + result.latestVersion() + ")!"));
-                    COMPONENT_LOGGER.warn(text("It is recommended that you update as soon as possible"));
-                    COMPONENT_LOGGER.warn(text(DOWNLOAD_PAGE));
-                    COMPONENT_LOGGER.warn(text("*************************************************************************************"));
-                });
-                case DISTANCE_UNKNOWN -> COMPONENT_LOGGER.warn(text("*** You are running an unknown version! Cannot fetch version info ***"));
-                default -> {
-                    if (apiResult.isPresent()) {
-                        COMPONENT_LOGGER.warn(text("*** You are running an outdated version of Minecraft, which is " + apiResult.get().distance() + " release(s) and " + distance + " build(s) behind!"));
-                        COMPONENT_LOGGER.warn(text("*** Please update to the latest stable version on " + DOWNLOAD_PAGE + " ***"));
-                    } else {
-                        COMPONENT_LOGGER.info(text("*** Currently you are " + distance + " build(s) behind ***"));
-                        COMPONENT_LOGGER.info(text("*** It is highly recommended to download the latest build from " + DOWNLOAD_PAGE + " ***"));
-                    }
-                }
+        if (gitBranch.isPresent() && gitCommit.isPresent()) {
+            distance = fetchDistanceFromGitHub(gitBranch.get(), gitCommit.get());
+        }
+
+        switch (distance) {
+            case DISTANCE_ERROR -> COMPONENT_LOGGER.warn(text("Error obtaining version information."));
+            case 0 -> COMPONENT_LOGGER.info(text("You are running the latest version of Pulse!"));
+            case DISTANCE_UNKNOWN -> COMPONENT_LOGGER.warn(text("Unknown version! Cannot fetch version info."));
+            default -> {
+                COMPONENT_LOGGER.warn(text("************************************************************"));
+                COMPONENT_LOGGER.warn(text("* You are running an outdated version of Pulse!"));
+                COMPONENT_LOGGER.warn(text("* You are " + distance + " commit(s) behind."));
+                COMPONENT_LOGGER.warn(text("* Download the latest build:"));
+                COMPONENT_LOGGER.warn(text("* " + DOWNLOAD_PAGE));
+                COMPONENT_LOGGER.warn(text("************************************************************"));
             }
         }
     }
@@ -109,15 +93,11 @@ public class PaperVersionFetcher implements VersionFetcher {
     private static Component getUpdateStatusMessage() {
         int distance = DISTANCE_ERROR;
 
-        final OptionalInt buildNumber = PaperVersionFetcher.BUILD_INFO.buildNumber();
-        if (buildNumber.isPresent()) {
-            distance = fetchDistanceFromSiteApi(buildNumber.getAsInt());
-        } else {
-            final Optional<String> gitBranch = PaperVersionFetcher.BUILD_INFO.gitBranch();
-            final Optional<String> gitCommit = PaperVersionFetcher.BUILD_INFO.gitCommit();
-            if (gitBranch.isPresent() && gitCommit.isPresent()) {
-                distance = fetchDistanceFromGitHub(gitBranch.get(), gitCommit.get());
-            }
+        // PulseMC: Only GitHub Check
+        final Optional<String> gitBranch = PaperVersionFetcher.BUILD_INFO.gitBranch();
+        final Optional<String> gitCommit = PaperVersionFetcher.BUILD_INFO.gitCommit();
+        if (gitBranch.isPresent() && gitCommit.isPresent()) {
+            distance = fetchDistanceFromGitHub(gitBranch.get(), gitCommit.get());
         }
 
         return switch (distance) {
@@ -126,12 +106,13 @@ public class PaperVersionFetcher implements VersionFetcher {
             case DISTANCE_UNKNOWN -> text("Unknown version", NamedTextColor.YELLOW);
             default -> text("You are " + distance + " version(s) behind", NamedTextColor.YELLOW)
                 .append(Component.newline())
-                .append(text("Download the new version at: ")
+                .append(text("Download update: ")
                     .append(text(DOWNLOAD_PAGE, NamedTextColor.GOLD)
                         .hoverEvent(text("Click to open", NamedTextColor.WHITE))
                         .clickEvent(ClickEvent.openUrl(DOWNLOAD_PAGE))));
         };
     }
+    // Pulse end
 
     private record MinecraftVersionFetcher(String latestVersion, int distance) {}
 
