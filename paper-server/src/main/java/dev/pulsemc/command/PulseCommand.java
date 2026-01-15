@@ -125,7 +125,6 @@ public class PulseCommand implements CommandExecutor, TabCompleter {
             completions.add("ram");
         }
 
-
         return completions;
     }
 }
