@@ -1,32 +1,96 @@
-name: Build
+name: PulseMC Release
+
 on:
-  workflow_dispatch:
-  pull_request:
   push:
-    branches:
-      - "ver/**"
+    branches: [ "main" ]
 
 jobs:
-  build:
+  build-and-release:
+    if: contains(github.event.head_commit.message, '[pulse:buildclip')
+    
     runs-on: ubuntu-latest
-    if: "!contains(github.event.commits[0].message, '[ci-skip]')"
+    permissions:
+      contents: write
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-          cache: 'gradle'
-      - uses: gradle/actions/setup-gradle@v4
-      - name: Configure Git
-        run: git config --global user.email "no-reply@github.com" && git config --global user.name "Github Actions"
-      - name: Apply Patches
-        run: ./gradlew applyAllPatches --stacktrace
-      - name: Build
-        run: ./gradlew build --stacktrace
-      - name: Rebuild on Failure
-        if: ${{ failure() }}
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Extract Version
+        id: get_version
         run: |
-          ./gradlew clean cleanCache --refresh-dependencies
-          ./gradlew applyAllPatches --stacktrace 
-          ./gradlew build --stacktrace
+          MSG="${{ github.event.head_commit.message }}"
+          
+          VERSION="1.21.11"
+          
+          if [[ "$MSG" == *"[pulse:buildclip:"* ]]; then
+            CUSTOM_VER=$(echo "$MSG" | sed -n 's/.*\[pulse:buildclip:\([^]]*\)\].*/\1/p')
+            if [ ! -z "$CUSTOM_VER" ]; then
+              VERSION="$CUSTOM_VER"
+            fi
+          fi
+          
+          echo "Detected Version: $VERSION"
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Configure Git Identity
+        run: |
+          git config --global user.email "builder@pulsemc.dev"
+          git config --global user.name "PulseMC Builder"
+
+      - name: Apply Patches
+        run: ./gradlew applyPatches
+
+      - name: Build Paperclip Jar
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: ./gradlew createMojmapPaperclipJar
+
+      - name: Prepare Artifact
+        id: prepare_file
+        run: |
+          JAR_FILE=$(find pulse-server/build/libs -name "*-paperclip.jar" | head -n 1)
+          
+          if [ -z "$JAR_FILE" ]; then
+            echo "Error: Jar not found!"
+            exit 1
+          fi
+
+          FILENAME="Pulse-${{ steps.get_version.outputs.version }}-b${{ github.run_number }}.jar"
+          NEW_PATH="release/$FILENAME"
+          
+          mkdir release
+          mv "$JAR_FILE" "$NEW_PATH"
+          
+          echo "Artifact created: $FILENAME"
+          
+          echo "file_path=$NEW_PATH" >> $GITHUB_OUTPUT
+          echo "file_name=$FILENAME" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}-b${{ github.run_number }}
+          name: "PulseMC ${{ steps.get_version.outputs.version }} (Build #${{ github.run_number }})"
+          body: |
+            **Automated Release**
+            
+            **Version:** ${{ steps.get_version.outputs.version }}
+            **Changes:**
+            ${{ github.event.head_commit.message }}
+          
+          files: ${{ steps.prepare_file.outputs.file_path }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
