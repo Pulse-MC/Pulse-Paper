@@ -59,7 +59,7 @@ jobs:
       - name: Prepare Artifact
         id: prepare_file
         run: |
-          JAR_FILE=$(find pulse-server/build/libs -name "*-paperclip.jar" | head -n 1)
+          JAR_FILE=$(find paper-server/build/libs -name "*-paperclip.jar" | head -n 1)
           
           if [ -z "$JAR_FILE" ]; then
             echo "Error: Jar not found!"
@@ -81,7 +81,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.get_version.outputs.version }}-b${{ github.run_number }}
-          name: "PulseMC ${{ steps.get_version.outputs.version }} (Build #${{ github.run_number }})"
+          name: "Pulse ${{ steps.get_version.outputs.version }} (Build #${{ github.run_number }})"
           body: |
             **Automated Release**
             
