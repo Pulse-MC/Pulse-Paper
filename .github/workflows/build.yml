@@ -48,6 +48,9 @@ jobs:
           git config --global user.email "builder@pulsemc.dev"
           git config --global user.name "PulseMC Builder"
 
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
       - name: Apply Patches
         run: ./gradlew applyPatches
 
