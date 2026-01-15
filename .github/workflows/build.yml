@@ -62,20 +62,25 @@ jobs:
       - name: Prepare Artifact
         id: prepare_file
         run: |
-          JAR_FILE=$(find paper-server/build/libs -name "*-paperclip.jar" | head -n 1)
+          echo "🔍 Scanning build directories..."
+          find . -type f -name "*.jar" | grep "libs/"
+          
+          JAR_FILE=$(find . -name "*paperclip*.jar" | head -n 1)
           
           if [ -z "$JAR_FILE" ]; then
-            echo "Error: Jar not found!"
+            echo "❌ CRITICAL: Paperclip JAR not found!"
             exit 1
           fi
-
+          
+          echo "✅ Found candidate: $JAR_FILE"
+          
           FILENAME="Pulse-${{ steps.get_version.outputs.version }}-b${{ github.run_number }}.jar"
           NEW_PATH="release/$FILENAME"
           
-          mkdir release
+          mkdir -p release
           mv "$JAR_FILE" "$NEW_PATH"
           
-          echo "Artifact created: $FILENAME"
+          echo "📦 Artifact ready: $NEW_PATH"
           
           echo "file_path=$NEW_PATH" >> $GITHUB_OUTPUT
           echo "file_name=$FILENAME" >> $GITHUB_OUTPUT
