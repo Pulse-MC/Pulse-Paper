@@ -102,7 +102,6 @@ public class ConfigManager {
     }
 
     private static void createDefaultConfig() throws java.io.IOException {
-        // Java Text Block - чисто и красиво
         String template = """
             # +-------------------------------------------------------------------+
             # |                       Pulse Software Config                       |
@@ -134,17 +133,13 @@ public class ConfigManager {
               instant-packets:
                 - ClientboundHurtAnimationPacket
                 - ClientboundDamageEventPacket
-                - ClientboundEntityEventPacket
-                - ClientboundSetEntityMotionPacket
             
               # Pulse will flush the buffer BEFORE adding a new packet if remaining space is less than this.
               # Prevents MTU overflow without expensive per-packet size calculation.
-              safety-margin: 256
+              safety-margin: 64
             
             # Protocol-level optimizations
             optimization:
-              # Delta compression for positions (Pulse clients only)
-              enable-offsets: true
             
               # Smart explosion handling
               explosions:
@@ -152,21 +147,9 @@ public class ConfigManager {
                 # Re-send whole chunk if block changes exceed this value
                 block-change-threshold: 512
             
-            # Compression settings
-            compression:
-              # Zlib compression level (1 = fast, 9 = max compression)
-              level: 4
-            
-              # Minimum batch size to apply compression
-              threshold: 256
             
             # Compatibility & behavior
             compatibility:
-              # Hybrid mode:
-              # - Pulse mod → optimized Pulse packets
-              # - Vanilla 1.19.4+ → Bundle packets
-              # - Older versions → legacy packets
-              enable-hybrid-mode: true
             
               # Emulate Bukkit/Paper packet events.
               # Required for ProtocolLib, AntiCheat, Denizen.
@@ -176,15 +159,6 @@ public class ConfigManager {
               ignored-packets: []
             #    - ClientboundMapItemDataPacket
             
-            # Client mod interaction
-            mod:
-              # Allow client-server Pulse handshake
-              allow-handshake: true
-            
-              # Require Pulse mod to join
-              require-mod: false
-            
-              kick-message: "<red>To play on this server, the <bold>Pulse Fabric</bold> mod is required!"
             
             metrics:
               enabled: true

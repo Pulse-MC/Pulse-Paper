@@ -35,6 +35,15 @@ public class PulseCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (sub.equals("bar")) {
+            if (!(sender instanceof org.bukkit.entity.Player player)) {
+                sender.sendMessage(mm.deserialize("<red>Only for players!"));
+                return true;
+            }
+            dev.pulsemc.network.PulseBar.toggle(player);
+            return true;
+        }
+
         if (sub.equals("stats")) {
             if (args.length == 1) {
                 sendNetworkStats(sender);
@@ -108,12 +117,14 @@ public class PulseCommand implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             completions.add("reload");
             completions.add("stats");
+            completions.add("bar");
         }
         else if (args.length == 2 && args[0].equalsIgnoreCase("stats")) {
             completions.add("network");
             completions.add("cpu");
             completions.add("ram");
         }
+
 
         return completions;
     }

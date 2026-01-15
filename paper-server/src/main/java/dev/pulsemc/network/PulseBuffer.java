@@ -34,18 +34,14 @@ public class PulseBuffer {
         this.listener = listener;
     }
 
-    private List<Packet<?>> blockQueue = new ArrayList<>();
+    private record PacketEntry(Packet<?> packet, @Nullable ChannelFutureListener listener) {}
+    private final List<PacketEntry> blockQueue = new ArrayList<>();
 
     public void add(Packet<?> packet, @Nullable ChannelFutureListener sendListener) {
         if (packet == null) return;
-        if (ConfigManager.optExplosions && isBlockUpdate(packet)) {
-            handleBlockUpdate(packet);
-            return;
-        }
         String packetName = packet.getClass().getSimpleName();
 
         // Ignored Packets
-        // If packet in ignore list - send instant
         if (ConfigManager.ignoredPackets.contains(packetName)) {
             listener.connection.send(packet, sendListener, true);
             return;
@@ -67,7 +63,6 @@ public class PulseBuffer {
         PulseMetrics.logicalCounter.incrementAndGet();
 
         // compatibility.emulate-events
-        // If disabled in config - skipping this block
         if (ConfigManager.emulateEvents) {
             org.bukkit.entity.Player bukkitPlayer = ((ServerGamePacketListenerImpl) listener).getCraftPlayer();
             if (bukkitPlayer != null) {
@@ -76,6 +71,11 @@ public class PulseBuffer {
                 if (event.isCancelled()) return;
                 packet = event.getPacket();
             }
+        }
+
+        if (ConfigManager.optExplosions && isBlockUpdate(packet)) {
+            handleBlockUpdate(packet, sendListener);
+            return;
         }
 
         // Instant Packets
@@ -125,15 +125,6 @@ public class PulseBuffer {
         return name.contains("Chat") || name.contains("Message") || name.contains("Disguised") || name.contains("SystemChat");
     }
 
-    private int estimatePacketSize(Packet<?> packet) {
-        String name = packet.getClass().getSimpleName();
-        if (name.contains("EntityVelocity")) return 12;
-        if (name.contains("MoveEntity")) return 10;
-        if (name.contains("Teleport")) return 32;
-        if (name.contains("SetEntityData")) return 64;
-        if (name.contains("Chunk")) return 2048;
-        return 24;
-    }
 
     private boolean isCritical(Packet<?> packet) {
         String name = packet.getClass().getSimpleName();
@@ -153,56 +144,40 @@ public class PulseBuffer {
         return 0;
     }
 
-    private void handleBlockUpdate(Packet<?> packet) {
-        long chunkKey = 0;
-        int count = 1;
-
-        if (packet instanceof ClientboundBlockUpdatePacket blockPacket) {
-            chunkKey = ChunkPos.asLong(blockPacket.getPos());
-        }
-        else if (packet instanceof ClientboundSectionBlocksUpdatePacket sectionPacket) {
-            chunkKey = sectionPacket.sectionPos.chunk().toLong();
-            count = sectionPacket.positions.length;
-        }
-
-        blockQueue.add(packet);
+    private void handleBlockUpdate(Packet<?> packet, ChannelFutureListener listener) {
+        blockQueue.add(new PacketEntry(packet, listener));
     }
 
     private void processBlockQueue() {
         if (blockQueue.isEmpty()) return;
 
-        List<Packet<?>> processingQueue = new ArrayList<>(blockQueue);
+        List<PacketEntry> processingQueue = new ArrayList<>(blockQueue);
         blockQueue.clear();
 
         if (!(listener instanceof ServerGamePacketListenerImpl gameListener) || gameListener.player == null) {
-            processingQueue.forEach(p -> queuePacketToNetty(p, null));
+            processingQueue.forEach(e -> queuePacketToNetty(e.packet(), e.listener()));
             return;
         }
 
-        Map<Long, List<Packet<?>>> batchMap = new HashMap<>();
-        // Добавляем карту для подсчета блоков
+        Map<Long, List<PacketEntry>> batchMap = new HashMap<>();
         Map<Long, Integer> chunkBlockCounts = new HashMap<>();
 
-        for (Packet<?> packet : processingQueue) {
-            long key = getChunkKey(packet);
-            batchMap.computeIfAbsent(key, k -> new ArrayList<>()).add(packet);
+        for (PacketEntry entry : processingQueue) {
+            long key = getChunkKey(entry.packet());
+            batchMap.computeIfAbsent(key, k -> new ArrayList<>()).add(entry);
 
-            // Считаем блоки
             int count = 1;
-            if (packet instanceof ClientboundSectionBlocksUpdatePacket sectionPacket) {
-                count = sectionPacket.positions.length; // Массив изменений
+            if (entry.packet() instanceof ClientboundSectionBlocksUpdatePacket sectionPacket) {
+                count = sectionPacket.positions.length;
             }
             chunkBlockCounts.merge(key, count, Integer::sum);
         }
 
-        for (Map.Entry<Long, List<Packet<?>>> entry : batchMap.entrySet()) {
+        for (Map.Entry<Long, List<PacketEntry>> entry : batchMap.entrySet()) {
             long chunkKey = entry.getKey();
-            List<Packet<?>> packets = entry.getValue();
-
-            // Берем реальное число изменений
+            List<PacketEntry> entries = entry.getValue();
             int totalChanges = chunkBlockCounts.getOrDefault(chunkKey, 0);
 
-            // Проверяем по числу БЛОКОВ, а не пакетов
             if (totalChanges >= ConfigManager.optExplosionThreshold) {
                 int x = ChunkPos.getX(chunkKey);
                 int z = ChunkPos.getZ(chunkKey);
@@ -212,12 +187,13 @@ public class PulseBuffer {
                     PulseMetrics.optimizedChunks.incrementAndGet();
 
                     ClientboundLevelChunkWithLightPacket chunkPacket = new ClientboundLevelChunkWithLightPacket(chunk, gameListener.player.level().getLightEngine(), null, null);
+                    // send ONE chunk packet, without listener
                     queuePacketToNetty(chunkPacket, null);
                 } else {
-                    packets.forEach(p -> queuePacketToNetty(p, null));
+                    entries.forEach(e -> queuePacketToNetty(e.packet(), e.listener()));
                 }
             } else {
-                packets.forEach(p -> queuePacketToNetty(p, null));
+                entries.forEach(e -> queuePacketToNetty(e.packet(), e.listener()));
             }
         }
     }

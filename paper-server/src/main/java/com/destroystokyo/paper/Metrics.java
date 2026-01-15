@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
+// PULSE_MODIFIED
 
 /**
  * bStats collects some data for plugin authors.
