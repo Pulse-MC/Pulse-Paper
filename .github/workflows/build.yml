@@ -1,13 +1,13 @@
-name: PulseMC Release
+name: PulseMC Pipeline
 
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  build-and-release:
-    if: contains(github.event.head_commit.message, '[pulse:buildclip')
-    
+  process-build:
+    if: contains(github.event.head_commit.message, '[pulse:buildclip') || contains(github.event.head_commit.message, '[pulse:devbuild')
+
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -16,22 +16,24 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Extract Version
-        id: get_version
+      - name: Parse Trigger & Version
+        id: meta
         run: |
           MSG="${{ github.event.head_commit.message }}"
           
+          MODE="none"
           VERSION="1.21.11"
-          
-          if [[ "$MSG" == *"[pulse:buildclip:"* ]]; then
-            CUSTOM_VER=$(echo "$MSG" | sed -n 's/.*\[pulse:buildclip:\([^]]*\)\].*/\1/p')
-            if [ ! -z "$CUSTOM_VER" ]; then
-              VERSION="$CUSTOM_VER"
-            fi
+
+          if [[ "$MSG" == *"[pulse:devbuild"* ]]; then
+            MODE="devbuild"
+            CUSTOM_VER=$(echo "$MSG" | sed -n 's/.*\[pulse:devbuild:\([^]]*\)\].*/\1/p')
+            if [ ! -z "$CUSTOM_VER" ]; then VERSION="$CUSTOM_VER"; fi
           fi
           
+          echo "Detected Mode: $MODE"
           echo "Detected Version: $VERSION"
           
+          echo "mode=$MODE" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Setup JDK 21
@@ -62,41 +64,60 @@ jobs:
       - name: Prepare Artifact
         id: prepare_file
         run: |
-          echo "🔍 Scanning build directories..."
-          find . -type f -name "*.jar" | grep "libs/"
-          
+          echo "[PULSE] Scanning build directories..."
           JAR_FILE=$(find . -name "*paperclip*.jar" | head -n 1)
           
           if [ -z "$JAR_FILE" ]; then
-            echo "❌ CRITICAL: Paperclip JAR not found!"
+            echo "[PULSE] CRITICAL: Paperclip JAR not found!"
             exit 1
           fi
           
-          echo "✅ Found candidate: $JAR_FILE"
+          PREFIX="Pulse"
+          if [ "${{ steps.meta.outputs.mode }}" == "devbuild" ]; then PREFIX="PulseDev"; fi
           
-          FILENAME="Pulse-${{ steps.get_version.outputs.version }}-b${{ github.run_number }}.jar"
+          FILENAME="${PREFIX}-${{ steps.meta.outputs.version }}-b${{ github.run_number }}.jar"
           NEW_PATH="release/$FILENAME"
           
           mkdir -p release
           mv "$JAR_FILE" "$NEW_PATH"
           
-          echo "📦 Artifact ready: $NEW_PATH"
+          echo "[PULSE] Artifact ready: $NEW_PATH"
           
           echo "file_path=$NEW_PATH" >> $GITHUB_OUTPUT
           echo "file_name=$FILENAME" >> $GITHUB_OUTPUT
 
-      - name: Create Release
+      - name: Upload to Pulse API
+        if: steps.meta.outputs.mode == 'devbuild'
+        env:
+          API_URL: "https://api.pulsemc.dev/devbuild"
+          API_TOKEN: ${{ secrets.PULSE_API_TOKEN }}
+          FILE_PATH: ${{ steps.prepare_file.outputs.file_path }}
+        run: |
+          echo "[PULSE] Uploading DevBuild to API..."
+          
+          curl -X POST "$API_URL" \
+            -H "Authorization: Bearer $API_TOKEN" \
+            -F "file=@$FILE_PATH" \
+            -F "version=${{ steps.meta.outputs.version }}" \
+            -F "build_id=${{ github.run_number }}" \
+            -F "commit_hash=${{ github.sha }}" \
+            -F "author=${{ github.actor }}" \
+            -F "commit_message=${{ github.event.head_commit.message }}"
+          
+          echo "[PULSE] Upload complete!"
+
+      - name: Create GitHub Release
+        if: steps.meta.outputs.mode == 'release'
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.get_version.outputs.version }}-b${{ github.run_number }}
-          name: "Pulse ${{ steps.get_version.outputs.version }} (Build #${{ github.run_number }})"
+          tag_name: v${{ steps.meta.outputs.version }}-b${{ github.run_number }}
+          name: "Pulse ${{ steps.meta.outputs.version }} (Build #${{ github.run_number }})"
           body: |
-            **Automated Release**
+            **Automated Public Release**
             
-            **Version:** ${{ steps.get_version.outputs.version }}
+            **Version:** ${{ steps.meta.outputs.version }}
             **Changes:**
             ${{ github.event.head_commit.message }}
-          
           files: ${{ steps.prepare_file.outputs.file_path }}
           draft: false
           prerelease: false
