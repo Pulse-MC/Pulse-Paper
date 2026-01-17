@@ -97,12 +97,12 @@ jobs:
           
           curl -X POST "$API_URL" \
             -H "Authorization: Bearer $API_TOKEN" \
-            -F "file=@$FILE_PATH" \
             -F "version=${{ steps.meta.outputs.version }}" \
             -F "build_id=${{ github.run_number }}" \
             -F "commit_hash=${{ github.sha }}" \
             -F "author=${{ github.actor }}" \
             -F "commit_message=${{ github.event.head_commit.message }}"
+            -F "file=@$FILE_PATH" \
           
           echo "[PULSE] Upload complete!"
 
