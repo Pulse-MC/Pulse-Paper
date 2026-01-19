@@ -6,7 +6,6 @@ on:
 
 jobs:
   build:
-    # Запускаем только если есть теги
     if: contains(github.event.head_commit.message, '[pulse:buildclip') || contains(github.event.head_commit.message, '[pulse:devbuild')
 
     runs-on: ubuntu-latest
@@ -17,7 +16,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 1. Логика определения типа сборки (Вернул проверку на buildclip)
       - name: Parse Trigger & Version
         id: meta
         run: |
@@ -25,7 +23,7 @@ jobs:
           
           MODE="none"
           VERSION="1.21.11"
-          
+
           if [[ "$MSG" == *"[pulse:devbuild"* ]]; then
             MODE="devbuild"
             CUSTOM_VER=$(echo "$MSG" | sed -n 's/.*\[pulse:devbuild:\([^]]*\)\].*/\1/p')
@@ -54,12 +52,16 @@ jobs:
           git config --global user.email "builder@pulsemc.dev"
           git config --global user.name "PulseMC Builder"
 
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Apply Patches
+        run: ./gradlew applyPatches --build-cache --stacktrace
+
       - name: Build Paperclip Jar
         env:
           BUILD_NUMBER: ${{ github.run_number }}
-        run: |
-          chmod +x ./gradlew
-          ./gradlew applyPatches createMojmapPaperclipJar --build-cache --parallel --configure-on-demand
+        run: ./gradlew createMojmapPaperclipJar --build-cache --stacktrace
 
       - name: Prepare Artifact
         id: prepare_file
@@ -72,6 +74,8 @@ jobs:
             find . -type d -name "libs" -exec ls -R {} +
             exit 1
           fi
+          
+          echo "[PULSE] Found candidate: $JAR_FILE"
           
           PREFIX="Pulse"
           if [ "${{ steps.meta.outputs.mode }}" == "devbuild" ]; then PREFIX="PulseDev"; fi
@@ -95,10 +99,9 @@ jobs:
           FILE_PATH: ${{ steps.prepare_file.outputs.file_path }}
         run: |
           echo "[PULSE] Uploading DevBuild to API..."
-          
           COMMIT_MSG=$(echo "${{ github.event.head_commit.message }}" | tr -d '"' | head -n 1)
 
-          curl -X POST "$API_URL" \
+          curl -v -X POST "$API_URL" \
             -H "Authorization: Bearer $API_TOKEN" \
             -F "version=${{ steps.meta.outputs.version }}" \
             -F "build_id=${{ github.run_number }}" \
