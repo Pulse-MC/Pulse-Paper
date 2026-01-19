@@ -51,23 +51,36 @@ public class PaperVersionFetcher implements VersionFetcher {
         return 720000;
     }
 
+    // Pulse start
     @Override
     public Component getVersionMessage() {
-        final Component updateMessage;
-        if (BUILD_INFO.buildNumber().isEmpty() && BUILD_INFO.gitCommit().isEmpty()) {
-            updateMessage = text("You are running a development version without access to version information", color(0xFF5300));
-        } else {
-            updateMessage = getUpdateStatusMessage();
-        }
-        final @Nullable Component history = this.getHistory();
+        ServerBuildInfo info = ServerBuildInfo.buildInfo();
 
-        return history != null ? Component.textOfChildren(updateMessage, Component.newline(), history) : updateMessage;
+        String buildText;
+        if (info.buildNumber().isPresent()) {
+            buildText = "Build #" + info.buildNumber().getAsInt();
+        } else {
+            buildText = "Dev Build";
+        }
+
+        String gitHash = info.gitCommit().orElse("unknown");
+        if (gitHash.length() > 7) {
+            gitHash = gitHash.substring(0, 7);
+        }
+
+        String mcVersion = info.minecraftVersionId();
+
+        return Component.text("This server is running ")
+            .append(Component.text("PulseMC", NamedTextColor.AQUA))
+            .append(Component.text(" version "))
+            .append(Component.text(mcVersion, NamedTextColor.GREEN))
+            .append(Component.newline())
+            .append(Component.text("▸ " + buildText, NamedTextColor.GOLD))
+            .append(Component.text(" (Git: " + gitHash + ")", NamedTextColor.GRAY));
     }
-    // Pulse start
     public static void getUpdateStatusStartupMessage() {
         int distance = DISTANCE_ERROR;
 
-        // PulseMC: Всегда используем GitHub для проверки, игнорируем Build Number от Paper
         final Optional<String> gitBranch = BUILD_INFO.gitBranch();
         final Optional<String> gitCommit = BUILD_INFO.gitCommit();
 
@@ -93,7 +106,7 @@ public class PaperVersionFetcher implements VersionFetcher {
     private static Component getUpdateStatusMessage() {
         int distance = DISTANCE_ERROR;
 
-        // PulseMC: Only GitHub Check
+        // Pulse: Only GitHub Check
         final Optional<String> gitBranch = PaperVersionFetcher.BUILD_INFO.gitBranch();
         final Optional<String> gitCommit = PaperVersionFetcher.BUILD_INFO.gitCommit();
         if (gitBranch.isPresent() && gitCommit.isPresent()) {
