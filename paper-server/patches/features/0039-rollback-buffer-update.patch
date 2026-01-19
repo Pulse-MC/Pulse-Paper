@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: tizis0 <hexgames84@gmail.com>
+Date: Mon, 19 Jan 2026 23:08:27 +0600
+Subject: [PATCH] rollback buffer update
+
+
+diff --git a/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+index c84599e27c1e12e23831388654c7e3b51b453833..8a0225f153280990be4e1c939ebe6b120267f72f 100644
+--- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
++++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+@@ -369,7 +369,7 @@ public class ServerGamePacketListenerImpl
+         }
+         // Pulse start
+         if (this.pulseBuffer != null) {
+-            this.pulseBuffer.tick(); // new smart method for batching.mode
++            this.pulseBuffer.flush();
+         }
+         // Pulse end
+     }
