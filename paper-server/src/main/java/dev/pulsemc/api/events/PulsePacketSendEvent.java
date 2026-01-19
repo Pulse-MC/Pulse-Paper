@@ -8,7 +8,7 @@ import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Вызывается, когда PulseBuffer собирается добавить пакет в очередь.
+ * Triggers when
  * Это "Виртуальная отправка". Физически пакет уйдет позже в бандле.
  */
 public class PulsePacketSendEvent extends Event implements Cancellable {
