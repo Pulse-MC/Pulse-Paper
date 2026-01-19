@@ -102,7 +102,7 @@ jobs:
             -F "commit_hash=${{ github.sha }}" \
             -F "author=${{ github.actor }}" \
             -F "commit_message=${{ github.event.head_commit.message }}" \
-            -F "platform"=Paper"
+            -F "platform"=Paper" \
             -F "file=@$FILE_PATH"
           
           echo "[PULSE] Upload complete!"
