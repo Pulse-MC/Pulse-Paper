@@ -6,6 +6,7 @@ on:
 
 jobs:
   build:
+    # Запускаем только если есть теги
     if: contains(github.event.head_commit.message, '[pulse:buildclip') || contains(github.event.head_commit.message, '[pulse:devbuild')
 
     runs-on: ubuntu-latest
@@ -16,6 +17,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # 1. Логика определения типа сборки (Вернул проверку на buildclip)
       - name: Parse Trigger & Version
         id: meta
         run: |
@@ -23,7 +25,7 @@ jobs:
           
           MODE="none"
           VERSION="1.21.11"
-
+          
           if [[ "$MSG" == *"[pulse:devbuild"* ]]; then
             MODE="devbuild"
             CUSTOM_VER=$(echo "$MSG" | sed -n 's/.*\[pulse:devbuild:\([^]]*\)\].*/\1/p')
@@ -43,32 +45,31 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
 
       - name: Configure Git Identity
         run: |
           git config --global user.email "builder@pulsemc.dev"
           git config --global user.name "PulseMC Builder"
 
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      - name: Apply Patches
-        run: ./gradlew applyPatches
-
       - name: Build Paperclip Jar
         env:
           BUILD_NUMBER: ${{ github.run_number }}
-        run: ./gradlew createMojmapPaperclipJar
+        run: |
+          chmod +x ./gradlew
+          ./gradlew applyPatches createMojmapPaperclipJar --build-cache --parallel --configure-on-demand
 
       - name: Prepare Artifact
         id: prepare_file
         run: |
           echo "[PULSE] Scanning build directories..."
-          JAR_FILE=$(find . -name "*paperclip*.jar" | head -n 1)
+          JAR_FILE=$(find . -type f -name "*paperclip*.jar" | head -n 1)
           
           if [ -z "$JAR_FILE" ]; then
             echo "[PULSE] CRITICAL: Paperclip JAR not found!"
+            find . -type d -name "libs" -exec ls -R {} +
             exit 1
           fi
           
@@ -95,13 +96,15 @@ jobs:
         run: |
           echo "[PULSE] Uploading DevBuild to API..."
           
+          COMMIT_MSG=$(echo "${{ github.event.head_commit.message }}" | tr -d '"' | head -n 1)
+
           curl -X POST "$API_URL" \
             -H "Authorization: Bearer $API_TOKEN" \
             -F "version=${{ steps.meta.outputs.version }}" \
             -F "build_id=${{ github.run_number }}" \
             -F "commit_hash=${{ github.sha }}" \
             -F "author=${{ github.actor }}" \
-            -F "commit_message=${{ github.event.head_commit.message }}" \
+            -F "commit_message=$COMMIT_MSG" \
             -F "platform=Paper" \
             -F "file=@$FILE_PATH"
           
