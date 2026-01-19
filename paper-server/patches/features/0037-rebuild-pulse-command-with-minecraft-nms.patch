@@ -1,0 +1,53 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: tizis0 <hexgames84@gmail.com>
+Date: Mon, 19 Jan 2026 21:19:23 +0600
+Subject: [PATCH] rebuild pulse command with minecraft-nms
+
+
+diff --git a/net/minecraft/commands/Commands.java b/net/minecraft/commands/Commands.java
+index 668eb52d71d77f75c24d4840be9a6c49d96dfc34..2d8c7066f9cd27318466f610d9af3482024069a2 100644
+--- a/net/minecraft/commands/Commands.java
++++ b/net/minecraft/commands/Commands.java
+@@ -153,6 +153,8 @@ import net.minecraft.world.phys.Vec2;
+ import net.minecraft.world.phys.Vec3;
+ import org.jspecify.annotations.Nullable;
+ import org.slf4j.Logger;
++import dev.pulsemc.command.PulseCommands;
++// PULSE_MODIFIED
+ 
+ public class Commands {
+     public interface RestrictedMarker { } // Paper - restricted api
+@@ -303,6 +305,10 @@ public class Commands {
+             PublishCommand.register(this.dispatcher);
+         }
+ 
++        // Pulse start - Register new vanilla command
++        PulseCommands.register(this.dispatcher);
++        // Pulse end - Register new vanilla command
++
+         // Paper start - Vanilla command permission fixes
+         for (final CommandNode<CommandSourceStack> node : this.dispatcher.getRoot().getChildren()) {
+             if (node.getRequirement() == com.mojang.brigadier.builder.ArgumentBuilder.<CommandSourceStack>defaultRequirement()) {
+diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
+index 7eac5953f026ee77943b1fcc657b7b8ec8c6e539..9817465965fcfbd14d526d217f1c04e1957189c3 100644
+--- a/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -320,18 +320,6 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+         dev.pulsemc.config.ConfigManager.load();
+         dev.pulsemc.network.PulseMetrics.start();
+         dev.pulsemc.network.PulseBar.start();
+-
+-        this.server.getCommandMap().register("pulse", "Pulse", new org.bukkit.command.defaults.BukkitCommand("pulse") {
+-            private final dev.pulsemc.command.PulseCommand executor = new dev.pulsemc.command.PulseCommand();
+-            @Override
+-            public boolean execute(org.bukkit.command.CommandSender sender, String commandLabel, String[] args) {
+-                return executor.onCommand(sender, this, commandLabel, args);
+-            }
+-            @Override
+-            public java.util.List<String> tabComplete(org.bukkit.command.CommandSender sender, String alias, String[] args) {
+-                return executor.onTabComplete(sender, this, alias, args);
+-            }
+-        });
+         // Pulse end
+ 
+         // CraftBukkit start
