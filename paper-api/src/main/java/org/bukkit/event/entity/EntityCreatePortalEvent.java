@@ -7,7 +7,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.world.PortalCreateEvent;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -17,17 +16,13 @@ import org.jetbrains.annotations.NotNull;
  */
 @Deprecated(since = "1.14.1")
 public class EntityCreatePortalEvent extends EntityEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final List<BlockState> blocks;
-    private final PortalType type;
+    private boolean cancelled = false;
+    private PortalType type = PortalType.CUSTOM;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
-    public EntityCreatePortalEvent(@NotNull final LivingEntity livingEntity, @NotNull final List<BlockState> blocks, @NotNull final PortalType type) {
-        super(livingEntity);
+    public EntityCreatePortalEvent(@NotNull final LivingEntity what, @NotNull final List<BlockState> blocks, @NotNull final PortalType type) {
+        super(what);
 
         this.blocks = blocks;
         this.type = type;
@@ -36,7 +31,7 @@ public class EntityCreatePortalEvent extends EntityEvent implements Cancellable 
     @NotNull
     @Override
     public LivingEntity getEntity() {
-        return (LivingEntity) this.entity;
+        return (LivingEntity) entity;
     }
 
     /**
@@ -46,7 +41,17 @@ public class EntityCreatePortalEvent extends EntityEvent implements Cancellable 
      */
     @NotNull
     public List<BlockState> getBlocks() {
-        return this.blocks;
+        return blocks;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.cancelled = cancel;
     }
 
     /**
@@ -56,27 +61,17 @@ public class EntityCreatePortalEvent extends EntityEvent implements Cancellable 
      */
     @NotNull
     public PortalType getPortalType() {
-        return this.type;
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return this.cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        return type;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

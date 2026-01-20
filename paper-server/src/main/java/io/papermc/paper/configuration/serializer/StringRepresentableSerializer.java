@@ -12,7 +12,6 @@ import org.spongepowered.configurate.serialize.ScalarSerializer;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 public final class StringRepresentableSerializer extends ScalarSerializer<StringRepresentable> {
-
     private static final Map<Type, Function<String, StringRepresentable>> TYPES = Collections.synchronizedMap(Map.ofEntries(
         createEntry(MobCategory.class)
     ));
@@ -25,22 +24,20 @@ public final class StringRepresentableSerializer extends ScalarSerializer<String
         return TYPES.containsKey(type);
     }
 
-    private static <E extends Enum<E> & StringRepresentable> Map.Entry<Type, Function<String, @Nullable StringRepresentable>> createEntry(final Class<E> type) {
-        return Map.entry(
-            type, s -> {
-                for (final E value : type.getEnumConstants()) {
-                    if (value.getSerializedName().equals(s)) {
-                        return value;
-                    }
+    private static <E extends Enum<E> & StringRepresentable> Map.Entry<Type, Function<String, @Nullable StringRepresentable>> createEntry(Class<E> type) {
+        return Map.entry(type, s -> {
+            for (E value : type.getEnumConstants()) {
+                if (value.getSerializedName().equals(s)) {
+                    return value;
                 }
-                return null;
             }
-        );
+            return null;
+        });
     }
 
     @Override
-    public StringRepresentable deserialize(final Type type, final Object obj) throws SerializationException {
-        final Function<String, StringRepresentable> function = TYPES.get(type);
+    public StringRepresentable deserialize(Type type, Object obj) throws SerializationException {
+        Function<String, StringRepresentable> function = TYPES.get(type);
         if (function == null) {
             throw new SerializationException(type + " isn't registered");
         }
@@ -48,7 +45,7 @@ public final class StringRepresentableSerializer extends ScalarSerializer<String
     }
 
     @Override
-    protected Object serialize(final StringRepresentable item, final Predicate<Class<?>> typeSupported) {
+    protected Object serialize(StringRepresentable item, Predicate<Class<?>> typeSupported) {
         return item.getSerializedName();
     }
 }

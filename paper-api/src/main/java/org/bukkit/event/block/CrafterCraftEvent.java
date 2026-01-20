@@ -5,7 +5,6 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.CraftingRecipe;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -13,16 +12,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public class CrafterCraftEvent extends BlockEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final CraftingRecipe recipe;
     private ItemStack result;
-
     private boolean cancelled;
 
-    @ApiStatus.Internal
-    public CrafterCraftEvent(@NotNull Block crafter, @NotNull CraftingRecipe recipe, @NotNull ItemStack result) {
-        super(crafter);
+    @org.jetbrains.annotations.ApiStatus.Internal // Paper - fix upstream annotation mistakes
+    public CrafterCraftEvent(@NotNull Block theBlock, @NotNull CraftingRecipe recipe, @NotNull ItemStack result) {
+        super(theBlock);
         this.result = result;
         this.recipe = recipe;
     }
@@ -34,7 +31,7 @@ public class CrafterCraftEvent extends BlockEvent implements Cancellable {
      */
     @NotNull
     public ItemStack getResult() {
-        return this.result.clone();
+        return result.clone();
     }
 
     /**
@@ -53,12 +50,12 @@ public class CrafterCraftEvent extends BlockEvent implements Cancellable {
      */
     @NotNull
     public CraftingRecipe getRecipe() {
-        return this.recipe;
+        return recipe;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
@@ -69,11 +66,11 @@ public class CrafterCraftEvent extends BlockEvent implements Cancellable {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

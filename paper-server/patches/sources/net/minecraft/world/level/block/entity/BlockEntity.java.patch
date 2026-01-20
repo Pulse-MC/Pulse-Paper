@@ -1,17 +1,17 @@
 --- a/net/minecraft/world/level/block/entity/BlockEntity.java
 +++ b/net/minecraft/world/level/block/entity/BlockEntity.java
-@@ -35,6 +_,10 @@
+@@ -26,6 +_,10 @@
  import org.slf4j.Logger;
  
  public abstract class BlockEntity {
 +    // CraftBukkit start - data containers
 +    private static final org.bukkit.craftbukkit.persistence.CraftPersistentDataTypeRegistry DATA_TYPE_REGISTRY = new org.bukkit.craftbukkit.persistence.CraftPersistentDataTypeRegistry();
-+    public final org.bukkit.craftbukkit.persistence.CraftPersistentDataContainer persistentDataContainer;
++    public org.bukkit.craftbukkit.persistence.CraftPersistentDataContainer persistentDataContainer;
 +    // CraftBukkit end
-     private static final Codec<BlockEntityType<?>> TYPE_CODEC = BuiltInRegistries.BLOCK_ENTITY_TYPE.byNameCodec();
      private static final Logger LOGGER = LogUtils.getLogger();
      private final BlockEntityType<?> type;
-@@ -50,6 +_,7 @@
+     @Nullable
+@@ -40,6 +_,7 @@
          this.worldPosition = pos.immutable();
          this.validateBlockState(blockState);
          this.blockState = blockState;
@@ -19,60 +19,59 @@
      }
  
      private void validateBlockState(BlockState state) {
-@@ -66,6 +_,7 @@
-         int intOr = tag.getIntOr("x", 0);
-         int intOr1 = tag.getIntOr("y", 0);
-         int intOr2 = tag.getIntOr("z", 0);
-+        if (chunkPos != null) { // Paper - allow reading non-validated pos from tag - used to parse block entities on items
-         int sectionPosCoord = SectionPos.blockToSectionCoord(intOr);
-         int sectionPosCoord1 = SectionPos.blockToSectionCoord(intOr2);
-         if (sectionPosCoord != chunkPos.x || sectionPosCoord1 != chunkPos.z) {
-@@ -73,6 +_,7 @@
-             intOr = chunkPos.getBlockX(SectionPos.sectionRelative(intOr));
-             intOr2 = chunkPos.getBlockZ(SectionPos.sectionRelative(intOr2));
-         }
-+        } // Paper - allow reading non-validated pos from tag - used to parse block entities on items
- 
-         return new BlockPos(intOr, intOr1, intOr2);
-     }
-@@ -91,6 +_,12 @@
+@@ -70,6 +_,14 @@
      }
  
-     protected void loadAdditional(ValueInput input) {
+     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
 +        // Paper start - read persistent data container
 +        this.persistentDataContainer.clear(); // Paper - clear instead of init
 +
-+        input.read("PublicBukkitValues", CompoundTag.CODEC)
-+            .ifPresent(this.persistentDataContainer::putAll);
++        net.minecraft.nbt.Tag persistentDataTag = tag.get("PublicBukkitValues");
++        if (persistentDataTag instanceof CompoundTag) {
++            this.persistentDataContainer.putAll((CompoundTag) persistentDataTag);
++        }
 +        // Paper end - read persistent data container
      }
  
-     public final void loadWithComponents(ValueInput input) {
-@@ -140,6 +_,11 @@
-     public void saveWithoutMetadata(ValueOutput output) {
-         this.saveAdditional(output);
-         output.store("components", DataComponentMap.CODEC, this.components);
+     public final void loadWithComponents(CompoundTag tag, HolderLookup.Provider registries) {
+@@ -106,12 +_,22 @@
+             .encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), this.components)
+             .resultOrPartial(string -> LOGGER.warn("Failed to save components: {}", string))
+             .ifPresent(tag -> compoundTag.merge((CompoundTag)tag));
 +        // CraftBukkit start - store container
-+        if (!this.persistentDataContainer.isEmpty()) {
-+            output.store("PublicBukkitValues", CompoundTag.CODEC, this.persistentDataContainer.toTagCompound());
++        if (this.persistentDataContainer != null && !this.persistentDataContainer.isEmpty()) {
++            compoundTag.put("PublicBukkitValues", this.persistentDataContainer.toTagCompound());
 +        }
 +        // CraftBukkit end
+         return compoundTag;
      }
  
      public final CompoundTag saveCustomOnly(HolderLookup.Provider registries) {
-@@ -155,6 +_,11 @@
- 
-     public void saveCustomOnly(ValueOutput output) {
-         this.saveAdditional(output);
+         CompoundTag compoundTag = new CompoundTag();
+         this.saveAdditional(compoundTag, registries);
 +        // Paper start - store PDC here as well
-+        if (!this.persistentDataContainer.isEmpty()) {
-+            output.store("PublicBukkitValues", CompoundTag.CODEC, this.persistentDataContainer.toTagCompound());
++        if (this.persistentDataContainer != null && !this.persistentDataContainer.isEmpty()) {
++            compoundTag.put("PublicBukkitValues", this.persistentDataContainer.toTagCompound());
 +        }
 +        // Paper end
+         return compoundTag;
      }
  
-     public void saveId(ValueOutput output) {
-@@ -287,6 +_,12 @@
+@@ -220,7 +_,12 @@
+     public void fillCrashReportCategory(CrashReportCategory reportCategory) {
+         reportCategory.setDetail("Name", this::getNameForReporting);
+         if (this.level != null) {
+-            CrashReportCategory.populateBlockDetails(reportCategory, this.level, this.worldPosition, this.getBlockState());
++            // Paper start - Prevent block entity and entity crashes
++            BlockState block = this.getBlockState();
++            if (block != null) {
++                CrashReportCategory.populateBlockDetails(reportCategory, this.level, this.worldPosition, block);
++            }
++            // Paper end - Prevent block entity and entity crashes
+             CrashReportCategory.populateBlockDetails(reportCategory, this.level, this.worldPosition, this.level.getBlockState(this.worldPosition));
+         }
+     }
+@@ -247,6 +_,12 @@
      }
  
      public final void applyComponents(DataComponentMap components, DataComponentPatch patch) {
@@ -85,7 +84,7 @@
          final Set<DataComponentType<?>> set = new HashSet<>();
          set.add(DataComponents.BLOCK_ENTITY_DATA);
          set.add(DataComponents.BLOCK_STATE);
-@@ -307,6 +_,10 @@
+@@ -267,6 +_,10 @@
          });
          DataComponentPatch dataComponentPatch = patch.forget(set::contains);
          this.components = dataComponentPatch.split().added();
@@ -96,19 +95,21 @@
      }
  
      protected void collectImplicitComponents(DataComponentMap.Builder components) {
-@@ -339,6 +_,27 @@
-     public ProblemReporter.PathElement problemPath() {
-         return new BlockEntity.BlockEntityPathElement(this);
+@@ -300,6 +_,30 @@
+             return null;
+         }
      }
 +
 +    // CraftBukkit start - add method
 +    public org.bukkit.inventory.InventoryHolder getOwner() {
++        // Paper start
 +        return getOwner(true);
 +    }
-+
 +    public org.bukkit.inventory.InventoryHolder getOwner(boolean useSnapshot) {
++        // Paper end
 +        if (this.level == null) return null;
-+        org.bukkit.block.Block block = org.bukkit.craftbukkit.block.CraftBlock.at(this.level, this.worldPosition);
++        org.bukkit.block.Block block = this.level.getWorld().getBlockAt(this.worldPosition.getX(), this.worldPosition.getY(), this.worldPosition.getZ());
++        // if (block.getType() == org.bukkit.Material.AIR) return null; // Paper - actually get the tile entity if it still exists
 +        org.bukkit.block.BlockState state = block.getState(useSnapshot); // Paper
 +        return state instanceof final org.bukkit.inventory.InventoryHolder inventoryHolder ? inventoryHolder : null;
 +    }
@@ -121,6 +122,7 @@
 +        return tag;
 +    }
 +    // Paper end - Sanitize sent data
++
  
-     record BlockEntityPathElement(BlockEntity blockEntity) implements ProblemReporter.PathElement {
-         @Override
+     static class ComponentHelper {
+         public static final Codec<DataComponentMap> COMPONENTS_CODEC = DataComponentMap.CODEC.optionalFieldOf("components", DataComponentMap.EMPTY).codec();

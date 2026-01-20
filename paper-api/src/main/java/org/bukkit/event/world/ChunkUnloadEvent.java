@@ -2,24 +2,19 @@ package org.bukkit.event.world;
 
 import org.bukkit.Chunk;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Called when a chunk is unloaded
  */
 public class ChunkUnloadEvent extends ChunkEvent {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private boolean saveChunk;
 
-    @ApiStatus.Internal
     public ChunkUnloadEvent(@NotNull final Chunk chunk) {
         this(chunk, true);
     }
 
-    @ApiStatus.Internal
     public ChunkUnloadEvent(@NotNull Chunk chunk, boolean save) {
         super(chunk);
         this.saveChunk = save;
@@ -31,7 +26,7 @@ public class ChunkUnloadEvent extends ChunkEvent {
      * @return chunk save status
      */
     public boolean isSaveChunk() {
-        return this.saveChunk;
+        return saveChunk;
     }
 
     /**
@@ -46,11 +41,11 @@ public class ChunkUnloadEvent extends ChunkEvent {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

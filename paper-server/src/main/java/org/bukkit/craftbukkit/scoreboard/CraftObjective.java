@@ -9,7 +9,6 @@ import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.RenderType;
 import org.bukkit.scoreboard.Score;
-import java.util.Objects;
 
 final class CraftObjective extends CraftScoreboardComponent implements Objective {
     private final net.minecraft.world.scores.Objective objective;
@@ -32,21 +31,21 @@ final class CraftObjective extends CraftScoreboardComponent implements Objective
         return this.objective.getName();
     }
 
+    // Paper start
     @Override
     public net.kyori.adventure.text.Component displayName() throws IllegalStateException {
-        this.checkState();
-        return io.papermc.paper.adventure.PaperAdventure.asAdventure(this.objective.getDisplayName());
+        CraftScoreboard scoreboard = checkState();
+        return io.papermc.paper.adventure.PaperAdventure.asAdventure(objective.getDisplayName());
     }
-
     @Override
     public void displayName(net.kyori.adventure.text.Component displayName) throws IllegalStateException, IllegalArgumentException {
-        this.checkState();
         if (displayName == null) {
             displayName = net.kyori.adventure.text.Component.empty();
         }
-        this.objective.setDisplayName(io.papermc.paper.adventure.PaperAdventure.asVanilla(displayName));
+        CraftScoreboard scoreboard = checkState();
+        objective.setDisplayName(io.papermc.paper.adventure.PaperAdventure.asVanilla(displayName));
     }
-
+    // Paper end
     @Override
     public String getDisplayName() {
         this.checkState();
@@ -66,7 +65,7 @@ final class CraftObjective extends CraftScoreboardComponent implements Objective
     public String getCriteria() {
         this.checkState();
 
-        return this.criteria.name;
+        return this.criteria.bukkitName;
     }
 
     @Override
@@ -85,26 +84,25 @@ final class CraftObjective extends CraftScoreboardComponent implements Objective
 
     @Override
     public void setDisplaySlot(DisplaySlot slot) {
-        this.checkState();
+        CraftScoreboard scoreboard = this.checkState();
+        Scoreboard board = scoreboard.board;
+        net.minecraft.world.scores.Objective objective = this.objective;
 
-        Scoreboard board = this.getScoreboard().getHandle();
-
-        for (net.minecraft.world.scores.DisplaySlot displaySlot : net.minecraft.world.scores.DisplaySlot.values()) {
-            if (board.getDisplayObjective(displaySlot) == this.objective) {
-                board.setDisplayObjective(displaySlot, null);
+        for (net.minecraft.world.scores.DisplaySlot i : net.minecraft.world.scores.DisplaySlot.values()) {
+            if (board.getDisplayObjective(i) == objective) {
+                board.setDisplayObjective(i, null);
             }
         }
         if (slot != null) {
-            net.minecraft.world.scores.DisplaySlot displaySlot = CraftScoreboardTranslations.fromBukkitSlot(slot);
-            board.setDisplayObjective(displaySlot, this.getHandle());
+            net.minecraft.world.scores.DisplaySlot slotNumber = CraftScoreboardTranslations.fromBukkitSlot(slot);
+            board.setDisplayObjective(slotNumber, this.getHandle());
         }
     }
 
     @Override
     public DisplaySlot getDisplaySlot() {
-        this.checkState();
-
-        Scoreboard board = this.getScoreboard().getHandle();
+        CraftScoreboard scoreboard = this.checkState();
+        Scoreboard board = scoreboard.board;
         net.minecraft.world.scores.Objective objective = this.objective;
 
         for (net.minecraft.world.scores.DisplaySlot i : net.minecraft.world.scores.DisplaySlot.values()) {
@@ -146,14 +144,16 @@ final class CraftObjective extends CraftScoreboardComponent implements Objective
         return new CraftScore(this, CraftScoreboard.getScoreHolder(entry));
     }
 
+    // Paper start
     @Override
     public Score getScoreFor(org.bukkit.entity.Entity entity) throws IllegalArgumentException, IllegalStateException {
         Preconditions.checkArgument(entity != null, "Entity cannot be null");
         this.checkState();
-
         return new CraftScore(this, ((org.bukkit.craftbukkit.entity.CraftEntity) entity).getHandle());
     }
+    // Paper end
 
+    // Paper start - add number format
     @Override
     public io.papermc.paper.scoreboard.numbers.NumberFormat numberFormat() {
         this.checkState();
@@ -167,6 +167,7 @@ final class CraftObjective extends CraftScoreboardComponent implements Objective
         return io.papermc.paper.util.PaperScoreboardFormat.asPaper(vanilla);
     }
 
+
     @Override
     public void numberFormat(io.papermc.paper.scoreboard.numbers.NumberFormat format) {
         this.checkState();
@@ -178,28 +179,20 @@ final class CraftObjective extends CraftScoreboardComponent implements Objective
 
         this.objective.setNumberFormat(io.papermc.paper.util.PaperScoreboardFormat.asVanilla(format));
     }
+    // Paper end - add number format
 
     @Override
     public void unregister() {
-        this.checkState();
-        this.getScoreboard().getHandle().removeObjective(this.objective);
+        CraftScoreboard scoreboard = this.checkState();
+
+        scoreboard.board.removeObjective(this.objective);
     }
 
     @Override
-    public boolean willAutoUpdateDisplay() {
-        this.checkState();
-        return this.objective.displayAutoUpdate();
-    }
+    CraftScoreboard checkState() {
+        Preconditions.checkState(this.getScoreboard().board.getObjective(this.objective.getName()) != null, "Unregistered scoreboard component");
 
-    @Override
-    public void setAutoUpdateDisplay(final boolean autoUpdateDisplay) {
-        this.checkState();
-        this.objective.setDisplayAutoUpdate(autoUpdateDisplay);
-    }
-
-    @Override
-    void checkState() {
-        Preconditions.checkState(this.getScoreboard().getHandle().getObjective(this.objective.getName()) != null, "Unregistered scoreboard component");
+        return this.getScoreboard();
     }
 
     @Override
@@ -218,6 +211,21 @@ final class CraftObjective extends CraftScoreboardComponent implements Objective
             return false;
         }
         final CraftObjective other = (CraftObjective) obj;
-        return Objects.equals(this.objective, other.objective);
+        return !(this.objective != other.objective && (this.objective == null || !this.objective.equals(other.objective)));
     }
+    // Paper start - add more score API
+    @Override
+    public boolean willAutoUpdateDisplay() {
+        this.checkState();
+        return this.objective.displayAutoUpdate();
+    }
+
+    @Override
+    public void setAutoUpdateDisplay(final boolean autoUpdateDisplay) {
+        this.checkState();
+        this.objective.setDisplayAutoUpdate(autoUpdateDisplay);
+    }
+    // Paper end - add more score API
+
+
 }

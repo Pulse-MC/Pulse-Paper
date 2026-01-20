@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.material.MaterialData;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,20 +16,17 @@ import org.jetbrains.annotations.Nullable;
  * <p>
  * This event is not called for some high frequency statistics, e.g. movement
  * based statistics.
+ *
  */
 public class PlayerStatisticIncrementEvent extends PlayerEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     protected final Statistic statistic;
     private final int initialValue;
     private final int newValue;
+    private boolean isCancelled = false;
     private final EntityType entityType;
     private final Material material;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
     public PlayerStatisticIncrementEvent(@NotNull Player player, @NotNull Statistic statistic, int initialValue, int newValue) {
         super(player);
         this.statistic = statistic;
@@ -40,7 +36,6 @@ public class PlayerStatisticIncrementEvent extends PlayerEvent implements Cancel
         this.material = null;
     }
 
-    @ApiStatus.Internal
     public PlayerStatisticIncrementEvent(@NotNull Player player, @NotNull Statistic statistic, int initialValue, int newValue, @NotNull EntityType entityType) {
         super(player);
         this.statistic = statistic;
@@ -50,7 +45,6 @@ public class PlayerStatisticIncrementEvent extends PlayerEvent implements Cancel
         this.material = null;
     }
 
-    @ApiStatus.Internal
     public PlayerStatisticIncrementEvent(@NotNull Player player, @NotNull Statistic statistic, int initialValue, int newValue, @NotNull Material material) {
         super(player);
         this.statistic = statistic;
@@ -77,7 +71,7 @@ public class PlayerStatisticIncrementEvent extends PlayerEvent implements Cancel
      */
     @NotNull
     public Statistic getStatistic() {
-        return this.statistic;
+        return statistic;
     }
 
     /**
@@ -86,7 +80,7 @@ public class PlayerStatisticIncrementEvent extends PlayerEvent implements Cancel
      * @return the previous value of the statistic
      */
     public int getPreviousValue() {
-        return this.initialValue;
+        return initialValue;
     }
 
     /**
@@ -95,49 +89,49 @@ public class PlayerStatisticIncrementEvent extends PlayerEvent implements Cancel
      * @return the new value of the statistic
      */
     public int getNewValue() {
-        return this.newValue;
+        return newValue;
     }
 
     /**
-     * Gets the EntityType if {@link #getStatistic()} is an
-     * entity statistic otherwise returns {@code null}.
+     * Gets the EntityType if {@link #getStatistic() getStatistic()} is an
+     * entity statistic otherwise returns null.
      *
      * @return the EntityType of the statistic
      */
     @Nullable
     public EntityType getEntityType() {
-        return this.entityType;
+        return entityType;
     }
 
     /**
-     * Gets the Material if {@link #getStatistic()} is a block
-     * or item statistic otherwise returns {@code null}.
+     * Gets the Material if {@link #getStatistic() getStatistic()} is a block
+     * or item statistic otherwise returns null.
      *
      * @return the Material of the statistic
      */
     @Nullable
     public Material getMaterial() {
-        return this.material;
+        return material;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return isCancelled;
     }
 
     @Override
     public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        this.isCancelled = cancel;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

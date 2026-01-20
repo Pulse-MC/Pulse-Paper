@@ -6,6 +6,7 @@ import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.tag.PostFlattenTagRegistrar;
 import io.papermc.paper.tag.PreFlattenTagRegistrar;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Provides event types for tag registration.
@@ -13,6 +14,8 @@ import org.jetbrains.annotations.ApiStatus;
  * @see PreFlattenTagRegistrar
  * @see PostFlattenTagRegistrar
  */
+@ApiStatus.Experimental
+@NullMarked
 @ApiStatus.NonExtendable
 public interface TagEventTypeProvider {
 

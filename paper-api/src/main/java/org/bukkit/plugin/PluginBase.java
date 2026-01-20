@@ -1,7 +1,6 @@
 package org.bukkit.plugin;
 
 import org.jetbrains.annotations.NotNull;
-import java.util.Locale;
 
 /**
  * Represents a base {@link Plugin}
@@ -33,11 +32,5 @@ public abstract class PluginBase implements Plugin {
     @NotNull
     public final String getName() {
         return getPluginMeta().getName(); // Paper
-    }
-
-    @Override
-    @NotNull
-    public String namespace() {
-        return this.getPluginMeta().namespace();
     }
 }

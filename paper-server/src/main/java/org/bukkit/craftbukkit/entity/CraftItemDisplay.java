@@ -15,7 +15,12 @@ public class CraftItemDisplay extends CraftDisplay implements ItemDisplay {
 
     @Override
     public net.minecraft.world.entity.Display.ItemDisplay getHandle() {
-        return (net.minecraft.world.entity.Display.ItemDisplay) this.entity;
+        return (net.minecraft.world.entity.Display.ItemDisplay) super.getHandle();
+    }
+
+    @Override
+    public String toString() {
+        return "CraftItemDisplay";
     }
 
     @Override

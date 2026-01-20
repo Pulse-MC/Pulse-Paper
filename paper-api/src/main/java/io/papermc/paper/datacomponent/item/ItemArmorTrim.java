@@ -13,7 +13,12 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 @ApiStatus.Experimental
 @ApiStatus.NonExtendable
-public interface ItemArmorTrim  {
+public interface ItemArmorTrim extends ShownInTooltip<ItemArmorTrim> {
+
+    @Contract(value = "_, _ -> new", pure = true)
+    static ItemArmorTrim itemArmorTrim(final ArmorTrim armorTrim, final boolean showInTooltip) {
+        return itemArmorTrim(armorTrim).showInTooltip(showInTooltip).build();
+    }
 
     @Contract(value = "_ -> new", pure = true)
     static ItemArmorTrim.Builder itemArmorTrim(final ArmorTrim armorTrim) {
@@ -33,7 +38,7 @@ public interface ItemArmorTrim  {
      */
     @ApiStatus.Experimental
     @ApiStatus.NonExtendable
-    interface Builder extends DataComponentBuilder<ItemArmorTrim> {
+    interface Builder extends ShownInTooltip.Builder<Builder>, DataComponentBuilder<ItemArmorTrim> {
 
         /**
          * Sets the armor trim for this builder.

@@ -1,9 +1,8 @@
 package org.bukkit.entity;
 
 import org.bukkit.Location;
-import org.jetbrains.annotations.Nullable;
 
-public interface Dolphin extends Ageable, WaterMob {
+public interface Dolphin extends Ageable, WaterMob { // Paper start - Dolphin API
 
     /**
      * Gets the moistness level of this dolphin
@@ -38,7 +37,7 @@ public interface Dolphin extends Ageable, WaterMob {
      *
      *  @return calculated closest treasure location
      */
-    @Nullable
+    @org.jetbrains.annotations.NotNull
     Location getTreasureLocation();
 
     /**
@@ -49,5 +48,5 @@ public interface Dolphin extends Ageable, WaterMob {
      *
      *  @param location location to guide to
      */
-    void setTreasureLocation(@Nullable Location location);
-}
+    void setTreasureLocation(@org.jetbrains.annotations.NotNull Location location);
+} // Paper end - Dolphin API

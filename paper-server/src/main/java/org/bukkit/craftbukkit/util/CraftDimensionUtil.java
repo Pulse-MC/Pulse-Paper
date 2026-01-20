@@ -4,7 +4,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.LevelStem;
 
-public final class CraftDimensionUtil {
+public class CraftDimensionUtil {
 
     private CraftDimensionUtil() {
     }

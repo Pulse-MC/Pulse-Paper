@@ -2,7 +2,6 @@ package org.bukkit.craftbukkit.entity;
 
 import com.google.common.base.Preconditions;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.EntityReference;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.util.CraftLocation;
@@ -16,18 +15,19 @@ public class CraftVex extends CraftMonster implements Vex {
 
     @Override
     public net.minecraft.world.entity.monster.Vex getHandle() {
-        return (net.minecraft.world.entity.monster.Vex) this.entity;
+        return (net.minecraft.world.entity.monster.Vex) super.getHandle();
     }
 
+    // Paper start
     @Override
     public org.bukkit.entity.Mob getSummoner() {
-        net.minecraft.world.entity.Mob owner = this.getHandle().getOwner();
+        net.minecraft.world.entity.Mob owner = getHandle().getOwner();
         return owner != null ? (org.bukkit.entity.Mob) owner.getBukkitEntity() : null;
     }
 
     @Override
     public void setSummoner(org.bukkit.entity.Mob summoner) {
-        this.getHandle().owner = summoner == null ? null : new EntityReference<>(((CraftMob) summoner).getHandle());
+        getHandle().setOwner(summoner == null ? null : ((CraftMob) summoner).getHandle());
     }
 
     @Override
@@ -49,6 +49,12 @@ public class CraftVex extends CraftMonster implements Vex {
     public void setLimitedLifetimeTicks(int ticks) {
         this.getHandle().limitedLifeTicks = ticks;
     }
+    // Paper end
+
+    @Override
+    public String toString() {
+        return "CraftVex";
+    }
 
     @Override
     public boolean isCharging() {
@@ -62,8 +68,8 @@ public class CraftVex extends CraftMonster implements Vex {
 
     @Override
     public Location getBound() {
-        BlockPos pos = this.getHandle().getBoundOrigin();
-        return (pos == null) ? null : CraftLocation.toBukkit(pos, this.getWorld());
+        BlockPos blockPosition = this.getHandle().getBoundOrigin();
+        return (blockPosition == null) ? null : CraftLocation.toBukkit(blockPosition, this.getWorld());
     }
 
     @Override

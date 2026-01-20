@@ -7,7 +7,6 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -15,16 +14,13 @@ import org.jetbrains.annotations.NotNull;
  */
 public class PlayerBucketEntityEvent extends PlayerEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    protected final Entity entity;
+    private static final HandlerList handlers = new HandlerList();
+    private boolean cancelled;
+    private final Entity entity;
     private final ItemStack originalBucket;
     private final ItemStack entityBucket;
     private final EquipmentSlot hand;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
     public PlayerBucketEntityEvent(@NotNull Player player, @NotNull Entity entity, @NotNull ItemStack originalBucket, @NotNull ItemStack entityBucket, @NotNull EquipmentSlot hand) {
         super(player);
         this.entity = entity;
@@ -40,24 +36,24 @@ public class PlayerBucketEntityEvent extends PlayerEvent implements Cancellable 
      */
     @NotNull
     public Entity getEntity() {
-        return this.entity;
+        return entity;
     }
 
     /**
      * Gets the bucket used to capture the {@link Entity}.
-     * <br>
+     *
      * This refers to the bucket clicked with, eg {@link Material#WATER_BUCKET}.
      *
      * @return The used bucket
      */
     @NotNull
     public ItemStack getOriginalBucket() {
-        return this.originalBucket;
+        return originalBucket;
     }
 
     /**
      * Gets the bucket that the {@link Entity} will be put into.
-     * <br>
+     *
      * This refers to the bucket with the entity, eg
      * {@link Material#PUFFERFISH_BUCKET}.
      *
@@ -65,7 +61,7 @@ public class PlayerBucketEntityEvent extends PlayerEvent implements Cancellable 
      */
     @NotNull
     public ItemStack getEntityBucket() {
-        return this.entityBucket;
+        return entityBucket;
     }
 
     /**
@@ -75,12 +71,12 @@ public class PlayerBucketEntityEvent extends PlayerEvent implements Cancellable 
      */
     @NotNull
     public EquipmentSlot getHand() {
-        return this.hand;
+        return hand;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
@@ -91,11 +87,11 @@ public class PlayerBucketEntityEvent extends PlayerEvent implements Cancellable 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

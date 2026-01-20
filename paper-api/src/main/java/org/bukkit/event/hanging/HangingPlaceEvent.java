@@ -16,18 +16,14 @@ import org.jetbrains.annotations.Nullable;
  * Triggered when a hanging entity is created in the world
  */
 public class HangingPlaceEvent extends HangingEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    private boolean cancelled;
     private final Player player;
     private final Block block;
     private final BlockFace blockFace;
     private final EquipmentSlot hand;
     private final ItemStack itemStack;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
     @Deprecated(since = "1.17.1")
     public HangingPlaceEvent(@NotNull final Hanging hanging, @Nullable final Player player, @NotNull final Block block, @NotNull final BlockFace blockFace, @Nullable final EquipmentSlot hand) {
         this(hanging, player, block, blockFace, hand, null);
@@ -50,7 +46,7 @@ public class HangingPlaceEvent extends HangingEvent implements Cancellable {
      */
     @Nullable
     public Player getPlayer() {
-        return this.player;
+        return player;
     }
 
     /**
@@ -60,7 +56,7 @@ public class HangingPlaceEvent extends HangingEvent implements Cancellable {
      */
     @NotNull
     public Block getBlock() {
-        return this.block;
+        return block;
     }
 
     /**
@@ -70,18 +66,18 @@ public class HangingPlaceEvent extends HangingEvent implements Cancellable {
      */
     @NotNull
     public BlockFace getBlockFace() {
-        return this.blockFace;
+        return blockFace;
     }
 
     /**
-     * Returns the hand that was used to place the hanging entity, or {@code null}
+     * Returns the hand that was used to place the hanging entity, or null
      * if a player did not place the hanging entity.
      *
      * @return the hand
      */
     @Nullable
     public EquipmentSlot getHand() {
-        return this.hand;
+        return hand;
     }
 
     /**
@@ -91,12 +87,12 @@ public class HangingPlaceEvent extends HangingEvent implements Cancellable {
      */
     @Nullable
     public ItemStack getItemStack() {
-        return this.itemStack;
+        return itemStack;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
@@ -107,11 +103,11 @@ public class HangingPlaceEvent extends HangingEvent implements Cancellable {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

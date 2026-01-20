@@ -35,7 +35,10 @@ import org.bukkit.material.MaterialData;
 /**
  * This class may seem unnecessarily slow and complicated/repetitive however it
  * is able to handle a lot more edge cases and invertible transformations (many
- * of which are not immediately obvious) than any other alternative.
+ * of which are not immediately obvious) than any other alternative. If you do
+ * make changes to this class please make sure to contribute them back
+ * https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse so
+ * that all may benefit.
  *
  * @deprecated legacy use only
  */
@@ -53,6 +56,7 @@ public final class CraftLegacy {
     private static final Map<Block, MaterialData> blockToMaterial = new HashMap<>(1024);
 
     private CraftLegacy() {
+        //
     }
 
     public static Material toLegacy(Material material) {
@@ -78,10 +82,10 @@ public final class CraftLegacy {
 
         if (mappedData == null && material.isBlock()) {
             Block block = CraftMagicNumbers.getBlock(material);
-            BlockState state = block.defaultBlockState();
+            BlockState blockData = block.defaultBlockState();
 
             // Try exact match first
-            mappedData = CraftLegacy.dataToMaterial.get(state);
+            mappedData = CraftLegacy.dataToMaterial.get(blockData);
             // Fallback to any block
             if (mappedData == null) {
                 mappedData = CraftLegacy.blockToMaterial.get(block);
@@ -149,22 +153,22 @@ public final class CraftLegacy {
         return Items.AIR;
     }
 
-    public static byte toLegacyData(BlockState state) {
-        return CraftLegacy.toLegacy(state).getData();
+    public static byte toLegacyData(BlockState blockData) {
+        return CraftLegacy.toLegacy(blockData).getData();
     }
 
-    public static Material toLegacyMaterial(BlockState state) {
-        return CraftLegacy.toLegacy(state).getItemType();
+    public static Material toLegacyMaterial(BlockState blockData) {
+        return CraftLegacy.toLegacy(blockData).getItemType();
     }
 
-    public static MaterialData toLegacy(BlockState state) {
+    public static MaterialData toLegacy(BlockState blockData) {
         MaterialData mappedData;
 
         // Try exact match first
-        mappedData = CraftLegacy.dataToMaterial.get(state);
+        mappedData = CraftLegacy.dataToMaterial.get(blockData);
         // Fallback to any block
         if (mappedData == null) {
-            mappedData = CraftLegacy.blockToMaterial.get(state.getBlock());
+            mappedData = CraftLegacy.blockToMaterial.get(blockData.getBlock());
         }
 
         return (mappedData == null) ? new MaterialData(Material.LEGACY_AIR) : mappedData;
@@ -257,6 +261,7 @@ public final class CraftLegacy {
     }
 
     public static void init() {
+        //
     }
 
     static {
@@ -348,7 +353,7 @@ public final class CraftLegacy {
                     Optional<CompoundTag> propMap = blockTag.getElement("Properties").result();
                     if (propMap.isPresent()) {
                         CompoundTag properties = propMap.get();
-                        for (String dataKey : properties.keySet()) {
+                        for (String dataKey : properties.getAllKeys()) {
                             Property state = states.getProperty(dataKey);
 
                             if (state == null) {
@@ -356,8 +361,8 @@ public final class CraftLegacy {
                                 continue;
                             }
 
-                            Preconditions.checkState(properties.getString(dataKey).isPresent(), "Empty data string");
-                            Optional opt = state.getValue(properties.getStringOr(dataKey, ""));
+                            Preconditions.checkState(!properties.getString(dataKey).isEmpty(), "Empty data string");
+                            Optional opt = state.getValue(properties.getString(dataKey));
                             Preconditions.checkArgument(opt.isPresent(), "No state value %s for %s", properties.getString(dataKey), dataKey);
 
                             blockData = blockData.setValue(state, (Comparable) opt.get());
@@ -438,5 +443,9 @@ public final class CraftLegacy {
         // From Material#isBlock before the rewrite to ItemType / BlockType
         // Git hash: 42f6cdf4c5dcdd52a27543403dcd17fb60311621
         return 0 <= material.getId() && material.getId() < 256;
+    }
+
+    public static void main(String[] args) {
+        System.err.println("");
     }
 }

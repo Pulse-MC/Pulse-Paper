@@ -8,7 +8,6 @@ import org.bukkit.craftbukkit.block.CraftBlock;
 import org.bukkit.entity.Hanging;
 
 public class CraftHanging extends CraftBlockAttachedEntity implements Hanging {
-
     public CraftHanging(CraftServer server, HangingEntity entity) {
         super(server, entity);
     }
@@ -61,5 +60,10 @@ public class CraftHanging extends CraftBlockAttachedEntity implements Hanging {
     @Override
     public HangingEntity getHandle() {
         return (HangingEntity) this.entity;
+    }
+
+    @Override
+    public String toString() {
+        return "CraftHanging";
     }
 }

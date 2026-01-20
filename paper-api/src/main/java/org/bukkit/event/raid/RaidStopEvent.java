@@ -3,7 +3,6 @@ package org.bukkit.event.raid;
 import org.bukkit.Raid;
 import org.bukkit.World;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -11,11 +10,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public class RaidStopEvent extends RaidEvent {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    //
     private final Reason reason;
 
-    @ApiStatus.Internal
     public RaidStopEvent(@NotNull Raid raid, @NotNull World world, @NotNull Reason reason) {
         super(raid, world);
         this.reason = reason;
@@ -28,18 +26,18 @@ public class RaidStopEvent extends RaidEvent {
      */
     @NotNull
     public Reason getReason() {
-        return this.reason;
+        return reason;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     public enum Reason {

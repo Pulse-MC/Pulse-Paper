@@ -3,7 +3,6 @@ package org.bukkit.craftbukkit.inventory;
 import static org.bukkit.craftbukkit.inventory.CraftItemFactory.*;
 import com.google.common.collect.ImmutableMap.Builder;
 import java.util.Map;
-import java.util.Objects;
 import net.minecraft.core.component.DataComponentPatch;
 import org.bukkit.Color;
 import org.bukkit.configuration.serialization.DelegateDeserialization;
@@ -16,18 +15,26 @@ public class CraftMetaColorableArmor extends CraftMetaArmor implements Colorable
 
     CraftMetaColorableArmor(CraftMetaItem meta) {
         super(meta);
+        // Paper start
         if (!(meta instanceof CraftMetaColorableArmor armorMeta)) {
             return;
         }
 
         this.color = armorMeta.color;
+        // Paper end
     }
 
-    CraftMetaColorableArmor(DataComponentPatch tag, java.util.Set<net.minecraft.core.component.DataComponentType<?>> extraHandledDcts) {
-        super(tag, extraHandledDcts);
+    CraftMetaColorableArmor(DataComponentPatch tag, java.util.Set<net.minecraft.core.component.DataComponentType<?>> extraHandledDcts) { // Paper
+        super(tag, extraHandledDcts); // Paper
+        // Paper start
         getOrEmpty(tag, CraftMetaLeatherArmor.COLOR).ifPresent((dyedItemColor) -> {
+            if (!dyedItemColor.showInTooltip()) {
+                this.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_DYE);
+            }
+
             this.color = dyedItemColor.rgb();
         });
+        // Paper end
     }
 
     CraftMetaColorableArmor(Map<String, Object> map) {
@@ -36,11 +43,13 @@ public class CraftMetaColorableArmor extends CraftMetaArmor implements Colorable
     }
 
     @Override
-    void applyToItem(CraftMetaItem.Applicator tag) {
-        super.applyToItem(tag);
+    void applyToItem(CraftMetaItem.Applicator itemTag) {
+        super.applyToItem(itemTag);
+        // Paper start
         if (this.hasColor()) {
-            tag.put(CraftMetaLeatherArmor.COLOR, new net.minecraft.world.item.component.DyedItemColor(this.color));
+            itemTag.put(CraftMetaLeatherArmor.COLOR, new net.minecraft.world.item.component.DyedItemColor(this.color, !this.hasItemFlag(org.bukkit.inventory.ItemFlag.HIDE_DYE)));
         }
+        // Paper end
     }
 
     @Override
@@ -61,16 +70,16 @@ public class CraftMetaColorableArmor extends CraftMetaArmor implements Colorable
 
     @Override
     public Color getColor() {
-        return this.color == null ? DEFAULT_LEATHER_COLOR : Color.fromRGB(this.color & 0x00FFFFFF); // Paper - this should really be nullable
+        return this.color == null ? DEFAULT_LEATHER_COLOR : Color.fromRGB(this.color & 0xFFFFFF); // Paper - this should really be nullable
     }
 
     @Override
     public void setColor(Color color) {
-        this.color = color == null ? null : color.asRGB();
+        this.color = color == null ? null : color.asRGB(); // Paper
     }
 
     boolean hasColor() {
-        return this.color != null;
+        return this.color != null; // Paper
     }
 
     @Override
@@ -87,8 +96,10 @@ public class CraftMetaColorableArmor extends CraftMetaArmor implements Colorable
         if (!super.equalsCommon(meta)) {
             return false;
         }
-        if (meta instanceof final CraftMetaColorableArmor other) {
-            return Objects.equals(this.color, other.color);
+        if (meta instanceof CraftMetaColorableArmor) {
+            CraftMetaColorableArmor that = (CraftMetaColorableArmor) meta;
+
+            return this.hasColor() ? that.hasColor() && this.color.equals(that.color) : !that.hasColor(); // Paper - allow null
         }
         return true;
     }
@@ -108,8 +119,10 @@ public class CraftMetaColorableArmor extends CraftMetaArmor implements Colorable
         return original != hash ? CraftMetaColorableArmor.class.hashCode() ^ hash : hash;
     }
 
+    // Paper start - Expose #hasColor to leather armor
     @Override
     public boolean isDyed() {
-        return this.hasColor();
+        return hasColor();
     }
+    // Paper end - Expose #hasColor to leather armor
 }

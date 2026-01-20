@@ -11,7 +11,12 @@ public class CraftEndermite extends CraftMonster implements Endermite {
 
     @Override
     public net.minecraft.world.entity.monster.Endermite getHandle() {
-        return (net.minecraft.world.entity.monster.Endermite) this.entity;
+        return (net.minecraft.world.entity.monster.Endermite) super.getHandle();
+    }
+
+    @Override
+    public String toString() {
+        return "CraftEndermite";
     }
 
     @Override
@@ -23,7 +28,7 @@ public class CraftEndermite extends CraftMonster implements Endermite {
     public void setPlayerSpawned(boolean playerSpawned) {
         // Nop
     }
-
+    // Paper start
     @Override
     public void setLifetimeTicks(int ticks) {
         this.getHandle().life = ticks;
@@ -33,4 +38,5 @@ public class CraftEndermite extends CraftMonster implements Endermite {
     public int getLifetimeTicks() {
         return this.getHandle().life;
     }
+    // Paper end
 }

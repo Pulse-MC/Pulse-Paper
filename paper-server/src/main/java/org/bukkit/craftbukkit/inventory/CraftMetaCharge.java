@@ -2,7 +2,6 @@ package org.bukkit.craftbukkit.inventory;
 
 import com.google.common.collect.ImmutableMap.Builder;
 import java.util.Map;
-import java.util.Objects;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.component.FireworkExplosion;
@@ -19,8 +18,8 @@ class CraftMetaCharge extends CraftMetaItem implements FireworkEffectMeta {
     CraftMetaCharge(CraftMetaItem meta) {
         super(meta);
 
-        if (meta instanceof final CraftMetaCharge chargeMeta) {
-            this.effect = chargeMeta.effect;
+        if (meta instanceof CraftMetaCharge) {
+            this.effect = ((CraftMetaCharge) meta).effect;
         }
     }
 
@@ -30,8 +29,8 @@ class CraftMetaCharge extends CraftMetaItem implements FireworkEffectMeta {
         this.setEffect(SerializableMeta.getObject(FireworkEffect.class, map, CraftMetaCharge.EXPLOSION.BUKKIT, true));
     }
 
-    CraftMetaCharge(DataComponentPatch tag, java.util.Set<net.minecraft.core.component.DataComponentType<?>> extraHandledDcts) {
-        super(tag, extraHandledDcts);
+    CraftMetaCharge(DataComponentPatch tag, java.util.Set<net.minecraft.core.component.DataComponentType<?>> extraHandledDcts) { // Paper
+        super(tag, extraHandledDcts); // Paper
 
         getOrEmpty(tag, CraftMetaCharge.EXPLOSION).ifPresent((f) -> {
             try {
@@ -58,11 +57,11 @@ class CraftMetaCharge extends CraftMetaItem implements FireworkEffectMeta {
     }
 
     @Override
-    void applyToItem(CraftMetaItem.Applicator tag) {
-        super.applyToItem(tag);
+    void applyToItem(CraftMetaItem.Applicator itemTag) {
+        super.applyToItem(itemTag);
 
         if (this.hasEffect()) {
-            tag.put(CraftMetaCharge.EXPLOSION, CraftMetaFirework.getExplosion(this.effect));
+            itemTag.put(CraftMetaCharge.EXPLOSION, CraftMetaFirework.getExplosion(this.effect));
         }
     }
 
@@ -80,8 +79,10 @@ class CraftMetaCharge extends CraftMetaItem implements FireworkEffectMeta {
         if (!super.equalsCommon(meta)) {
             return false;
         }
-        if (meta instanceof final CraftMetaCharge other) {
-            return Objects.equals(this.effect, other.effect);
+        if (meta instanceof CraftMetaCharge) {
+            CraftMetaCharge that = (CraftMetaCharge) meta;
+
+            return (this.hasEffect() ? that.hasEffect() && this.effect.equals(that.effect) : !that.hasEffect());
         }
         return true;
     }

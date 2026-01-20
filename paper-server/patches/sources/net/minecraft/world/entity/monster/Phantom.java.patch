@@ -1,8 +1,8 @@
 --- a/net/minecraft/world/entity/monster/Phantom.java
 +++ b/net/minecraft/world/entity/monster/Phantom.java
-@@ -49,6 +_,11 @@
-     @Nullable
-     public BlockPos anchorPoint;
+@@ -47,6 +_,11 @@
+     Vec3 moveTargetPoint = Vec3.ZERO;
+     public BlockPos anchorPoint = BlockPos.ZERO;
      Phantom.AttackPhase attackPhase = Phantom.AttackPhase.CIRCLE;
 +    // Paper start
 +    @Nullable
@@ -12,7 +12,7 @@
  
      public Phantom(EntityType<? extends Phantom> entityType, Level level) {
          super(entityType, level);
-@@ -143,7 +_,7 @@
+@@ -141,7 +_,7 @@
  
      @Override
      public void aiStep() {
@@ -21,37 +21,42 @@
              this.igniteForSeconds(8.0F);
          }
  
-@@ -178,6 +_,10 @@
-         super.readAdditionalSaveData(input);
-         this.anchorPoint = input.read("anchor_pos", BlockPos.CODEC).orElse(null);
-         this.setPhantomSize(input.getIntOr("size", 0));
+@@ -165,6 +_,15 @@
+         }
+ 
+         this.setPhantomSize(compound.getInt("Size"));
++
 +        // Paper start
-+        this.spawningEntity = input.read("Paper.SpawningEntity", net.minecraft.core.UUIDUtil.CODEC).orElse(null);
-+        this.shouldBurnInDay = input.getBooleanOr("Paper.ShouldBurnInDay", true);
++        if (compound.hasUUID("Paper.SpawningEntity")) {
++            this.spawningEntity = compound.getUUID("Paper.SpawningEntity");
++        }
++        if (compound.contains("Paper.ShouldBurnInDay")) {
++            this.shouldBurnInDay = compound.getBoolean("Paper.ShouldBurnInDay");
++        }
 +        // Paper end
      }
  
      @Override
-@@ -185,6 +_,10 @@
-         super.addAdditionalSaveData(output);
-         output.storeNullable("anchor_pos", BlockPos.CODEC, this.anchorPoint);
-         output.putInt("size", this.getPhantomSize());
+@@ -174,6 +_,12 @@
+         compound.putInt("AY", this.anchorPoint.getY());
+         compound.putInt("AZ", this.anchorPoint.getZ());
+         compound.putInt("Size", this.getPhantomSize());
 +        // Paper start
-+        output.storeNullable("Paper.SpawningEntity", net.minecraft.core.UUIDUtil.CODEC, this.spawningEntity);
-+        output.putBoolean("Paper.ShouldBurnInDay", this.shouldBurnInDay);
++        if (this.spawningEntity != null) {
++            compound.putUUID("Paper.SpawningEntity", this.spawningEntity);
++        }
++        compound.putBoolean("Paper.ShouldBurnInDay", this.shouldBurnInDay);
 +        // Paper end
      }
  
      @Override
-@@ -258,8 +_,10 @@
+@@ -247,7 +_,8 @@
  
                      for (Player player : nearbyPlayers) {
                          if (Phantom.this.canAttack(serverLevel, player, TargetingConditions.DEFAULT)) {
 -                            Phantom.this.setTarget(player);
-+                            if (!level().paperConfig().entities.behavior.phantomsOnlyAttackInsomniacs || EntitySelector.IS_INSOMNIAC.test(player)) { // Paper - Add phantom creative and insomniac controls
-+                            Phantom.this.setTarget(player, org.bukkit.event.entity.EntityTargetEvent.TargetReason.CLOSEST_PLAYER); // CraftBukkit - reason
++                            if (!level().paperConfig().entities.behavior.phantomsOnlyAttackInsomniacs || EntitySelector.IS_INSOMNIAC.test(player)) // Paper - Add phantom creative and insomniac controls
++                            Phantom.this.setTarget(player, org.bukkit.event.entity.EntityTargetEvent.TargetReason.CLOSEST_PLAYER, true); // CraftBukkit - reason
                              return true;
-+                            } // Paper - Add phantom creative and insomniac controls
                          }
                      }
-                 }

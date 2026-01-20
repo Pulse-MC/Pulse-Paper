@@ -9,6 +9,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * An argument type that wraps around a native-to-vanilla argument type.
@@ -22,6 +23,8 @@ import org.jetbrains.annotations.ApiStatus;
  * @param <T> custom type
  * @param <N> type with an argument native to vanilla Minecraft (from {@link ArgumentTypes})
  */
+@ApiStatus.Experimental
+@NullMarked
 public interface CustomArgumentType<T, N> extends ArgumentType<T> {
 
     /**
@@ -104,6 +107,7 @@ public interface CustomArgumentType<T, N> extends ArgumentType<T> {
      * @param <T> custom type
      * @param <N> type with an argument native to vanilla Minecraft (from {@link ArgumentTypes})
      */
+    @ApiStatus.Experimental
     interface Converted<T, N> extends CustomArgumentType<T, N> {
 
         @ApiStatus.NonExtendable

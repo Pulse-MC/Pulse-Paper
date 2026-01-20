@@ -1,22 +1,21 @@
 package org.bukkit.event.block;
 
-import com.google.common.base.Preconditions;
 import org.bukkit.block.Block;
+import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Range;
 
 /**
  * Called when a brewing stand starts to brew.
  */
-@ApiStatus.Experimental // Paper
+@org.jetbrains.annotations.ApiStatus.Experimental // Paper
 public class BrewingStartEvent extends InventoryBlockStartEvent {
 
+    // Paper - remove HandlerList
     private int brewingTime;
-    private int recipeBrewTime = 400;
+    private int recipeBrewTime = 400; // Paper - Add recipeBrewTime
 
-    @ApiStatus.Internal
+    @org.jetbrains.annotations.ApiStatus.Internal // Paper
     public BrewingStartEvent(@NotNull final Block furnace, @NotNull ItemStack source, int brewingTime) {
         super(furnace, source);
         this.brewingTime = brewingTime;
@@ -30,7 +29,7 @@ public class BrewingStartEvent extends InventoryBlockStartEvent {
      */
     @Deprecated(since = "1.21", forRemoval = true) // Paper
     public int getTotalBrewTime() {
-        return this.brewingTime;
+        return brewingTime;
     }
 
     /**
@@ -41,9 +40,12 @@ public class BrewingStartEvent extends InventoryBlockStartEvent {
      */
     @Deprecated(since = "1.21", forRemoval = true) // Paper
     public void setTotalBrewTime(int brewTime) {
-        this.setBrewingTime(brewTime);
+        this.setBrewingTime(brewTime); // Paper - delegate to new method
     }
 
+    // Paper - remove HandlerList
+
+    // Paper start - add recipeBrewTime
     /**
      * Gets the recipe time for the brewing process which is
      * used to compute the progress of the brewing process with
@@ -51,8 +53,8 @@ public class BrewingStartEvent extends InventoryBlockStartEvent {
      *
      * @return recipe brew time (in ticks)
      */
-    @ApiStatus.Experimental
-    public @Range(from = 1, to = Integer.MAX_VALUE) int getRecipeBrewTime() {
+    @org.jetbrains.annotations.ApiStatus.Experimental
+    public @org.jetbrains.annotations.Range(from = 1, to = Integer.MAX_VALUE) int getRecipeBrewTime() {
         return this.recipeBrewTime;
     }
 
@@ -64,9 +66,9 @@ public class BrewingStartEvent extends InventoryBlockStartEvent {
      * @param recipeBrewTime recipe brew time (in ticks)
      * @throws IllegalArgumentException if the recipe brew time is non-positive
      */
-    @ApiStatus.Experimental
-    public void setRecipeBrewTime(@Range(from = 1, to = Integer.MAX_VALUE) int recipeBrewTime) {
-        Preconditions.checkArgument(recipeBrewTime > 0, "recipeBrewTime must be positive");
+    @org.jetbrains.annotations.ApiStatus.Experimental
+    public void setRecipeBrewTime(@org.jetbrains.annotations.Range(from = 1, to = Integer.MAX_VALUE) int recipeBrewTime) {
+        com.google.common.base.Preconditions.checkArgument(recipeBrewTime > 0, "recipeBrewTime must be positive");
         this.recipeBrewTime = recipeBrewTime;
     }
 
@@ -75,7 +77,7 @@ public class BrewingStartEvent extends InventoryBlockStartEvent {
      *
      * @return The amount of ticks left for the brewing task
      */
-    public @Range(from = 0, to = Integer.MAX_VALUE) int getBrewingTime() {
+    public @org.jetbrains.annotations.Range(from = 0, to = Integer.MAX_VALUE) int getBrewingTime() {
         return this.brewingTime;
     }
 
@@ -85,8 +87,9 @@ public class BrewingStartEvent extends InventoryBlockStartEvent {
      * @param brewTime the ticks left, which is no less than 0
      * @throws IllegalArgumentException if the ticks are less than 0
      */
-    public void setBrewingTime(@Range(from = 0, to = Integer.MAX_VALUE) int brewTime) {
-        Preconditions.checkArgument(brewTime >= 0, "brewTime must be non-negative");
+    public void setBrewingTime(@org.jetbrains.annotations.Range(from = 0, to = Integer.MAX_VALUE) int brewTime) {
+        com.google.common.base.Preconditions.checkArgument(brewTime >= 0, "brewTime must be non-negative");
         this.brewingTime = brewTime;
     }
+    // Paper end - add recipeBrewTime
 }

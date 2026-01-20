@@ -1,8 +1,6 @@
 package io.papermc.paper.datacomponent.item;
 
 import com.google.common.base.Preconditions;
-import io.papermc.paper.datacomponent.item.attribute.AttributeModifierDisplay;
-import io.papermc.paper.datacomponent.item.attribute.PaperAttributeModifierDisplay;
 import io.papermc.paper.util.MCUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import java.util.List;
@@ -23,8 +21,7 @@ public record PaperItemAttributeModifiers(
     private static List<Entry> convert(final net.minecraft.world.item.component.ItemAttributeModifiers nmsModifiers) {
         return MCUtil.transformUnmodifiable(nmsModifiers.modifiers(), nms -> new PaperEntry(
             CraftAttribute.minecraftHolderToBukkit(nms.attribute()),
-            CraftAttributeInstance.convert(nms.modifier(), nms.slot()),
-            PaperAttributeModifierDisplay.fromNms(nms.display())
+            CraftAttributeInstance.convert(nms.modifier(), nms.slot())
         ));
     }
 
@@ -34,19 +31,35 @@ public record PaperItemAttributeModifiers(
     }
 
     @Override
+    public boolean showInTooltip() {
+        return this.impl.showInTooltip();
+    }
+
+    @Override
+    public ItemAttributeModifiers showInTooltip(final boolean showInTooltip) {
+        return new PaperItemAttributeModifiers(this.impl.withTooltip(showInTooltip));
+    }
+
+    @Override
     public @Unmodifiable List<Entry> modifiers() {
         return convert(this.impl);
     }
 
-    public record PaperEntry(Attribute attribute, AttributeModifier modifier, AttributeModifierDisplay display) implements ItemAttributeModifiers.Entry {
+    public record PaperEntry(Attribute attribute, AttributeModifier modifier) implements ItemAttributeModifiers.Entry {
     }
 
     static final class BuilderImpl implements ItemAttributeModifiers.Builder {
 
         private final List<net.minecraft.world.item.component.ItemAttributeModifiers.Entry> entries = new ObjectArrayList<>();
+        private boolean showInTooltip = net.minecraft.world.item.component.ItemAttributeModifiers.EMPTY.showInTooltip();
 
         @Override
-        public ItemAttributeModifiers.Builder addModifier(final Attribute attribute, final AttributeModifier modifier, final EquipmentSlotGroup equipmentSlotGroup, final AttributeModifierDisplay display) {
+        public Builder addModifier(final Attribute attribute, final AttributeModifier modifier) {
+            return this.addModifier(attribute, modifier, modifier.getSlotGroup());
+        }
+
+        @Override
+        public ItemAttributeModifiers.Builder addModifier(final Attribute attribute, final AttributeModifier modifier, final EquipmentSlotGroup equipmentSlotGroup) {
             Preconditions.checkArgument(
                 this.entries.stream().noneMatch(e ->
                     e.modifier().id().equals(CraftNamespacedKey.toMinecraft(modifier.getKey())) && e.attribute().is(CraftNamespacedKey.toMinecraft(attribute.getKey()))
@@ -58,20 +71,26 @@ public record PaperItemAttributeModifiers(
             this.entries.add(new net.minecraft.world.item.component.ItemAttributeModifiers.Entry(
                 CraftAttribute.bukkitToMinecraftHolder(attribute),
                 CraftAttributeInstance.convert(modifier),
-                CraftEquipmentSlot.getNMSGroup(equipmentSlotGroup),
-                PaperAttributeModifierDisplay.toNms(display)
+                CraftEquipmentSlot.getNMSGroup(equipmentSlotGroup)
             ));
+            return this;
+        }
+
+        @Override
+        public ItemAttributeModifiers.Builder showInTooltip(final boolean showInTooltip) {
+            this.showInTooltip = showInTooltip;
             return this;
         }
 
         @Override
         public ItemAttributeModifiers build() {
             if (this.entries.isEmpty()) {
-                return new PaperItemAttributeModifiers(net.minecraft.world.item.component.ItemAttributeModifiers.EMPTY);
+                return new PaperItemAttributeModifiers(net.minecraft.world.item.component.ItemAttributeModifiers.EMPTY.withTooltip(this.showInTooltip));
             }
 
             return new PaperItemAttributeModifiers(new net.minecraft.world.item.component.ItemAttributeModifiers(
-                new ObjectArrayList<>(this.entries)
+                new ObjectArrayList<>(this.entries),
+                this.showInTooltip
             ));
         }
     }

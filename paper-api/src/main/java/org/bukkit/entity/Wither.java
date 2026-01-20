@@ -69,6 +69,7 @@ public interface Wither extends Monster, Boss, com.destroystokyo.paper.entity.Ra
         RIGHT
     }
 
+    // Paper start
     /**
      * @return whether the wither is charged
      */
@@ -105,4 +106,5 @@ public interface Wither extends Monster, Boss, com.destroystokyo.paper.entity.Ra
      * This is called in vanilla directly after spawning the wither.
      */
     void enterInvulnerabilityPhase();
+    // Paper end
 }

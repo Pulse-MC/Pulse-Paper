@@ -11,6 +11,11 @@ public class CraftGlowItemFrame extends CraftItemFrame implements GlowItemFrame 
 
     @Override
     public net.minecraft.world.entity.decoration.GlowItemFrame getHandle() {
-        return (net.minecraft.world.entity.decoration.GlowItemFrame) this.entity;
+        return (net.minecraft.world.entity.decoration.GlowItemFrame) super.getHandle();
+    }
+
+    @Override
+    public String toString() {
+        return "CraftGlowItemFrame{item=" + this.getItem() + ", rotation=" + this.getRotation() + "}";
     }
 }

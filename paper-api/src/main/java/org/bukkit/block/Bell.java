@@ -26,9 +26,7 @@ public interface Bell extends TileState {
      * @param entity the entity ringing the bell
      * @return true if rung successfully, false if the event was cancelled
      */
-    default boolean ring(@Nullable Entity entity) {
-        return this.ring(entity, null);
-    }
+    public boolean ring(@Nullable Entity entity);
 
     /**
      * Ring this bell. This will call a {@link BellRingEvent}.
@@ -37,9 +35,7 @@ public interface Bell extends TileState {
      * ring in the direction that the bell is facing
      * @return true if rung successfully, false if the event was cancelled
      */
-    default boolean ring(@Nullable BlockFace direction) {
-        return this.ring(null, direction);
-    }
+    public boolean ring(@Nullable BlockFace direction);
 
     /**
      * Ring this bell in the direction that the bell is facing. This will call a
@@ -47,9 +43,7 @@ public interface Bell extends TileState {
      *
      * @return true if rung successfully, false if the event was cancelled
      */
-    default boolean ring() {
-        return this.ring(null, null);
-    }
+    public boolean ring();
 
     /**
      * Check whether or not this bell is shaking. A bell is considered to be

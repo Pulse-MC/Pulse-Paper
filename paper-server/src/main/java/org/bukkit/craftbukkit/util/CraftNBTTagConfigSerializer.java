@@ -9,7 +9,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.SnbtPrinterTagVisitor;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
@@ -21,18 +20,18 @@ public class CraftNBTTagConfigSerializer {
     private static final Pattern ARRAY = Pattern.compile("^\\[.*]");
     private static final Pattern INTEGER = Pattern.compile("[-+]?(?:0|[1-9][0-9]*)i", Pattern.CASE_INSENSITIVE); // Paper - fix regex
     private static final Pattern DOUBLE = Pattern.compile("[-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?d", Pattern.CASE_INSENSITIVE);
-    private static final TagParser<Tag> MOJANGSON_PARSER = TagParser.create(NbtOps.INSTANCE);
+    private static final TagParser MOJANGSON_PARSER = new TagParser(new StringReader(""));
 
-    public static String serialize(@NotNull final Tag tag) {
+    public static String serialize(@NotNull final Tag base) {
         final SnbtPrinterTagVisitor snbtVisitor = new SnbtPrinterTagVisitor();
-        return snbtVisitor.visit(tag);
+        return snbtVisitor.visit(base);
     }
 
     public static Tag deserialize(final Object object) {
         // The new logic expects the top level object to be a single string, holding the entire nbt tag as SNBT.
         if (object instanceof final String snbtString) {
             try {
-                return TagParser.parseCompoundFully(snbtString);
+                return TagParser.parseTag(snbtString);
             } catch (final CommandSyntaxException e) {
                 throw new RuntimeException("Failed to deserialise nbt", e);
             }
@@ -61,10 +60,12 @@ public class CraftNBTTagConfigSerializer {
             }
 
             return tagList;
-        } else if (object instanceof final String string) {
+        } else if (object instanceof String) {
+            String string = (String) object;
+
             if (CraftNBTTagConfigSerializer.ARRAY.matcher(string).matches()) {
                 try {
-                    return MOJANGSON_PARSER.parseAsArgument(new StringReader(string));
+                    return new TagParser(new StringReader(string)).readArrayTag();
                 } catch (CommandSyntaxException e) {
                     throw new RuntimeException("Could not deserialize found list ", e);
                 }
@@ -73,24 +74,18 @@ public class CraftNBTTagConfigSerializer {
             } else if (CraftNBTTagConfigSerializer.DOUBLE.matcher(string).matches()) {
                 return DoubleTag.valueOf(Double.parseDouble(string.substring(0, string.length() - 1)));
             } else {
-                try {
-                    Tag tag = CraftNBTTagConfigSerializer.MOJANGSON_PARSER.parseAsArgument(new StringReader(string));
+                Tag nbtBase = CraftNBTTagConfigSerializer.MOJANGSON_PARSER.type(string);
 
-                    if (tag instanceof IntTag) { // If this returns an integer, it did not use our method from above
-                        return StringTag.valueOf(tag.toString()); // It then is a string that was falsely read as an int
-                    } else if (tag instanceof DoubleTag) {
-                        return StringTag.valueOf(String.valueOf(((DoubleTag) tag).doubleValue())); // Doubles add "d" at the end
-                    } else if (tag instanceof StringTag) {
-                        return StringTag.valueOf(string); // Return the whole string
-                    } else {
-                        return tag;
-                    }
-                } catch (final CommandSyntaxException commandSyntaxException) {
-                    throw new RuntimeException("Could not deserialize found primitive ", commandSyntaxException);
+                if (nbtBase instanceof IntTag) { // If this returns an integer, it did not use our method from above
+                    return StringTag.valueOf(nbtBase.getAsString()); // It then is a string that was falsely read as an int
+                } else if (nbtBase instanceof DoubleTag) {
+                    return StringTag.valueOf(String.valueOf(((DoubleTag) nbtBase).getAsDouble())); // Doubles add "d" at the end
+                } else {
+                    return nbtBase;
                 }
             }
         }
 
-        throw new RuntimeException("Could not deserialize Tag");
+        throw new RuntimeException("Could not deserialize NBTBase");
     }
 }

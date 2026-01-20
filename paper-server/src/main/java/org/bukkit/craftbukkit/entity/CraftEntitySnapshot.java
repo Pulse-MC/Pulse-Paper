@@ -2,25 +2,16 @@ package org.bukkit.craftbukkit.entity;
 
 import com.google.common.base.Preconditions;
 import java.util.function.Function;
-import com.mojang.logging.LogUtils;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.EntitySpawnReason;
-import net.minecraft.world.level.storage.TagValueInput;
-import net.minecraft.world.level.storage.TagValueOutput;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.CraftRegistry;
 import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntitySnapshot;
 import org.bukkit.entity.EntityType;
-import org.slf4j.Logger;
 
 public class CraftEntitySnapshot implements EntitySnapshot {
-
-    private static final Logger LOGGER = LogUtils.getLogger();
-
     private final CompoundTag data;
     private final EntityType type;
 
@@ -53,22 +44,18 @@ public class CraftEntitySnapshot implements EntitySnapshot {
 
     @Override
     public String getAsString() {
-        return this.data.toString();
+        return this.data.getAsString();
     }
 
     private net.minecraft.world.entity.Entity createInternal(World world) {
-        net.minecraft.world.level.Level level = ((CraftWorld) world).getHandle();
-        net.minecraft.world.entity.Entity internal = net.minecraft.world.entity.EntityType.loadEntityRecursive(this.data, level, EntitySpawnReason.LOAD, Function.identity());
+        net.minecraft.world.level.Level nms = ((CraftWorld) world).getHandle();
+        net.minecraft.world.entity.Entity internal = net.minecraft.world.entity.EntityType.loadEntityRecursive(this.data, nms, EntitySpawnReason.LOAD, Function.identity());
         if (internal == null) { // Try creating by type
-            internal = CraftEntityType.bukkitToMinecraft(this.type).create(level, EntitySpawnReason.LOAD);
+            internal = CraftEntityType.bukkitToMinecraft(this.type).create(nms, EntitySpawnReason.LOAD);
         }
 
-        Preconditions.checkArgument(internal != null, "Error creating new entity."); // This should only fail if the stored CompoundTag is malformed.
-        try (final ProblemReporter.ScopedCollector problemReporter = new ProblemReporter.ScopedCollector(
-            () -> "EntitySnapshot#createEntity", LOGGER
-        )) {
-            internal.load(TagValueInput.createGlobal(problemReporter, this.data));
-        }
+        Preconditions.checkArgument(internal != null, "Error creating new entity."); // This should only fail if the stored NBTTagCompound is malformed.
+        internal.load(this.data);
 
         return internal;
     }
@@ -78,19 +65,12 @@ public class CraftEntitySnapshot implements EntitySnapshot {
     }
 
     public static CraftEntitySnapshot create(CraftEntity entity) {
-        try (final ProblemReporter.ScopedCollector problemReporter = new ProblemReporter.ScopedCollector(
-            () -> "create@" + entity.getUniqueId(), LOGGER
-        )) {
-            final TagValueOutput output = TagValueOutput.createWithContext(
-                problemReporter,
-                CraftRegistry.getMinecraftRegistry()
-            );
-            if (!entity.getHandle().saveAsPassenger(output, false, false, false)) {
-                return null;
-            }
-
-            return new CraftEntitySnapshot(output.buildResult(), entity.getType());
+        CompoundTag tag = new CompoundTag();
+        if (!entity.getHandle().saveAsPassenger(tag, false, false, false)) {
+            return null;
         }
+
+        return new CraftEntitySnapshot(tag, entity.getType());
     }
 
     public static CraftEntitySnapshot create(CompoundTag tag, EntityType type) {
@@ -102,13 +82,7 @@ public class CraftEntitySnapshot implements EntitySnapshot {
     }
 
     public static CraftEntitySnapshot create(CompoundTag tag) {
-        try (final ProblemReporter.ScopedCollector problemReporter = new ProblemReporter.ScopedCollector(
-            () -> "create", LOGGER
-        )) {
-            EntityType type = net.minecraft.world.entity.EntityType.by(
-                TagValueInput.createGlobal(problemReporter, tag)
-            ).map(CraftEntityType::minecraftToBukkit).orElse(null);
-            return CraftEntitySnapshot.create(tag, type);
-        }
+        EntityType type = net.minecraft.world.entity.EntityType.by(tag).map(CraftEntityType::minecraftToBukkit).orElse(null);
+        return CraftEntitySnapshot.create(tag, type);
     }
 }

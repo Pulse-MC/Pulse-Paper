@@ -23,8 +23,8 @@ import java.util.UUID;
 @NullMarked
 public class CraftVault extends CraftBlockEntityState<VaultBlockEntity> implements Vault {
 
-    public CraftVault(World world, VaultBlockEntity blockEntity) {
-        super(world, blockEntity);
+    public CraftVault(World world, VaultBlockEntity tileEntity) {
+        super(world, tileEntity);
     }
 
     protected CraftVault(CraftVault state, @Nullable Location location) {

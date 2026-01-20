@@ -3,6 +3,7 @@ package io.papermc.paper.plugin.lifecycle.event.registrar;
 import io.papermc.paper.plugin.lifecycle.event.LifecycleEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * A lifecycle event that exposes a {@link Registrar} of some kind
@@ -12,6 +13,8 @@ import org.jetbrains.annotations.Contract;
  * @param <R> registrar type
  * @see ReloadableRegistrarEvent
  */
+@ApiStatus.Experimental
+@NullMarked
 @ApiStatus.NonExtendable
 public interface RegistrarEvent<R extends Registrar> extends LifecycleEvent {
 

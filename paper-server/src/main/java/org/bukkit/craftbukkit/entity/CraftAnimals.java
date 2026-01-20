@@ -2,8 +2,6 @@ package org.bukkit.craftbukkit.entity;
 
 import com.google.common.base.Preconditions;
 import java.util.UUID;
-import net.minecraft.Optionull;
-import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.animal.Animal;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.CraftServer;
@@ -23,13 +21,18 @@ public class CraftAnimals extends CraftAgeable implements Animals {
     }
 
     @Override
+    public String toString() {
+        return "CraftAnimals";
+    }
+
+    @Override
     public UUID getBreedCause() {
-        return Optionull.map(this.getHandle().loveCause, EntityReference::getUUID);
+        return this.getHandle().loveCause;
     }
 
     @Override
     public void setBreedCause(UUID uuid) {
-        this.getHandle().loveCause = uuid == null ? null : new EntityReference<>(uuid);
+        this.getHandle().loveCause = uuid;
     }
 
     @Override

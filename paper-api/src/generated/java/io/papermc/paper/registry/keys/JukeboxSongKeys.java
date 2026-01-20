@@ -22,8 +22,8 @@ import org.jspecify.annotations.NullMarked;
         "unused",
         "SpellCheckingInspection"
 })
+@GeneratedFrom("1.21.4")
 @NullMarked
-@GeneratedFrom("1.21.8")
 public final class JukeboxSongKeys {
     /**
      * {@code minecraft:11}
@@ -89,13 +89,6 @@ public final class JukeboxSongKeys {
     public static final TypedKey<JukeboxSong> FAR = create(key("far"));
 
     /**
-     * {@code minecraft:lava_chicken}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<JukeboxSong> LAVA_CHICKEN = create(key("lava_chicken"));
-
-    /**
      * {@code minecraft:mall}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -152,13 +145,6 @@ public final class JukeboxSongKeys {
     public static final TypedKey<JukeboxSong> STRAD = create(key("strad"));
 
     /**
-     * {@code minecraft:tears}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<JukeboxSong> TEARS = create(key("tears"));
-
-    /**
      * {@code minecraft:wait}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -176,7 +162,7 @@ public final class JukeboxSongKeys {
     }
 
     /**
-     * Creates a typed key for {@link JukeboxSong} in the registry {@code minecraft:jukebox_song}.
+     * Creates a key for {@link JukeboxSong} in the registry {@code minecraft:jukebox_song}.
      *
      * @param key the value's key in the registry
      * @return a new typed key

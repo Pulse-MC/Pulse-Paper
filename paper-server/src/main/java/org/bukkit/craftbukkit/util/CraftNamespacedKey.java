@@ -2,12 +2,18 @@ package org.bukkit.craftbukkit.util;
 
 import net.minecraft.resources.ResourceLocation;
 import org.bukkit.NamespacedKey;
-import org.jspecify.annotations.NullMarked;
 
-@NullMarked
 public final class CraftNamespacedKey {
 
     public CraftNamespacedKey() {
+    }
+
+    public static NamespacedKey fromStringOrNull(String string) {
+        if (string == null || string.isEmpty()) {
+            return null;
+        }
+        ResourceLocation minecraft = ResourceLocation.tryParse(string);
+        return (minecraft == null || minecraft.getPath().isEmpty()) ? null : CraftNamespacedKey.fromMinecraft(minecraft); // Paper - Bukkit's parser does not match Vanilla for empty paths
     }
 
     public static NamespacedKey fromString(String string) {

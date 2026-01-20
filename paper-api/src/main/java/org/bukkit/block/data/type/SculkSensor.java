@@ -13,39 +13,16 @@ public interface SculkSensor extends AnaloguePowerable, Waterlogged {
      * Gets the value of the 'sculk_sensor_phase' property.
      *
      * @return the 'sculk_sensor_phase' value
-     * @deprecated bad name, use {@link #getSculkSensorPhase()}
      */
     @NotNull
-    @Deprecated
-    default Phase getPhase() {
-        return this.getSculkSensorPhase();
-    }
-
-    /**
-     * Sets the value of the 'sculk_sensor_phase' property.
-     *
-     * @param phase the new 'sculk_sensor_phase' value
-     * @deprecated bad name, use {@link #setSculkSensorPhase(Phase)}
-     */
-    @Deprecated
-    default void setPhase(@NotNull Phase phase) {
-        this.setSculkSensorPhase(phase);
-    }
-
-    /**
-     * Gets the value of the 'sculk_sensor_phase' property.
-     *
-     * @return the 'sculk_sensor_phase' value
-     */
-    @NotNull
-    Phase getSculkSensorPhase();
+    Phase getPhase();
 
     /**
      * Sets the value of the 'sculk_sensor_phase' property.
      *
      * @param phase the new 'sculk_sensor_phase' value
      */
-    void setSculkSensorPhase(@NotNull Phase phase);
+    void setPhase(@NotNull Phase phase);
 
     /**
      * The Phase of the sensor.

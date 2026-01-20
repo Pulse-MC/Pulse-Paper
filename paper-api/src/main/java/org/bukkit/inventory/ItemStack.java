@@ -1,7 +1,6 @@
 package org.bukkit.inventory;
 
 import com.google.common.base.Preconditions;
-import io.papermc.paper.datacomponent.DataComponentHolder;
 import io.papermc.paper.registry.RegistryKey;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -9,7 +8,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -32,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
  * use this class to encapsulate Materials for which {@link Material#isItem()}
  * returns false.</b>
  */
-public class ItemStack implements Cloneable, ConfigurationSerializable, Translatable, net.kyori.adventure.text.event.HoverEventSource<net.kyori.adventure.text.event.HoverEvent.ShowItem>, net.kyori.adventure.translation.Translatable, io.papermc.paper.persistence.PersistentDataViewHolder, DataComponentHolder { // Paper
+public class ItemStack implements Cloneable, ConfigurationSerializable, Translatable, net.kyori.adventure.text.event.HoverEventSource<net.kyori.adventure.text.event.HoverEvent.ShowItem>, net.kyori.adventure.translation.Translatable, io.papermc.paper.persistence.PersistentDataViewHolder { // Paper
     private ItemStack craftDelegate; // Paper - always delegate to server-backed stack
     private MaterialData data = null;
 
@@ -372,21 +370,21 @@ public class ItemStack implements Cloneable, ConfigurationSerializable, Translat
     /**
      * Checks if this ItemStack contains the given {@link Enchantment}
      *
-     * @param enchant Enchantment to test
+     * @param ench Enchantment to test
      * @return True if this has the given enchantment
      */
-    public boolean containsEnchantment(@NotNull Enchantment enchant) {
-        return this.craftDelegate.containsEnchantment(enchant); // Paper - delegate
+    public boolean containsEnchantment(@NotNull Enchantment ench) {
+        return this.craftDelegate.containsEnchantment(ench); // Paper - delegate
     }
 
     /**
      * Gets the level of the specified enchantment on this item stack
      *
-     * @param enchant Enchantment to check
+     * @param ench Enchantment to check
      * @return Level of the enchantment, or 0
      */
-    public int getEnchantmentLevel(@NotNull Enchantment enchant) {
-        return this.craftDelegate.getEnchantmentLevel(enchant); // Paper - delegate
+    public int getEnchantmentLevel(@NotNull Enchantment ench) {
+        return this.craftDelegate.getEnchantmentLevel(ench); // Paper - delegate
     }
 
     /**
@@ -426,21 +424,21 @@ public class ItemStack implements Cloneable, ConfigurationSerializable, Translat
      * If this item stack already contained the given enchantment (at any
      * level), it will be replaced.
      *
-     * @param enchant Enchantment to add
+     * @param ench Enchantment to add
      * @param level Level of the enchantment
      * @throws IllegalArgumentException if enchantment null, or enchantment is
      *     not applicable
      */
     @Utility
-    public void addEnchantment(@NotNull Enchantment enchant, int level) {
-        Preconditions.checkArgument(enchant != null, "Enchantment cannot be null");
-        if ((level < enchant.getStartLevel()) || (level > enchant.getMaxLevel())) {
-            throw new IllegalArgumentException("Enchantment level is either too low or too high (given " + level + ", bounds are " + enchant.getStartLevel() + " to " + enchant.getMaxLevel() + ")");
-        } else if (!enchant.canEnchantItem(this)) {
+    public void addEnchantment(@NotNull Enchantment ench, int level) {
+        Preconditions.checkArgument(ench != null, "Enchantment cannot be null");
+        if ((level < ench.getStartLevel()) || (level > ench.getMaxLevel())) {
+            throw new IllegalArgumentException("Enchantment level is either too low or too high (given " + level + ", bounds are " + ench.getStartLevel() + " to " + ench.getMaxLevel() + ")");
+        } else if (!ench.canEnchantItem(this)) {
             throw new IllegalArgumentException("Specified enchantment cannot be applied to this itemstack");
         }
 
-        addUnsafeEnchantment(enchant, level);
+        addUnsafeEnchantment(ench, level);
     }
 
     /**
@@ -468,22 +466,22 @@ public class ItemStack implements Cloneable, ConfigurationSerializable, Translat
      * This method is unsafe and will ignore level restrictions or item type.
      * Use at your own discretion.
      *
-     * @param enchant Enchantment to add
+     * @param ench Enchantment to add
      * @param level Level of the enchantment
      */
-    public void addUnsafeEnchantment(@NotNull Enchantment enchant, int level) {
-        this.craftDelegate.addUnsafeEnchantment(enchant, level); // Paper - delegate
+    public void addUnsafeEnchantment(@NotNull Enchantment ench, int level) {
+        this.craftDelegate.addUnsafeEnchantment(ench, level); // Paper - delegate
     }
 
     /**
      * Removes the specified {@link Enchantment} if it exists on this
      * ItemStack
      *
-     * @param enchant Enchantment to remove
+     * @param ench Enchantment to remove
      * @return Previous level, or 0
      */
-    public int removeEnchantment(@NotNull Enchantment enchant) {
-        return this.craftDelegate.removeEnchantment(enchant); // Paper - delegate
+    public int removeEnchantment(@NotNull Enchantment ench) {
+        return this.craftDelegate.removeEnchantment(ench); // Paper - delegate
     }
 
     /**
@@ -497,7 +495,21 @@ public class ItemStack implements Cloneable, ConfigurationSerializable, Translat
     @NotNull
     @Utility
     public Map<String, Object> serialize() {
-        return Bukkit.getUnsafe().serializeStack(this);
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+
+        result.put("v", Bukkit.getUnsafe().getDataVersion()); // Include version to indicate we are using modern material names (or LEGACY prefix)
+        result.put("type", getType().name());
+
+        if (getAmount() != 1) {
+            result.put("amount", getAmount());
+        }
+
+        ItemMeta meta = getItemMeta();
+        if (!Bukkit.getItemFactory().equals(meta, null)) {
+            result.put("meta", meta);
+        }
+
+        return result;
     }
 
     /**
@@ -509,11 +521,6 @@ public class ItemStack implements Cloneable, ConfigurationSerializable, Translat
      */
     @NotNull
     public static ItemStack deserialize(@NotNull Map<String, Object> args) {
-        // Parse internally, if schema_version is not defined, assume legacy and fall through to unsafe legacy deserialization logic
-        if (args.containsKey("schema_version")) {
-            return org.bukkit.Bukkit.getUnsafe().deserializeStack(args);
-        }
-
         int version = (args.containsKey("v")) ? ((Number) args.get("v")).intValue() : -1;
         short damage = 0;
         int amount = 1;
@@ -707,13 +714,6 @@ public class ItemStack implements Cloneable, ConfigurationSerializable, Translat
         return Bukkit.getItemFactory().enchantWithLevels(this, levels, keySet, random);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @param op transformation on value
-     * @return a hover event
-     * @throws IllegalArgumentException if the {@link ItemStack#getAmount()} is not between 1 and 99
-     */
     @NotNull
     @Override
     public net.kyori.adventure.text.event.HoverEvent<net.kyori.adventure.text.event.HoverEvent.ShowItem> asHoverEvent(final @NotNull java.util.function.UnaryOperator<net.kyori.adventure.text.event.HoverEvent.ShowItem> op) {
@@ -723,8 +723,6 @@ public class ItemStack implements Cloneable, ConfigurationSerializable, Translat
     /**
      * Get the formatted display name of the {@link ItemStack}.
      *
-     * @apiNote this component include a {@link net.kyori.adventure.text.event.HoverEvent item hover event}.
-     * When used in chat, make sure to follow the ItemStack rules regarding amount, type, and other properties.
      * @return display name of the {@link ItemStack}
      */
     public net.kyori.adventure.text.@NotNull Component displayName() {

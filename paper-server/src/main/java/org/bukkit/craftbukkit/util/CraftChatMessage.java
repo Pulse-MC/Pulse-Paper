@@ -2,11 +2,7 @@ package org.bukkit.craftbukkit.util;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -14,26 +10,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import com.mojang.serialization.JsonOps;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.chat.ChatVersion;
-import net.md_5.bungee.chat.VersionedComponentSerializer;
-import com.mojang.serialization.JavaOps;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.ClickEvent.Action;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.contents.PlainTextContents;
-import net.minecraft.util.ExtraCodecs;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.server.MinecraftServer;
 import org.bukkit.ChatColor;
-import org.bukkit.craftbukkit.CraftRegistry;
 
 public final class CraftChatMessage {
 
-    private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
+    private static final Pattern LINK_PATTERN = Pattern.compile("((?:(?:https?):\\/\\/)?(?:[-\\w_\\.]{2,}\\.[a-z]{2,4}.*?(?=[\\.\\?!,;:]?(?:[" + String.valueOf(org.bukkit.ChatColor.COLOR_CHAR) + " \\n]|$))))");
     private static final Map<Character, ChatFormatting> formatMap;
 
     static {
@@ -125,6 +116,7 @@ public final class CraftChatMessage {
                             throw new AssertionError("Unexpected message format");
                         }
                     } else { // Color resets formatting
+                        // Paper start - Improve Legacy Component serialization size
                         Style previous = modifier;
                         modifier = (!hasReset ? RESET : EMPTY).withColor(format);
                         hasReset = true;
@@ -143,6 +135,7 @@ public final class CraftChatMessage {
                         if (previous.isUnderlined()) {
                             modifier = modifier.withUnderlined(false);
                         }
+                        // Paper end - Improve Legacy Component serialization size
                     }
                     needsAdd = true;
                     break;
@@ -153,11 +146,9 @@ public final class CraftChatMessage {
                         if (!(match.startsWith("http://") || match.startsWith("https://"))) {
                             match = "http://" + match;
                         }
-                        ExtraCodecs.UNTRUSTED_URI.parse(JavaOps.INSTANCE, match).ifSuccess(uri -> {
-                            this.modifier = this.modifier.withClickEvent(new ClickEvent.OpenUrl(uri));
-                        });
+                        this.modifier = this.modifier.withClickEvent(new ClickEvent(Action.OPEN_URL, match));
                         this.appendNewComponent(matcher.end(groupId));
-                        this.modifier = this.modifier.withClickEvent(null);
+                        this.modifier = this.modifier.withClickEvent((ClickEvent) null);
                     }
                     break;
                 case 3:
@@ -229,11 +220,7 @@ public final class CraftChatMessage {
     }
 
     public static String toJSON(Component component) {
-        return GSON.toJson(
-            ComponentSerialization.CODEC
-                .encodeStart(CraftRegistry.getMinecraftRegistry().createSerializationContext(JsonOps.INSTANCE), component)
-                .getOrThrow(JsonParseException::new)
-        );
+        return Component.Serializer.toJson(component, MinecraftServer.getDefaultRegistryAccess());
     }
 
     public static String toJSONOrNull(Component component) {
@@ -244,10 +231,7 @@ public final class CraftChatMessage {
     public static Component fromJSON(String jsonMessage) throws JsonParseException {
         // Note: This also parses plain Strings to text components.
         // Note: An empty message (empty, or only consisting of whitespace) results in null rather than a parse exception.
-        final JsonElement jsonElement = GSON.fromJson(jsonMessage, JsonElement.class);
-        return jsonElement == null ? null : ComponentSerialization.CODEC.parse(
-            CraftRegistry.getMinecraftRegistry().createSerializationContext(JsonOps.INSTANCE), jsonElement
-        ).getOrThrow(JsonParseException::new);
+        return Component.Serializer.fromJson(jsonMessage, MinecraftServer.getDefaultRegistryAccess());
     }
 
     public static Component fromJSONOrNull(String jsonMessage) {
@@ -352,19 +336,78 @@ public final class CraftChatMessage {
         return out.toString();
     }
 
-    private static VersionedComponentSerializer bungeeSerializer = VersionedComponentSerializer.forVersion(ChatVersion.V1_21_5);
-    public static String bungeeToJson(BaseComponent... components) {
-        return bungeeSerializer.toString(components);
+    public static Component fixComponent(MutableComponent component) {
+        Matcher matcher = CraftChatMessage.LINK_PATTERN.matcher("");
+        return CraftChatMessage.fixComponent(component, matcher);
     }
 
-    public static BaseComponent[] jsonToBungee(String json) {
-        return bungeeSerializer.parse(json);
-    }
-    public static Component bungeeToVanilla(BaseComponent... components) {
-        return fromJSON(bungeeToJson(components));
-    }
-    public static BaseComponent[] vanillaToBungee(Component component) {
-        return jsonToBungee(toJSON(component));
+    private static Component fixComponent(MutableComponent component, Matcher matcher) {
+        if (component.getContents() instanceof PlainTextContents) {
+            PlainTextContents text = ((PlainTextContents) component.getContents());
+            String msg = text.text();
+            if (matcher.reset(msg).find()) {
+                matcher.reset();
+
+                Style modifier = component.getStyle();
+                List<Component> extras = new ArrayList<Component>();
+                List<Component> extrasOld = new ArrayList<Component>(component.getSiblings());
+                component = Component.empty();
+
+                int pos = 0;
+                while (matcher.find()) {
+                    String match = matcher.group();
+
+                    if (!(match.startsWith("http://") || match.startsWith("https://"))) {
+                        match = "http://" + match;
+                    }
+
+                    MutableComponent prev = Component.literal(msg.substring(pos, matcher.start()));
+                    prev.setStyle(modifier);
+                    extras.add(prev);
+
+                    MutableComponent link = Component.literal(matcher.group());
+                    Style linkModi = modifier.withClickEvent(new ClickEvent(Action.OPEN_URL, match));
+                    link.setStyle(linkModi);
+                    extras.add(link);
+
+                    pos = matcher.end();
+                }
+
+                MutableComponent prev = Component.literal(msg.substring(pos));
+                prev.setStyle(modifier);
+                extras.add(prev);
+                extras.addAll(extrasOld);
+
+                for (Component c : extras) {
+                    component.append(c);
+                }
+            }
+        }
+
+        List<Component> extras = component.getSiblings();
+        for (int i = 0; i < extras.size(); i++) {
+            Component comp = extras.get(i);
+            if (comp.getStyle() != null && comp.getStyle().getClickEvent() == null) {
+                extras.set(i, CraftChatMessage.fixComponent(comp.copy(), matcher));
+            }
+        }
+
+        if (component.getContents() instanceof TranslatableContents) {
+            Object[] subs = ((TranslatableContents) component.getContents()).getArgs();
+            for (int i = 0; i < subs.length; i++) {
+                Object comp = subs[i];
+                if (comp instanceof Component) {
+                    Component c = (Component) comp;
+                    if (c.getStyle() != null && c.getStyle().getClickEvent() == null) {
+                        subs[i] = CraftChatMessage.fixComponent(c.copy(), matcher);
+                    }
+                } else if (comp instanceof String && matcher.reset((String) comp).find()) {
+                    subs[i] = CraftChatMessage.fixComponent(Component.literal((String) comp), matcher);
+                }
+            }
+        }
+
+        return component;
     }
 
     private CraftChatMessage() {

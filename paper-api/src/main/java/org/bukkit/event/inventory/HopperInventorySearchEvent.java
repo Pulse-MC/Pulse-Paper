@@ -4,7 +4,6 @@ import org.bukkit.block.Block;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.block.BlockEvent;
 import org.bukkit.inventory.Inventory;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,8 +13,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class HopperInventorySearchEvent extends BlockEvent {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private Inventory inventory;
     private final ContainerType containerType;
     private final Block searchBlock;
@@ -36,7 +34,6 @@ public class HopperInventorySearchEvent extends BlockEvent {
         DESTINATION;
     }
 
-    @ApiStatus.Internal
     public HopperInventorySearchEvent(@Nullable Inventory inventory, @NotNull ContainerType containerType, @NotNull Block hopper, @NotNull Block searchBlock) { // Paper
         super(hopper);
         this.inventory = inventory;
@@ -62,7 +59,7 @@ public class HopperInventorySearchEvent extends BlockEvent {
      */
     @Nullable
     public Inventory getInventory() {
-        return this.inventory;
+        return inventory;
     }
 
     /**
@@ -72,7 +69,7 @@ public class HopperInventorySearchEvent extends BlockEvent {
      */
     @NotNull
     public ContainerType getContainerType() {
-        return this.containerType;
+        return containerType;
     }
 
     /**
@@ -82,17 +79,17 @@ public class HopperInventorySearchEvent extends BlockEvent {
      */
     @NotNull
     public Block getSearchBlock() {
-        return this.searchBlock;
+        return searchBlock;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

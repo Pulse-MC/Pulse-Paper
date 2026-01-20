@@ -6,11 +6,13 @@ import io.papermc.paper.generated.GeneratedFrom;
 import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.tag.TagKey;
 import net.kyori.adventure.key.Key;
+import org.bukkit.MinecraftExperimental;
 import org.bukkit.generator.structure.Structure;
+import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * Vanilla tag keys for {@link RegistryKey#STRUCTURE}.
+ * Vanilla keys for {@link RegistryKey#STRUCTURE}.
  *
  * @apiNote The fields provided here are a direct representation of
  * what is available from the vanilla game source. They may be
@@ -22,8 +24,9 @@ import org.jspecify.annotations.NullMarked;
         "unused",
         "SpellCheckingInspection"
 })
+@GeneratedFrom("1.21.4")
 @NullMarked
-@GeneratedFrom("1.21.8")
+@ApiStatus.Experimental
 public final class StructureTagKeys {
     /**
      * {@code #minecraft:cats_spawn_as_black}
@@ -72,6 +75,8 @@ public final class StructureTagKeys {
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
+    @ApiStatus.Experimental
+    @MinecraftExperimental(MinecraftExperimental.Requires.TRADE_REBALANCE)
     public static final TagKey<Structure> ON_DESERT_VILLAGE_MAPS = create(key("on_desert_village_maps"));
 
     /**
@@ -79,6 +84,8 @@ public final class StructureTagKeys {
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
+    @ApiStatus.Experimental
+    @MinecraftExperimental(MinecraftExperimental.Requires.TRADE_REBALANCE)
     public static final TagKey<Structure> ON_JUNGLE_EXPLORER_MAPS = create(key("on_jungle_explorer_maps"));
 
     /**
@@ -93,6 +100,8 @@ public final class StructureTagKeys {
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
+    @ApiStatus.Experimental
+    @MinecraftExperimental(MinecraftExperimental.Requires.TRADE_REBALANCE)
     public static final TagKey<Structure> ON_PLAINS_VILLAGE_MAPS = create(key("on_plains_village_maps"));
 
     /**
@@ -100,6 +109,8 @@ public final class StructureTagKeys {
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
+    @ApiStatus.Experimental
+    @MinecraftExperimental(MinecraftExperimental.Requires.TRADE_REBALANCE)
     public static final TagKey<Structure> ON_SAVANNA_VILLAGE_MAPS = create(key("on_savanna_village_maps"));
 
     /**
@@ -107,6 +118,8 @@ public final class StructureTagKeys {
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
+    @ApiStatus.Experimental
+    @MinecraftExperimental(MinecraftExperimental.Requires.TRADE_REBALANCE)
     public static final TagKey<Structure> ON_SNOWY_VILLAGE_MAPS = create(key("on_snowy_village_maps"));
 
     /**
@@ -114,6 +127,8 @@ public final class StructureTagKeys {
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
+    @ApiStatus.Experimental
+    @MinecraftExperimental(MinecraftExperimental.Requires.TRADE_REBALANCE)
     public static final TagKey<Structure> ON_SWAMP_EXPLORER_MAPS = create(key("on_swamp_explorer_maps"));
 
     /**
@@ -121,6 +136,8 @@ public final class StructureTagKeys {
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
+    @ApiStatus.Experimental
+    @MinecraftExperimental(MinecraftExperimental.Requires.TRADE_REBALANCE)
     public static final TagKey<Structure> ON_TAIGA_VILLAGE_MAPS = create(key("on_taiga_village_maps"));
 
     /**
@@ -174,6 +191,7 @@ public final class StructureTagKeys {
      * @param key the tag key's key
      * @return a new tag key
      */
+    @ApiStatus.Experimental
     public static TagKey<Structure> create(final Key key) {
         return TagKey.create(RegistryKey.STRUCTURE, key);
     }

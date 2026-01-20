@@ -257,10 +257,7 @@ public interface OfflinePlayer extends ServerOperator, AnimalTamer, Configuratio
      */
     @Nullable
     @Deprecated(since = "1.20.4")
-    default Location getBedSpawnLocation() {
-        return this.getRespawnLocation();
-    }
-
+    public Location getBedSpawnLocation();
     // Paper start
     /**
      * Gets the last date and time that this player logged into the server.
@@ -287,28 +284,13 @@ public interface OfflinePlayer extends ServerOperator, AnimalTamer, Configuratio
     // Paper end
 
     /**
-     * Gets the Location where the player will spawn at, {@code null} if they
-     * don't have a valid respawn point.
-     * <br>
-     * Unlike online players, the location if found will not be loaded by default.
-     *
-     * @return respawn location if exists, otherwise {@code null}.
-     * @see #getRespawnLocation(boolean) for more fine-grained control over chunk loading and validation behaviour.
-     */
-    default @Nullable Location getRespawnLocation() {
-        return this.getRespawnLocation(false); // keep old behavior for offline players
-    }
-
-    /**
-     * Gets the Location where the player will spawn at, {@code null} if they
+     * Gets the Location where the player will spawn at, null if they
      * don't have a valid respawn point.
      *
-     * @param loadLocationAndValidate load the expected respawn location to retrieve the exact position of the spawn
-     *                                block and check if this position is still valid or not. Loading the location
-     *                                will induce a sync chunk load and must hence be used with caution.
-     * @return respawn location if exists, otherwise {@code null}.
+     * @return respawn location if exists, otherwise null.
      */
-    @Nullable Location getRespawnLocation(boolean loadLocationAndValidate);
+    @Nullable
+    public Location getRespawnLocation();
 
     /**
      * Increments the given statistic for this player.

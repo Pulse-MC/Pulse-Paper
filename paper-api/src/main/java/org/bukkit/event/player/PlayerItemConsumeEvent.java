@@ -21,15 +21,17 @@ import org.jetbrains.annotations.Nullable;
  * not be removed from the player's inventory.
  */
 public class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    private final EquipmentSlot hand;
+    private static final HandlerList handlers = new HandlerList();
+    private boolean isCancelled = false;
     private ItemStack item;
-    @Nullable private ItemStack replacement;
+    private final EquipmentSlot hand;
+    @Nullable private ItemStack replacement; // Paper
 
-    private boolean cancelled;
-
+    /**
+     * @param player the player consuming
+     * @param item the ItemStack being consumed
+     * @param hand the hand that was used
+     */
     @ApiStatus.Internal
     public PlayerItemConsumeEvent(@NotNull final Player player, @NotNull final ItemStack item, @NotNull final EquipmentSlot hand) {
         super(player);
@@ -38,7 +40,11 @@ public class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable {
         this.hand = hand;
     }
 
-    @ApiStatus.Internal
+    /**
+     * @param player the player consuming
+     * @param item the ItemStack being consumed
+     * @deprecated use {@link #PlayerItemConsumeEvent(Player, ItemStack, EquipmentSlot)}
+     */
     @Deprecated(since = "1.19.2", forRemoval = true)
     public PlayerItemConsumeEvent(@NotNull final Player player, @NotNull final ItemStack item) {
         this(player, item, EquipmentSlot.HAND);
@@ -53,7 +59,7 @@ public class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable {
      */
     @NotNull
     public ItemStack getItem() {
-        return this.item.clone();
+        return item.clone();
     }
 
     /**
@@ -76,14 +82,15 @@ public class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable {
      */
     @NotNull
     public EquipmentSlot getHand() {
-        return this.hand;
+        return hand;
     }
 
+    // Paper start
     /**
-     * Return the custom item stack that will replace the consumed item, or {@code null} if no
+     * Return the custom item stack that will replace the consumed item, or null if no
      * custom replacement has been set (which means the default replacement will be used).
      *
-     * @return The custom item stack that will replace the consumed item or {@code null}
+     * @return The custom item stack that will replace the consumed item or null
      */
     @Nullable
     public ItemStack getReplacement() {
@@ -91,33 +98,34 @@ public class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable {
     }
 
     /**
-     * Set a custom item stack to replace the consumed item. Pass {@code null} to clear any custom
+     * Set a custom item stack to replace the consumed item. Pass null to clear any custom
      * stack that has been set and use the default replacement.
      *
-     * @param replacement Replacement item to set, {@code null} to clear any custom stack and use default
+     * @param replacement Replacement item to set, null to clear any custom stack and use default
      */
     public void setReplacement(@Nullable ItemStack replacement) {
         this.replacement = replacement;
     }
+    // Paper end
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return this.isCancelled;
     }
 
     @Override
     public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        this.isCancelled = cancel;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

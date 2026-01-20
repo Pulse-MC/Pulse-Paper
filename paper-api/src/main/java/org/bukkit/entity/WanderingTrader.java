@@ -29,6 +29,7 @@ public interface WanderingTrader extends AbstractVillager {
      */
     public void setDespawnDelay(int despawnDelay);
     
+    // Paper start - Add more WanderingTrader API
     /**
      * Set if the Wandering Trader can and will drink an invisibility potion.
      * @param bool whether the mob will drink
@@ -73,4 +74,5 @@ public interface WanderingTrader extends AbstractVillager {
      * @param location location to wander towards (world is ignored, will always use the entity's world)
      */
     void setWanderingTowards(@org.jetbrains.annotations.Nullable org.bukkit.Location location);
+    // Paper end
 }

@@ -11,8 +11,8 @@ import org.bukkit.loot.LootTable;
 
 public class CraftBrushableBlock extends CraftBlockEntityState<BrushableBlockEntity> implements BrushableBlock {
 
-    public CraftBrushableBlock(World world, BrushableBlockEntity blockEntity) {
-        super(world, blockEntity);
+    public CraftBrushableBlock(World world, BrushableBlockEntity tileEntity) {
+        super(world, tileEntity);
     }
 
     protected CraftBrushableBlock(CraftBrushableBlock state, Location location) {
@@ -30,11 +30,11 @@ public class CraftBrushableBlock extends CraftBlockEntityState<BrushableBlockEnt
     }
 
     @Override
-    public void applyTo(BrushableBlockEntity blockEntity) {
-        super.applyTo(blockEntity);
+    public void applyTo(BrushableBlockEntity lootable) {
+        super.applyTo(lootable);
 
         if (this.getSnapshot().lootTable == null) {
-            blockEntity.setLootTable(null, 0L);
+            lootable.setLootTable(null, 0L);
         }
     }
 

@@ -1,13 +1,8 @@
 package io.papermc.paper.command;
 
 import com.google.common.collect.Lists;
-import com.mojang.brigadier.Command;
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.leangen.geantyref.GenericTypeReflector;
 import io.leangen.geantyref.TypeToken;
-import io.papermc.paper.command.brigadier.CommandSourceStack;
-import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.plugin.configuration.PluginMeta;
 import io.papermc.paper.plugin.entrypoint.Entrypoint;
 import io.papermc.paper.plugin.entrypoint.LaunchEntryPointHandler;
@@ -18,6 +13,7 @@ import io.papermc.paper.plugin.provider.type.paper.PaperPluginParent;
 import io.papermc.paper.plugin.provider.type.spigot.SpigotPluginProvider;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.TreeMap;
 import net.kyori.adventure.text.Component;
@@ -28,15 +24,15 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.craftbukkit.util.CraftMagicNumbers;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public class PaperPluginsCommand {
-    public static final String DESCRIPTION = "Gets a list of plugins running on the server";
-    
+public class PaperPluginsCommand extends BukkitCommand {
+
     private static final TextColor INFO_COLOR = TextColor.color(52, 159, 218);
 
     private static final Component SERVER_PLUGIN_INFO = Component.text("ℹ What is a server plugin?", INFO_COLOR)
@@ -66,12 +62,12 @@ public class PaperPluginsCommand {
 
     private static final Type JAVA_PLUGIN_PROVIDER_TYPE = new TypeToken<PluginProvider<JavaPlugin>>() {}.getType();
 
-    public static LiteralCommandNode<CommandSourceStack> create() {
-        final PaperPluginsCommand command = new PaperPluginsCommand();
-        return Commands.literal("plugins")
-            .requires(source -> source.getSender().hasPermission("bukkit.command.plugins"))
-            .executes(command::execute)
-            .build();
+    public PaperPluginsCommand() {
+        super("plugins");
+        this.description = "Gets a list of plugins running on the server";
+        this.usageMessage = "/plugins";
+        this.setPermission("bukkit.command.plugins");
+        this.setAliases(List.of("pl"));
     }
 
     private static <T> List<Component> formatProviders(final TreeMap<String, PluginProvider<T>> plugins) {
@@ -169,9 +165,11 @@ public class PaperPluginsCommand {
             return NamedTextColor.RED;
         }
     }
-    
-    private int execute(CommandContext<CommandSourceStack> context) {
-        final CommandSender sender = context.getSource().getSender();
+
+    @Override
+    public boolean execute(final CommandSender sender, final String currentAlias, final String[] args) {
+        if (!this.testPermission(sender)) return true;
+
         final TreeMap<String, PluginProvider<JavaPlugin>> paperPlugins = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         final TreeMap<String, PluginProvider<JavaPlugin>> spigotPlugins = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
@@ -210,6 +208,11 @@ public class PaperPluginsCommand {
             sender.sendMessage(component);
         }
 
-        return Command.SINGLE_SUCCESS;
+        return true;
+    }
+
+    @Override
+    public List<String> tabComplete(final CommandSender sender, final String alias, final String[] args) throws IllegalArgumentException {
+        return Collections.emptyList();
     }
 }

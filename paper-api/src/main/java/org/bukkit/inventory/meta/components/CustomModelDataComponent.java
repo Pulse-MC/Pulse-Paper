@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 public interface CustomModelDataComponent extends ConfigurationSerializable {
 
     /**
-     * Gets a list of the floats for the range_dispatch model type.
+     * Gets a list of the custom floats.
      *
      * @return unmodifiable list
      */
@@ -21,14 +21,14 @@ public interface CustomModelDataComponent extends ConfigurationSerializable {
     List<Float> getFloats();
 
     /**
-     * Sets a list of the floats for the range_dispatch model type.
+     * Sets a list of the custom floats.
      *
      * @param floats new list
      */
     void setFloats(@NotNull List<Float> floats);
 
     /**
-     * Gets a list of the booleans for the condition model type.
+     * Gets a list of the custom flags.
      *
      * @return unmodifiable list
      */
@@ -36,14 +36,14 @@ public interface CustomModelDataComponent extends ConfigurationSerializable {
     List<Boolean> getFlags();
 
     /**
-     * Sets a list of the booleans for the condition model type.
+     * Sets a list of the custom flags.
      *
      * @param flags new list
      */
     void setFlags(@NotNull List<Boolean> flags);
 
     /**
-     * Gets a list of strings for the select model type.
+     * Gets a list of the custom strings.
      *
      * @return unmodifiable list
      */
@@ -51,14 +51,14 @@ public interface CustomModelDataComponent extends ConfigurationSerializable {
     List<String> getStrings();
 
     /**
-     * Sets a list of strings for the select model type.
+     * Sets a list of the custom strings.
      *
      * @param strings new list
      */
     void setStrings(@NotNull List<String> strings);
 
     /**
-     * Gets a list of colors for the model type's tints.
+     * Gets a list of the custom colors.
      *
      * @return unmodifiable list
      */
@@ -66,7 +66,7 @@ public interface CustomModelDataComponent extends ConfigurationSerializable {
     List<Color> getColors();
 
     /**
-     * Sets a list of colors for the model type's tints.
+     * Sets a list of the custom colors.
      *
      * @param colors new list
      */

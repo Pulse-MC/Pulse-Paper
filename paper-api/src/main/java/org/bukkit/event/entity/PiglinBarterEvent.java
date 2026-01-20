@@ -5,26 +5,22 @@ import org.bukkit.entity.Piglin;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Stores all data related to the bartering interaction with a piglin.
- * <br>
+ *
  * Called when a piglin completes a barter.
  */
 public class PiglinBarterEvent extends EntityEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    private boolean cancelled;
     private final List<ItemStack> outcome;
     private final ItemStack input;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
-    public PiglinBarterEvent(@NotNull Piglin piglin, @NotNull ItemStack input, @NotNull List<ItemStack> outcome) {
-        super(piglin);
+    public PiglinBarterEvent(@NotNull Piglin what, @NotNull ItemStack input, @NotNull List<ItemStack> outcome) {
+        super(what);
 
         this.input = input;
         this.outcome = outcome;
@@ -33,7 +29,7 @@ public class PiglinBarterEvent extends EntityEvent implements Cancellable {
     @NotNull
     @Override
     public Piglin getEntity() {
-        return (Piglin) this.entity;
+        return (Piglin) super.getEntity();
     }
 
     /**
@@ -43,7 +39,7 @@ public class PiglinBarterEvent extends EntityEvent implements Cancellable {
      */
     @NotNull
     public ItemStack getInput() {
-        return this.input.clone();
+        return input.clone();
     }
 
     /**
@@ -53,27 +49,27 @@ public class PiglinBarterEvent extends EntityEvent implements Cancellable {
      */
     @NotNull
     public List<ItemStack> getOutcome() {
-        return this.outcome;
+        return outcome;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
     public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        cancelled = cancel;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

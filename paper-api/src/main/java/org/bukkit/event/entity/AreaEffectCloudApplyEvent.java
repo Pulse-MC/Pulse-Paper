@@ -5,7 +5,6 @@ import org.bukkit.entity.AreaEffectCloud;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -13,23 +12,29 @@ import org.jetbrains.annotations.NotNull;
  * once every 5 ticks
  */
 public class AreaEffectCloudApplyEvent extends EntityEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final List<LivingEntity> affectedEntities;
+    private boolean cancelled = false;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
     public AreaEffectCloudApplyEvent(@NotNull final AreaEffectCloud entity, @NotNull final List<LivingEntity> affectedEntities) {
         super(entity);
         this.affectedEntities = affectedEntities;
     }
 
     @Override
+    public boolean isCancelled() {
+        return this.cancelled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.cancelled = cancel;
+    }
+
+    @Override
     @NotNull
     public AreaEffectCloud getEntity() {
-        return (AreaEffectCloud) this.entity;
+        return (AreaEffectCloud) entity;
     }
 
     /**
@@ -44,27 +49,17 @@ public class AreaEffectCloudApplyEvent extends EntityEvent implements Cancellabl
      */
     @NotNull
     public List<LivingEntity> getAffectedEntities() {
-        return this.affectedEntities;
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return this.cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        return affectedEntities;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

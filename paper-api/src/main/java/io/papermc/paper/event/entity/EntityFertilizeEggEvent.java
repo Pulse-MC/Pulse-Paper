@@ -31,6 +31,7 @@ public class EntityFertilizeEggEvent extends EntityEvent implements Cancellable 
 
     private static final HandlerList HANDLER_LIST = new HandlerList();
 
+    private final LivingEntity mother;
     private final LivingEntity father;
     private final @Nullable Player breeder;
     private final @Nullable ItemStack bredWith;
@@ -41,6 +42,7 @@ public class EntityFertilizeEggEvent extends EntityEvent implements Cancellable 
     @ApiStatus.Internal
     public EntityFertilizeEggEvent(final LivingEntity mother, final LivingEntity father, final @Nullable Player breeder, final @Nullable ItemStack bredWith, final int experience) {
         super(mother);
+        this.mother = mother;
         this.father = father;
         this.breeder = breeder;
         this.bredWith = bredWith;
@@ -59,7 +61,7 @@ public class EntityFertilizeEggEvent extends EntityEvent implements Cancellable 
      * @return The "mother" entity.
      */
     public LivingEntity getMother() {
-        return this.getEntity();
+        return this.mother;
     }
 
     /**

@@ -13,28 +13,24 @@ import org.jetbrains.annotations.NotNull;
  * Called immediately prior to a creature being leashed by a player.
  */
 public class PlayerLeashEntityEvent extends Event implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final Entity leashHolder;
     private final Entity entity;
+    private boolean cancelled = false;
     private final Player player;
     private final EquipmentSlot hand;
 
-    private boolean cancelled;
-
     @ApiStatus.Internal
-    public PlayerLeashEntityEvent(@NotNull Entity entity, @NotNull Entity leashHolder, @NotNull Player leasher, @NotNull EquipmentSlot hand) {
+    public PlayerLeashEntityEvent(@NotNull Entity what, @NotNull Entity leashHolder, @NotNull Player leasher, @NotNull EquipmentSlot hand) {
         this.leashHolder = leashHolder;
-        this.entity = entity;
+        this.entity = what;
         this.player = leasher;
         this.hand = hand;
     }
 
-    @ApiStatus.Internal
     @Deprecated(since = "1.19.2", forRemoval = true)
-    public PlayerLeashEntityEvent(@NotNull Entity entity, @NotNull Entity leashHolder, @NotNull Player leasher) {
-        this(entity, leashHolder, leasher, EquipmentSlot.HAND);
+    public PlayerLeashEntityEvent(@NotNull Entity what, @NotNull Entity leashHolder, @NotNull Player leasher) {
+        this(what, leashHolder, leasher, EquipmentSlot.HAND);
     }
 
     /**
@@ -44,7 +40,7 @@ public class PlayerLeashEntityEvent extends Event implements Cancellable {
      */
     @NotNull
     public Entity getLeashHolder() {
-        return this.leashHolder;
+        return leashHolder;
     }
 
     /**
@@ -54,7 +50,7 @@ public class PlayerLeashEntityEvent extends Event implements Cancellable {
      */
     @NotNull
     public Entity getEntity() {
-        return this.entity;
+        return entity;
     }
 
     /**
@@ -64,7 +60,7 @@ public class PlayerLeashEntityEvent extends Event implements Cancellable {
      */
     @NotNull
     public final Player getPlayer() {
-        return this.player;
+        return player;
     }
 
     /**
@@ -74,7 +70,18 @@ public class PlayerLeashEntityEvent extends Event implements Cancellable {
      */
     @NotNull
     public EquipmentSlot getHand() {
-        return this.hand;
+        return hand;
+    }
+
+    @NotNull
+    @Override
+    public HandlerList getHandlers() {
+        return handlers;
+    }
+
+    @NotNull
+    public static HandlerList getHandlerList() {
+        return handlers;
     }
 
     @Override
@@ -85,16 +92,5 @@ public class PlayerLeashEntityEvent extends Event implements Cancellable {
     @Override
     public void setCancelled(boolean cancel) {
         this.cancelled = cancel;
-    }
-
-    @NotNull
-    @Override
-    public HandlerList getHandlers() {
-        return HANDLER_LIST;
-    }
-
-    @NotNull
-    public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
     }
 }

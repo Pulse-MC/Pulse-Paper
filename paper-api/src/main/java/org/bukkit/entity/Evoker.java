@@ -65,6 +65,7 @@ public interface Evoker extends Spellcaster {
     @Deprecated(since = "1.11.2")
     void setCurrentSpell(@Nullable Spell spell);
 
+    // Paper start
     /**
      * @return the sheep being targeted by the {@link Spell#WOLOLO wololo spell}, or {@code null} if none
      */
@@ -77,4 +78,5 @@ public interface Evoker extends Spellcaster {
      * @param sheep new wololo target
      */
     void setWololoTarget(@Nullable Sheep sheep);
+    // Paper end
 }

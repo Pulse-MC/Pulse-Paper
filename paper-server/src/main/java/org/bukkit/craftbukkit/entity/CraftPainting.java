@@ -15,11 +15,6 @@ public class CraftPainting extends CraftHanging implements Painting {
     }
 
     @Override
-    public net.minecraft.world.entity.decoration.Painting getHandle() {
-        return (net.minecraft.world.entity.decoration.Painting) this.entity;
-    }
-
-    @Override
     public Art getArt() {
         return CraftArt.minecraftHolderToBukkit(this.getHandle().getVariant());
     }
@@ -53,5 +48,15 @@ public class CraftPainting extends CraftHanging implements Painting {
         }
 
         return false;
+    }
+
+    @Override
+    public net.minecraft.world.entity.decoration.Painting getHandle() {
+        return (net.minecraft.world.entity.decoration.Painting) this.entity;
+    }
+
+    @Override
+    public String toString() {
+        return "CraftPainting{art=" + this.getArt() + "}";
     }
 }

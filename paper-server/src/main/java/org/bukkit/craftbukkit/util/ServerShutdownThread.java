@@ -22,6 +22,7 @@ public class ServerShutdownThread extends Thread {
                 return;
             }
             // Looks stalled, close async
+            org.spigotmc.AsyncCatcher.enabled = false; // Spigot
             server.forceTicks = true;
             this.server.close();
             while (!server.hasFullyShutdown) Thread.sleep(1000);
@@ -30,6 +31,10 @@ public class ServerShutdownThread extends Thread {
             // Paper end
         } finally {
             org.apache.logging.log4j.LogManager.shutdown(); // Paper
+            try {
+                //net.minecrell.terminalconsole.TerminalConsoleAppender.close(); // Paper - Move into stop
+            } catch (Exception e) {
+            }
         }
     }
 }

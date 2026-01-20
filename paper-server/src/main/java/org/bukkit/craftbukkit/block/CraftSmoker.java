@@ -7,8 +7,8 @@ import org.bukkit.block.Smoker;
 
 public class CraftSmoker extends CraftFurnace<SmokerBlockEntity> implements Smoker {
 
-    public CraftSmoker(World world, SmokerBlockEntity blockEntity) {
-        super(world, blockEntity);
+    public CraftSmoker(World world, SmokerBlockEntity tileEntity) {
+        super(world, tileEntity);
     }
 
     protected CraftSmoker(CraftSmoker state, Location location) {

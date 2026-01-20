@@ -29,7 +29,7 @@ public interface PluginBootstrap {
 
     /**
      * Called by the server to instantiate your main class.
-     * Plugins may override this logic to define custom creation logic for said instance, like passing additional
+     * Plugins may override this logic to define custom creation logic for said instance, like passing addition
      * constructor arguments.
      *
      * @param context the server created bootstrap object

@@ -57,7 +57,7 @@ final class InnerClassInstanceSupplier implements CheckedFunction<AnnotatedType,
                 final Object instance = instanceSupplier.get();
                 this.instanceMap.put(type, instance);
                 return () -> instance;
-            } catch (final ReflectiveOperationException e) {
+            } catch (ReflectiveOperationException e) {
                 throw new SerializationException(ConfigurationPart.class, target + " must be a valid ConfigurationPart", e);
             }
         } else {

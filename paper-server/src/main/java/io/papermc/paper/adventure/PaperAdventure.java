@@ -1,5 +1,6 @@
 package io.papermc.paper.adventure;
 
+import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.JavaOps;
 import io.netty.util.AttributeKey;
@@ -35,6 +36,8 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.translation.GlobalTranslator;
+import net.kyori.adventure.translation.TranslationRegistry;
+import net.kyori.adventure.translation.Translator;
 import net.kyori.adventure.util.Codec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -76,16 +79,16 @@ import static java.util.Objects.requireNonNull;
 public final class PaperAdventure {
     private static final Pattern LOCALIZATION_PATTERN = Pattern.compile("%(?:(\\d+)\\$)?s");
     public static final ComponentFlattener FLATTENER = ComponentFlattener.basic().toBuilder()
-        .nestingLimit(30) // todo: should this be configurable? a system property or config value?
         .complexMapper(TranslatableComponent.class, (translatable, consumer) -> {
-            final Language language = Language.getInstance();
-            final @Nullable String fallback = translatable.fallback();
-            if (!language.has(translatable.key()) && (fallback == null || !language.has(fallback))) {
-                if (GlobalTranslator.translator().canTranslate(translatable.key(), Locale.US)) {
-                    consumer.accept(GlobalTranslator.render(translatable, Locale.US));
-                    return;
+            if (!Language.getInstance().has(translatable.key())) {
+                for (final Translator source : GlobalTranslator.translator().sources()) {
+                    if (source instanceof TranslationRegistry registry && registry.contains(translatable.key())) {
+                        consumer.accept(GlobalTranslator.render(translatable, Locale.US));
+                        return;
+                    }
                 }
             }
+            final @Nullable String fallback = translatable.fallback();
             final @NotNull String translated = Language.getInstance().getOrDefault(translatable.key(), fallback != null ? fallback : translatable.key());
 
             final Matcher matcher = LOCALIZATION_PATTERN.matcher(translated);
@@ -128,11 +131,10 @@ public final class PaperAdventure {
     @Deprecated
     public static final PlainComponentSerializer PLAIN = PlainComponentSerializer.builder().flattener(FLATTENER).build();
     public static final ANSIComponentSerializer ANSI_SERIALIZER = ANSIComponentSerializer.builder().flattener(FLATTENER).build();
-    private static final TagParser<Tag> NBT_PARSER = TagParser.create(NbtOps.INSTANCE);
     public static final Codec<Tag, String, CommandSyntaxException, RuntimeException> NBT_CODEC = new Codec<>() {
         @Override
         public @NotNull Tag decode(final @NotNull String encoded) throws CommandSyntaxException {
-            return NBT_PARSER.parseFully(encoded);
+            return new TagParser(new StringReader(encoded)).readValue();
         }
 
         @Override
@@ -378,7 +380,6 @@ public final class PaperAdventure {
             case PLAYER -> SoundSource.PLAYERS;
             case AMBIENT -> SoundSource.AMBIENT;
             case VOICE -> SoundSource.VOICE;
-            case UI -> SoundSource.UI;
         };
     }
 

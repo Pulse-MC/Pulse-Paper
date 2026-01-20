@@ -2,6 +2,7 @@ package org.bukkit.entity;
 
 import org.bukkit.attribute.Attribute;
 import org.bukkit.damage.DamageSource;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +33,7 @@ public interface Damageable extends Entity {
      * @param amount amount of damage to deal
      * @param damageSource source to which the damage should be attributed
      */
+    @ApiStatus.Experimental
     void damage(double amount, @NotNull DamageSource damageSource);
 
     /**
@@ -51,6 +53,7 @@ public interface Damageable extends Entity {
      */
     void setHealth(double health);
 
+    // Paper start - entity heal API
     /**
      * Heal this entity by the given amount. This will call {@link org.bukkit.event.entity.EntityRegainHealthEvent}.
      *
@@ -67,6 +70,7 @@ public interface Damageable extends Entity {
      * @param reason heal reason
      */
     void heal(double amount, @NotNull org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason reason);
+    // Paper end - entity heal API
 
     /**
      * Gets the entity's absorption amount.

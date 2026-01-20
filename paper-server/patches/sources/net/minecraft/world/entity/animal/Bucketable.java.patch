@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/entity/animal/Bucketable.java
 +++ b/net/minecraft/world/entity/animal/Bucketable.java
-@@ -71,9 +_,19 @@
+@@ -88,9 +_,19 @@
      static <T extends LivingEntity & Bucketable> Optional<InteractionResult> bucketMobPickup(Player player, InteractionHand hand, T entity) {
          ItemStack itemInHand = player.getItemInHand(hand);
          if (itemInHand.getItem() == Items.WATER_BUCKET && entity.isAlive()) {
@@ -12,7 +12,7 @@
 +            org.bukkit.event.player.PlayerBucketEntityEvent playerBucketFishEvent = org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerFishBucketEvent(entity, player, itemInHand, bucketItemStack, hand);
 +            bucketItemStack = org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(playerBucketFishEvent.getEntityBucket());
 +            if (playerBucketFishEvent.isCancelled()) {
-+                player.containerMenu.forceHeldSlot(hand); // We need to update inventory to resync client's bucket
++                player.containerMenu.sendAllDataToRemote(); // We need to update inventory to resync client's bucket
 +                entity.resendPossiblyDesyncedEntityData((ServerPlayer) player); // Paper
 +                return Optional.of(InteractionResult.FAIL);
 +            }
@@ -21,7 +21,7 @@
              ItemStack itemStack = ItemUtils.createFilledResult(itemInHand, player, bucketItemStack, false);
              player.setItemInHand(hand, itemStack);
              Level level = entity.level();
-@@ -81,7 +_,7 @@
+@@ -98,7 +_,7 @@
                  CriteriaTriggers.FILLED_BUCKET.trigger((ServerPlayer)player, bucketItemStack);
              }
  

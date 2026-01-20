@@ -2,7 +2,6 @@ package org.bukkit.event.server;
 
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.RegisteredServiceProvider;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -12,10 +11,8 @@ import org.jetbrains.annotations.NotNull;
  * should not be relied upon.
  */
 public class ServiceRegisterEvent extends ServiceEvent {
+    private static final HandlerList handlers = new HandlerList();
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    @ApiStatus.Internal
     public ServiceRegisterEvent(@NotNull RegisteredServiceProvider<?> registeredProvider) {
         super(registeredProvider);
     }
@@ -23,11 +20,11 @@ public class ServiceRegisterEvent extends ServiceEvent {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

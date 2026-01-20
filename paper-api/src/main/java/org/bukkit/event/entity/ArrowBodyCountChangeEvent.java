@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -12,21 +11,19 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ArrowBodyCountChangeEvent extends EntityEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    private final boolean reset;
+    private static final HandlerList handlers = new HandlerList();
+    //
+    private boolean cancelled;
+    private final boolean isReset;
     private final int oldAmount;
     private int newAmount;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
-    public ArrowBodyCountChangeEvent(@NotNull LivingEntity entity, int oldAmount, int newAmount, boolean reset) {
+    public ArrowBodyCountChangeEvent(@NotNull LivingEntity entity, int oldAmount, int newAmount, boolean isReset) {
         super(entity);
 
         this.oldAmount = oldAmount;
         this.newAmount = newAmount;
-        this.reset = reset;
+        this.isReset = isReset;
     }
 
     /**
@@ -35,7 +32,7 @@ public class ArrowBodyCountChangeEvent extends EntityEvent implements Cancellabl
      * @return was reset
      */
     public boolean isReset() {
-        return this.reset;
+        return isReset;
     }
 
     /**
@@ -44,7 +41,7 @@ public class ArrowBodyCountChangeEvent extends EntityEvent implements Cancellabl
      * @return amount of arrows
      */
     public int getOldAmount() {
-        return this.oldAmount;
+        return oldAmount;
     }
 
     /**
@@ -53,7 +50,7 @@ public class ArrowBodyCountChangeEvent extends EntityEvent implements Cancellabl
      * @return amount of arrows
      */
     public int getNewAmount() {
-        return this.newAmount;
+        return newAmount;
     }
 
     /**
@@ -69,12 +66,12 @@ public class ArrowBodyCountChangeEvent extends EntityEvent implements Cancellabl
     @Override
     @NotNull
     public LivingEntity getEntity() {
-        return (LivingEntity) this.entity;
+        return (LivingEntity) entity;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
@@ -85,11 +82,11 @@ public class ArrowBodyCountChangeEvent extends EntityEvent implements Cancellabl
     @Override
     @NotNull
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

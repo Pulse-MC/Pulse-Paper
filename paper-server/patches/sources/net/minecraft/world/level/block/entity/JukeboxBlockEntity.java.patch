@@ -36,16 +36,16 @@
 +    }
 +
 +    @Override
-+    public @javax.annotation.Nullable org.bukkit.Location getLocation() {
++    public org.bukkit.Location getLocation() {
 +        if (this.level == null) return null;
-+        return org.bukkit.craftbukkit.util.CraftLocation.toBukkit(this.worldPosition, this.level);
++        return io.papermc.paper.util.MCUtil.toLocation(this.level, this.worldPosition);
 +    }
 +    // CraftBukkit end
 +
      public static final String SONG_ITEM_TAG_ID = "RecordItem";
      public static final String TICKS_SINCE_SONG_STARTED_TAG_ID = "ticks_since_song_started";
      private ItemStack item = ItemStack.EMPTY;
-@@ -123,7 +_,7 @@
+@@ -126,7 +_,7 @@
  
      @Override
      public int getMaxStackSize() {
@@ -54,7 +54,7 @@
      }
  
      @Override
-@@ -147,11 +_,16 @@
+@@ -145,11 +_,16 @@
      }
  
      @VisibleForTesting

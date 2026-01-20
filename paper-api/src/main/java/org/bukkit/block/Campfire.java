@@ -70,6 +70,7 @@ public interface Campfire extends TileState {
      */
     void setCookTimeTotal(int index, int cookTimeTotal);
 
+    // Paper start
     /**
      * Disable cooking in all slots.
      */
@@ -103,4 +104,5 @@ public interface Campfire extends TileState {
      * @return {@code true} if the specified slot index cannot cook
      */
     boolean isCookingDisabled(int index);
+    // Paper end
 }

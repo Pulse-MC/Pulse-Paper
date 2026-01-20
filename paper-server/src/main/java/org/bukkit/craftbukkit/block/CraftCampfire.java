@@ -1,6 +1,5 @@
 package org.bukkit.craftbukkit.block;
 
-import com.google.common.base.Preconditions;
 import net.minecraft.world.level.block.entity.CampfireBlockEntity;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -10,8 +9,8 @@ import org.bukkit.inventory.ItemStack;
 
 public class CraftCampfire extends CraftBlockEntityState<CampfireBlockEntity> implements Campfire {
 
-    public CraftCampfire(World world, CampfireBlockEntity blockEntity) {
-        super(world, blockEntity);
+    public CraftCampfire(World world, CampfireBlockEntity tileEntity) {
+        super(world, tileEntity);
     }
 
     protected CraftCampfire(CraftCampfire state, Location location) {
@@ -64,37 +63,39 @@ public class CraftCampfire extends CraftBlockEntityState<CampfireBlockEntity> im
         return new CraftCampfire(this, location);
     }
 
+    // Paper start
     @Override
     public void stopCooking() {
-        for (int i = 0; i < this.getSnapshot().stopCooking.length; ++i)
+        for (int i = 0; i < getSnapshot().stopCooking.length; ++i)
             this.stopCooking(i);
     }
 
     @Override
     public void startCooking() {
-        for (int i = 0; i < this.getSnapshot().stopCooking.length; ++i)
+        for (int i = 0; i < getSnapshot().stopCooking.length; ++i)
             this.startCooking(i);
     }
 
     @Override
     public boolean stopCooking(int index) {
-        Preconditions.checkArgument(-1 < index && index < 4, "Slot index must be between 0 (incl) to 3 (incl)");
+        org.apache.commons.lang.Validate.isTrue(-1 < index && index < 4, "Slot index must be between 0 (incl) to 3 (incl)");
         boolean previous = this.isCookingDisabled(index);
-        this.getSnapshot().stopCooking[index] = true;
+        getSnapshot().stopCooking[index] = true;
         return previous;
     }
 
     @Override
     public boolean startCooking(int index) {
-        Preconditions.checkArgument(-1 < index && index < 4, "Slot index must be between 0 (incl) to 3 (incl)");
+        org.apache.commons.lang.Validate.isTrue(-1 < index && index < 4, "Slot index must be between 0 (incl) to 3 (incl)");
         boolean previous = this.isCookingDisabled(index);
-        this.getSnapshot().stopCooking[index] = false;
+        getSnapshot().stopCooking[index] = false;
         return previous;
     }
 
     @Override
     public boolean isCookingDisabled(int index) {
-        Preconditions.checkArgument(-1 < index && index < 4, "Slot index must be between 0 (incl) to 3 (incl)");
-        return this.getSnapshot().stopCooking[index];
+        org.apache.commons.lang.Validate.isTrue(-1 < index && index < 4, "Slot index must be between 0 (incl) to 3 (incl)");
+        return getSnapshot().stopCooking[index];
     }
+    // Paper end
 }

@@ -33,7 +33,7 @@
                              } else {
                                  if (!blockState.is(Blocks.KELP)
                                      && !blockState.is(Blocks.KELP_PLANT)
-@@ -81,16 +_,49 @@
+@@ -81,16 +_,55 @@
                                      return BlockPos.TraversalNodeStatus.SKIP;
                                  }
  
@@ -43,6 +43,7 @@
 +                                // CraftBukkit start
 +                                // BlockEntity blockEntity = blockState.hasBlockEntity() ? level.getBlockEntity(blockPos) : null;
 +                                // dropResources(blockState, level, blockPos, blockEntity);
++                                // level.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 3);
 +                                blockList.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 3);
 +                                // CraftBukkit end
                              }
@@ -55,31 +56,36 @@
 -            > 1;
 +            );
 +        // CraftBukkit start
-+        java.util.List<org.bukkit.craftbukkit.block.CraftBlockState> snapshots = blockList.getSnapshotBlocks(); // Is a clone
-+        if (!snapshots.isEmpty()) {
++        java.util.List<org.bukkit.craftbukkit.block.CraftBlockState> blocks = blockList.getList(); // Is a clone
++        if (!blocks.isEmpty()) {
 +            final org.bukkit.block.Block sponge = org.bukkit.craftbukkit.block.CraftBlock.at(level, pos);
 +
-+            org.bukkit.event.block.SpongeAbsorbEvent event = new org.bukkit.event.block.SpongeAbsorbEvent(sponge, (java.util.List<org.bukkit.block.BlockState>) (java.util.List) snapshots);
++            org.bukkit.event.block.SpongeAbsorbEvent event = new org.bukkit.event.block.SpongeAbsorbEvent(sponge, (java.util.List<org.bukkit.block.BlockState>) (java.util.List) blocks);
 +            if (!event.callEvent()) {
 +                return false;
 +            }
 +
-+            for (org.bukkit.craftbukkit.block.CraftBlockState snapshot : snapshots) {
-+                BlockPos blockPos = snapshot.getPosition();
-+                BlockState blockState = level.getBlockState(blockPos);
-+                FluidState fluidState = level.getFluidState(blockPos);
++            for (org.bukkit.craftbukkit.block.CraftBlockState block : blocks) {
++                BlockPos blockPos = block.getPosition();
++                BlockState state = level.getBlockState(blockPos);
++                FluidState fluid = level.getFluidState(blockPos);
 +
-+                if (!fluidState.is(FluidTags.WATER)) {
-+                } else if (blockState.getBlock() instanceof BucketPickup bucketPickup && !bucketPickup.pickupBlock(null, level, blockPos, blockState).isEmpty()) {
-+                } else if (blockState.getBlock() instanceof LiquidBlock) {
-+                } else if (blockState.is(Blocks.KELP) || blockState.is(Blocks.KELP_PLANT) || blockState.is(Blocks.SEAGRASS) || blockState.is(Blocks.TALL_SEAGRASS)) {
-+                    BlockEntity blockEntity = blockState.hasBlockEntity() ? level.getBlockEntity(blockPos) : null;
++                if (fluid.is(FluidTags.WATER)) {
++                    if (state.getBlock() instanceof BucketPickup bucketPickup && !bucketPickup.pickupBlock(null, blockList, blockPos, state).isEmpty()) {
++                        // NOP
++                    } else if (state.getBlock() instanceof LiquidBlock) {
++                        // NOP
++                    } else if (state.is(Blocks.KELP) || state.is(Blocks.KELP_PLANT) || state.is(Blocks.SEAGRASS) || state.is(Blocks.TALL_SEAGRASS)) {
++                        BlockEntity blockEntity = state.hasBlockEntity() ? level.getBlockEntity(blockPos) : null;
 +
-+                    if (snapshot.getHandle().isAir()) {
-+                        dropResources(blockState, level, blockPos, blockEntity);
++                        // Paper start - Fix SpongeAbsortEvent handling
++                        if (block.getHandle().isAir()) {
++                        dropResources(state, level, blockPos, blockEntity);
++                        }
++                        // Paper end - Fix SpongeAbsortEvent handling
 +                    }
 +                }
-+                snapshot.place(snapshot.getFlags());
++                level.setBlock(blockPos, block.getHandle(), block.getFlag());
 +            }
 +
 +            return true;

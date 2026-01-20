@@ -1,7 +1,6 @@
 package org.bukkit.event.entity;
 
 import org.bukkit.entity.Entity;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -17,16 +16,13 @@ import org.jetbrains.annotations.NotNull;
  * </ul>
  * will have no effect.
  */
-public class EntityUnleashEvent extends EntityEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+public class EntityUnleashEvent extends EntityEvent implements org.bukkit.event.Cancellable { // Paper
+    private static final HandlerList handlers = new HandlerList();
     private final UnleashReason reason;
-    private boolean dropLeash;
+    private boolean dropLeash; // Paper
+    private boolean cancelled; // Paper
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
+    // Paper start - drop leash variable
     @Deprecated(forRemoval = true)
     public EntityUnleashEvent(@NotNull Entity entity, @NotNull UnleashReason reason) {
         this(entity, reason, false);
@@ -35,8 +31,9 @@ public class EntityUnleashEvent extends EntityEvent implements Cancellable {
     @ApiStatus.Internal
     public EntityUnleashEvent(@NotNull Entity entity, @NotNull UnleashReason reason, boolean dropLeash) {
         super(entity);
+        // Paper end
         this.reason = reason;
-        this.dropLeash = dropLeash;
+        this.dropLeash = dropLeash; // Paper
     }
 
     /**
@@ -46,16 +43,17 @@ public class EntityUnleashEvent extends EntityEvent implements Cancellable {
      */
     @NotNull
     public UnleashReason getReason() {
-        return this.reason;
+        return reason;
     }
 
+    // Paper start
     /**
      * Returns whether a leash item will be dropped.
      *
      * @return Whether the leash item will be dropped
      */
     public boolean isDropLeash() {
-        return this.dropLeash;
+        return dropLeash;
     }
 
     /**
@@ -69,23 +67,24 @@ public class EntityUnleashEvent extends EntityEvent implements Cancellable {
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
     public void setCancelled(boolean cancel) {
         this.cancelled = cancel;
     }
+    // Paper end
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     public enum UnleashReason {

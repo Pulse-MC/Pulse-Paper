@@ -21,24 +21,12 @@ public interface VersionFetcher {
     /**
      * Gets the version message to cache and show to command senders.
      *
-     * @return the message to show when requesting a version
-     * @apiNote This method may involve a web request which will block the executing thread
-     */
-    Component getVersionMessage();
-
-    /**
-     * Gets the version message to cache and show to command senders.
+     * <p>NOTE: This is run in a new thread separate from that of the command processing thread</p>
      *
      * @param serverVersion the current version of the server (will match {@link Bukkit#getVersion()})
      * @return the message to show when requesting a version
-     * @apiNote This method may involve a web request which will block the current thread
-     * @see #getVersionMessage()
-     * @deprecated {@code serverVersion} is not required
      */
-    @Deprecated
-    default Component getVersionMessage(String serverVersion) {
-        return getVersionMessage();
-    }
+    Component getVersionMessage(String serverVersion);
 
     @ApiStatus.Internal
     class DummyVersionFetcher implements VersionFetcher {
@@ -49,7 +37,7 @@ public interface VersionFetcher {
         }
 
         @Override
-        public Component getVersionMessage() {
+        public Component getVersionMessage(final String serverVersion) {
             Bukkit.getLogger().warning("Version provider has not been set, cannot check for updates!");
             Bukkit.getLogger().info("Override the default implementation of org.bukkit.UnsafeValues#getVersionFetcher()");
             new Throwable().printStackTrace();

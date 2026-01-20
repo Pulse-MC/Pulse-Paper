@@ -1,14 +1,16 @@
 package org.bukkit.craftbukkit.entity;
 
+import org.bukkit.craftbukkit.CraftServer;
+import org.bukkit.entity.Witch;
+// Paper start
+import com.destroystokyo.paper.entity.CraftRangedEntity;
 import com.google.common.base.Preconditions;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
-import org.bukkit.entity.Witch;
 import org.bukkit.inventory.ItemStack;
+// Paper end
 
 public class CraftWitch extends CraftRaider implements Witch, com.destroystokyo.paper.entity.CraftRangedEntity<net.minecraft.world.entity.monster.Witch> { // Paper
-
     public CraftWitch(CraftServer server, net.minecraft.world.entity.monster.Witch entity) {
         super(server, entity);
     }
@@ -19,25 +21,31 @@ public class CraftWitch extends CraftRaider implements Witch, com.destroystokyo.
     }
 
     @Override
+    public String toString() {
+        return "CraftWitch";
+    }
+
+    @Override
     public boolean isDrinkingPotion() {
         return this.getHandle().isDrinkingPotion();
     }
-
+    // Paper start
     public int getPotionUseTimeLeft() {
-        return this.getHandle().usingTime;
+        return getHandle().usingTime;
     }
 
     @Override
     public void setPotionUseTimeLeft(int ticks) {
-        this.getHandle().usingTime = ticks;
+        getHandle().usingTime = ticks;
     }
 
     public ItemStack getDrinkingPotion() {
-        return CraftItemStack.asCraftMirror(this.getHandle().getMainHandItem());
+        return CraftItemStack.asCraftMirror(getHandle().getMainHandItem());
     }
 
     public void setDrinkingPotion(ItemStack potion) {
         Preconditions.checkArgument(potion == null || potion.getType().isEmpty() || potion.getType() == Material.POTION, "must be potion, air, or null");
-        this.getHandle().setDrinkingPotion(CraftItemStack.asNMSCopy(potion));
+        getHandle().setDrinkingPotion(CraftItemStack.asNMSCopy(potion));
     }
+    // Paper end
 }

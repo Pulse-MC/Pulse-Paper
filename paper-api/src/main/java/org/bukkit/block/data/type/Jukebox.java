@@ -14,11 +14,4 @@ public interface Jukebox extends BlockData {
      * @return the 'has_record' value
      */
     boolean hasRecord();
-
-    /**
-     * Sets the value of the 'has_record' property.
-     *
-     * @param hasRecord the new 'has_record' value
-     */
-    void setHasRecord(boolean hasRecord);
 }

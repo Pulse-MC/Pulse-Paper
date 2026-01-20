@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/entity/monster/Endermite.java
 +++ b/net/minecraft/world/entity/monster/Endermite.java
-@@ -123,7 +_,7 @@
+@@ -121,7 +_,7 @@
              }
  
              if (this.life >= 2400) {

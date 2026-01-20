@@ -4,7 +4,6 @@ import org.bukkit.block.Block;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.inventory.FurnaceStartSmeltEvent;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -17,11 +16,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public class InventoryBlockStartEvent extends BlockEvent {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
+    private static final HandlerList handlers = new HandlerList();
+    protected ItemStack source; // Paper
 
-    protected ItemStack source;
-
-    @ApiStatus.Internal
     public InventoryBlockStartEvent(@NotNull final Block block, @NotNull ItemStack source) {
         super(block);
         this.source = source;
@@ -34,17 +31,17 @@ public class InventoryBlockStartEvent extends BlockEvent {
      */
     @NotNull
     public ItemStack getSource() {
-        return this.source;
+        return source;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

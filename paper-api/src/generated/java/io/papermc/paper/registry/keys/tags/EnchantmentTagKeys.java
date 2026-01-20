@@ -12,7 +12,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * Vanilla tag keys for {@link RegistryKey#ENCHANTMENT}.
+ * Vanilla keys for {@link RegistryKey#ENCHANTMENT}.
  *
  * @apiNote The fields provided here are a direct representation of
  * what is available from the vanilla game source. They may be
@@ -24,8 +24,9 @@ import org.jspecify.annotations.NullMarked;
         "unused",
         "SpellCheckingInspection"
 })
+@GeneratedFrom("1.21.4")
 @NullMarked
-@GeneratedFrom("1.21.8")
+@ApiStatus.Experimental
 public final class EnchantmentTagKeys {
     /**
      * {@code #minecraft:curse}
@@ -316,6 +317,7 @@ public final class EnchantmentTagKeys {
      * @param key the tag key's key
      * @return a new tag key
      */
+    @ApiStatus.Experimental
     public static TagKey<Enchantment> create(final Key key) {
         return TagKey.create(RegistryKey.ENCHANTMENT, key);
     }

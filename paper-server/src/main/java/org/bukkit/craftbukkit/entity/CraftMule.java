@@ -11,6 +11,11 @@ public class CraftMule extends CraftChestedHorse implements Mule {
     }
 
     @Override
+    public String toString() {
+        return "CraftMule";
+    }
+
+    @Override
     public Variant getVariant() {
         return Variant.MULE;
     }

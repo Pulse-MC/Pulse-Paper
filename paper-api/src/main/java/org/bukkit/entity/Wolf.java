@@ -5,6 +5,7 @@ import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.DyeColor;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -90,77 +91,23 @@ public interface Wolf extends Tameable, Sittable, io.papermc.paper.entity.Collar
     void setVariant(@NotNull Variant variant);
 
     /**
-     * Get the sound variant of this wolf.
-     *
-     * @return wolf sound variant
-     */
-    @NotNull
-    SoundVariant getSoundVariant();
-
-    /**
-     * Set the sound variant of this wolf.
-     *
-     * @param soundVariant wolf sound variant
-     */
-    void setSoundVariant(@NotNull SoundVariant soundVariant);
-
-    /**
      * Represents the variant of a wolf.
      */
     interface Variant extends Keyed {
 
-        // Start generate - WolfVariant
-        // @GeneratedFrom 1.21.5
-        Variant ASHEN = getVariant("ashen");
-
-        Variant BLACK = getVariant("black");
-
-        Variant CHESTNUT = getVariant("chestnut");
-
         Variant PALE = getVariant("pale");
-
-        Variant RUSTY = getVariant("rusty");
-
-        Variant SNOWY = getVariant("snowy");
-
         Variant SPOTTED = getVariant("spotted");
-
-        Variant STRIPED = getVariant("striped");
-
+        Variant SNOWY = getVariant("snowy");
+        Variant BLACK = getVariant("black");
+        Variant ASHEN = getVariant("ashen");
+        Variant RUSTY = getVariant("rusty");
         Variant WOODS = getVariant("woods");
-        // End generate - WolfVariant
+        Variant CHESTNUT = getVariant("chestnut");
+        Variant STRIPED = getVariant("striped");
 
         @NotNull
         private static Variant getVariant(@NotNull String key) {
             return RegistryAccess.registryAccess().getRegistry(RegistryKey.WOLF_VARIANT).getOrThrow(NamespacedKey.minecraft(key));
-        }
-    }
-
-    /**
-     * Represents the sound variant of a wolf.
-     */
-    interface SoundVariant extends Keyed {
-
-        // Start generate - WolfSoundVariant
-        // @GeneratedFrom 1.21.8
-        SoundVariant ANGRY = getSoundVariant("angry");
-
-        SoundVariant BIG = getSoundVariant("big");
-
-        SoundVariant CLASSIC = getSoundVariant("classic");
-
-        SoundVariant CUTE = getSoundVariant("cute");
-
-        SoundVariant GRUMPY = getSoundVariant("grumpy");
-
-        SoundVariant PUGLIN = getSoundVariant("puglin");
-
-        SoundVariant SAD = getSoundVariant("sad");
-        // End generate - WolfSoundVariant
-
-        @NotNull
-        private static SoundVariant getSoundVariant(@NotNull String key) {
-            return RegistryAccess.registryAccess().getRegistry(RegistryKey.WOLF_SOUND_VARIANT).getOrThrow(NamespacedKey.minecraft(key));
         }
     }
 }

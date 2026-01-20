@@ -1,21 +1,15 @@
 --- a/net/minecraft/stats/ServerRecipeBook.java
 +++ b/net/minecraft/stats/ServerRecipeBook.java
-@@ -64,17 +_,21 @@
+@@ -67,7 +_,7 @@
+ 
          for (RecipeHolder<?> recipeHolder : recipes) {
              ResourceKey<Recipe<?>> resourceKey = recipeHolder.id();
-             if (!this.known.contains(resourceKey) && !recipeHolder.value().isSpecial()) {
-+                // Paper start - PlayerRecipeDiscoverEvent event
-+                final org.bukkit.event.player.PlayerRecipeDiscoverEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerRecipeListUpdateEvent(player, recipeHolder);
-+                if (event.isCancelled()) continue;
-+                // Paper end - PlayerRecipeDiscoverEvent event
+-            if (!this.known.contains(resourceKey) && !recipeHolder.value().isSpecial()) {
++            if (!this.known.contains(resourceKey) && !recipeHolder.value().isSpecial() && org.bukkit.craftbukkit.event.CraftEventFactory.handlePlayerRecipeListUpdateEvent(player, resourceKey.location())) { // CraftBukkit
                  this.add(resourceKey);
                  this.addHighlight(resourceKey);
                  this.displayResolver
-                     .displaysForRecipe(
--                        resourceKey, entry -> list.add(new ClientboundRecipeBookAddPacket.Entry(entry, recipeHolder.value().showNotification(), true))
-+                        resourceKey, entry -> list.add(new ClientboundRecipeBookAddPacket.Entry(entry, event.shouldShowNotification(), true)) // Paper - set notification from the event
-                     );
-                 CriteriaTriggers.RECIPE_UNLOCKED.trigger(player, recipeHolder);
+@@ -78,7 +_,7 @@
              }
          }
  
@@ -24,7 +18,7 @@
              player.connection.send(new ClientboundRecipeBookAddPacket(list, false));
          }
  
-@@ -92,7 +_,7 @@
+@@ -96,7 +_,7 @@
              }
          }
  

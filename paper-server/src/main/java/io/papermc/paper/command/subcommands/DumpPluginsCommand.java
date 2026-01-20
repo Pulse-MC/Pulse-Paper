@@ -5,7 +5,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.google.gson.Strictness;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonWriter;
 import io.papermc.paper.command.PaperSubcommand;
@@ -16,6 +15,7 @@ import io.papermc.paper.plugin.entrypoint.classloader.group.PaperPluginClassLoad
 import io.papermc.paper.plugin.entrypoint.classloader.group.SimpleListPluginClassLoaderGroup;
 import io.papermc.paper.plugin.entrypoint.classloader.group.SpigotPluginClassLoaderGroup;
 import io.papermc.paper.plugin.entrypoint.classloader.group.StaticPluginClassLoaderGroup;
+import io.papermc.paper.plugin.entrypoint.dependency.GraphDependencyContext;
 import io.papermc.paper.plugin.entrypoint.dependency.SimpleMetaDependencyTree;
 import io.papermc.paper.plugin.provider.entrypoint.DependencyContext;
 import io.papermc.paper.plugin.entrypoint.strategy.modern.ModernPluginLoadingStrategy;
@@ -27,14 +27,12 @@ import io.papermc.paper.plugin.provider.classloader.PaperClassLoaderStorage;
 import io.papermc.paper.plugin.provider.classloader.PluginClassLoaderGroup;
 import io.papermc.paper.plugin.storage.ConfiguredProviderStorage;
 import io.papermc.paper.plugin.storage.ProviderStorage;
-import net.kyori.adventure.text.event.ClickEvent;
 import net.minecraft.server.MinecraftServer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
-import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
@@ -49,7 +47,6 @@ import java.util.Map;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.GREEN;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
-import static net.kyori.adventure.text.format.NamedTextColor.WHITE;
 
 @DefaultQualifier(NonNull.class)
 public final class DumpPluginsCommand implements PaperSubcommand {
@@ -63,40 +60,24 @@ public final class DumpPluginsCommand implements PaperSubcommand {
 
     private void dumpPlugins(final CommandSender sender, final String[] args) {
         Path parent = Path.of("debug");
-        Path path = parent.resolve("plugin-info-" + FORMATTER.format(LocalDateTime.now()) + ".json");
+        Path path = parent.resolve("plugin-info-" + FORMATTER.format(LocalDateTime.now()) + ".txt");
         try {
             Files.createDirectories(parent);
             Files.createFile(path);
-            sender.sendMessage(
-                text("Writing plugin information into directory", GREEN)
-                    .appendSpace()
-                    .append(
-                        text(parent.toString(), WHITE)
-                            .hoverEvent(text("Click to copy the full path of debug directory", WHITE))
-                            .clickEvent(ClickEvent.copyToClipboard(parent.toAbsolutePath().toString()))
-                    )
-            );
+            sender.sendMessage(text("Writing plugin information to " + path, GREEN));
 
             final JsonObject data = this.writeDebug();
 
             StringWriter stringWriter = new StringWriter();
             JsonWriter jsonWriter = new JsonWriter(stringWriter);
             jsonWriter.setIndent(" ");
-            jsonWriter.setStrictness(Strictness.STRICT);
+            jsonWriter.setLenient(false);
             Streams.write(data, jsonWriter);
 
             try (PrintStream out = new PrintStream(Files.newOutputStream(path), false, StandardCharsets.UTF_8)) {
                 out.print(stringWriter);
             }
-            sender.sendMessage(
-                text("Successfully written plugin debug information into", GREEN)
-                    .appendSpace()
-                    .append(
-                        text(path.toString(), WHITE)
-                            .hoverEvent(text("Click to copy the full path of the file", WHITE))
-                            .clickEvent(ClickEvent.copyToClipboard(path.toAbsolutePath().toString()))
-                    )
-            );
+            sender.sendMessage(text("Successfully written plugin debug information!", GREEN));
         } catch (Throwable e) {
             sender.sendMessage(text("Failed to write plugin information! See the console for more info.", RED));
             MinecraftServer.LOGGER.warn("Error occurred while dumping plugin info", e);
@@ -116,7 +97,6 @@ public final class DumpPluginsCommand implements PaperSubcommand {
         return root;
     }
 
-    @SuppressWarnings("unchecked")
     private void writeProviders(JsonObject root) {
         JsonObject rootProviders = new JsonObject();
         root.add("providers", rootProviders);
@@ -135,6 +115,7 @@ public final class DumpPluginsCommand implements PaperSubcommand {
                 providerObj.addProperty("dependencies", provider.getMeta().getPluginDependencies().toString());
                 providerObj.addProperty("soft-dependencies", provider.getMeta().getPluginSoftDependencies().toString());
                 providerObj.addProperty("load-before", provider.getMeta().getLoadBeforePlugins().toString());
+
 
                 providers.add(providerObj);
                 pluginProviders.add((PluginProvider<Object>) provider);

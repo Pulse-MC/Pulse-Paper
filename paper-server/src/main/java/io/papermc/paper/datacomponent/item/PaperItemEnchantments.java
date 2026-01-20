@@ -32,6 +32,16 @@ public record PaperItemEnchantments(
     }
 
     @Override
+    public boolean showInTooltip() {
+        return this.impl.showInTooltip;
+    }
+
+    @Override
+    public ItemEnchantments showInTooltip(final boolean showInTooltip) {
+        return new PaperItemEnchantments(this.impl.withTooltip(showInTooltip), this.enchantments);
+    }
+
+    @Override
     public net.minecraft.world.item.enchantment.ItemEnchantments getHandle() {
         return this.impl;
     }
@@ -39,6 +49,7 @@ public record PaperItemEnchantments(
     static final class BuilderImpl implements ItemEnchantments.Builder {
 
         private final Map<Enchantment, Integer> enchantments = new Object2ObjectOpenHashMap<>();
+        private boolean showInTooltip = true;
 
         @Override
         public ItemEnchantments.Builder add(final Enchantment enchantment, final int level) {
@@ -59,8 +70,14 @@ public record PaperItemEnchantments(
         }
 
         @Override
+        public ItemEnchantments.Builder showInTooltip(final boolean showInTooltip) {
+            this.showInTooltip = showInTooltip;
+            return this;
+        }
+
+        @Override
         public ItemEnchantments build() {
-            final net.minecraft.world.item.enchantment.ItemEnchantments initialEnchantments = net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY;
+            final net.minecraft.world.item.enchantment.ItemEnchantments initialEnchantments = net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY.withTooltip(this.showInTooltip);
             if (this.enchantments.isEmpty()) {
                 return new PaperItemEnchantments(initialEnchantments);
             }

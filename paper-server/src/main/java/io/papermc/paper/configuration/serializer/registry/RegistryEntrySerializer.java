@@ -1,7 +1,6 @@
 package io.papermc.paper.configuration.serializer.registry;
 
 import io.leangen.geantyref.TypeToken;
-import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Type;
 import java.util.function.Predicate;
 import net.minecraft.core.Registry;
@@ -11,30 +10,20 @@ import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.configurate.serialize.ScalarSerializer;
 import org.spongepowered.configurate.serialize.SerializationException;
 
-abstract class RegistryEntrySerializer<T, R> extends ScalarSerializer.Annotated<T> {
+abstract class RegistryEntrySerializer<T, R> extends ScalarSerializer<T> {
 
     private final RegistryAccess registryAccess;
     private final ResourceKey<? extends Registry<R>> registryKey;
     private final boolean omitMinecraftNamespace;
 
-    protected RegistryEntrySerializer(
-        final TypeToken<T> type,
-        final RegistryAccess registryAccess,
-        final ResourceKey<? extends Registry<R>> registryKey,
-        final boolean omitMinecraftNamespace
-    ) {
+    protected RegistryEntrySerializer(TypeToken<T> type, final RegistryAccess registryAccess, ResourceKey<? extends Registry<R>> registryKey, boolean omitMinecraftNamespace) {
         super(type);
         this.registryAccess = registryAccess;
         this.registryKey = registryKey;
         this.omitMinecraftNamespace = omitMinecraftNamespace;
     }
 
-    protected RegistryEntrySerializer(
-        final Class<T> type,
-        final RegistryAccess registryAccess,
-        final ResourceKey<? extends Registry<R>> registryKey,
-        final boolean omitMinecraftNamespace
-    ) {
+    protected RegistryEntrySerializer(Class<T> type, final RegistryAccess registryAccess, ResourceKey<? extends Registry<R>> registryKey, boolean omitMinecraftNamespace) {
         super(type);
         this.registryAccess = registryAccess;
         this.registryKey = registryKey;
@@ -48,14 +37,14 @@ abstract class RegistryEntrySerializer<T, R> extends ScalarSerializer.Annotated<
     protected abstract T convertFromResourceKey(ResourceKey<R> key) throws SerializationException;
 
     @Override
-    public final T deserialize(final AnnotatedType type, final Object obj) throws SerializationException {
+    public final T deserialize(Type type, Object obj) throws SerializationException {
         return this.convertFromResourceKey(this.deserializeKey(obj));
     }
 
     protected abstract ResourceKey<R> convertToResourceKey(T value);
 
     @Override
-    protected final Object serialize(final AnnotatedType type, final T item, final Predicate<Class<?>> typeSupported) {
+    protected final Object serialize(T item, Predicate<Class<?>> typeSupported) {
         final ResourceKey<R> key = this.convertToResourceKey(item);
         if (this.omitMinecraftNamespace && key.location().getNamespace().equals(ResourceLocation.DEFAULT_NAMESPACE)) {
             return key.location().getPath();

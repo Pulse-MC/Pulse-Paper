@@ -1,10 +1,10 @@
 package org.bukkit.craftbukkit.entity;
 
-import com.google.common.base.Preconditions;
 import net.minecraft.core.Rotations;
 import org.bukkit.craftbukkit.CraftEquipmentSlot;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.ArmorStand.LockType;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.EulerAngle;
@@ -16,18 +16,23 @@ public class CraftArmorStand extends CraftLivingEntity implements ArmorStand {
     }
 
     @Override
+    public String toString() {
+        return "CraftArmorStand";
+    }
+
+    @Override
     public net.minecraft.world.entity.decoration.ArmorStand getHandle() {
-        return (net.minecraft.world.entity.decoration.ArmorStand) this.entity;
+        return (net.minecraft.world.entity.decoration.ArmorStand) super.getHandle();
     }
 
     @Override
     public ItemStack getItemInHand() {
-        return this.getEquipment().getItemInMainHand();
+        return this.getEquipment().getItemInHand();
     }
 
     @Override
     public void setItemInHand(ItemStack item) {
-        this.getEquipment().setItemInMainHand(item);
+        this.getEquipment().setItemInHand(item);
     }
 
     @Override
@@ -72,7 +77,7 @@ public class CraftArmorStand extends CraftLivingEntity implements ArmorStand {
 
     @Override
     public EulerAngle getBodyPose() {
-        return CraftArmorStand.fromNMS(this.getHandle().getBodyPose());
+        return CraftArmorStand.fromNMS(this.getHandle().bodyPose);
     }
 
     @Override
@@ -82,7 +87,7 @@ public class CraftArmorStand extends CraftLivingEntity implements ArmorStand {
 
     @Override
     public EulerAngle getLeftArmPose() {
-        return CraftArmorStand.fromNMS(this.getHandle().getLeftArmPose());
+        return CraftArmorStand.fromNMS(this.getHandle().leftArmPose);
     }
 
     @Override
@@ -92,7 +97,7 @@ public class CraftArmorStand extends CraftLivingEntity implements ArmorStand {
 
     @Override
     public EulerAngle getRightArmPose() {
-        return CraftArmorStand.fromNMS(this.getHandle().getRightArmPose());
+        return CraftArmorStand.fromNMS(this.getHandle().rightArmPose);
     }
 
     @Override
@@ -102,7 +107,7 @@ public class CraftArmorStand extends CraftLivingEntity implements ArmorStand {
 
     @Override
     public EulerAngle getLeftLegPose() {
-        return CraftArmorStand.fromNMS(this.getHandle().getLeftLegPose());
+        return CraftArmorStand.fromNMS(this.getHandle().leftLegPose);
     }
 
     @Override
@@ -112,7 +117,7 @@ public class CraftArmorStand extends CraftLivingEntity implements ArmorStand {
 
     @Override
     public EulerAngle getRightLegPose() {
-        return CraftArmorStand.fromNMS(this.getHandle().getRightLegPose());
+        return CraftArmorStand.fromNMS(this.getHandle().rightLegPose);
     }
 
     @Override
@@ -122,7 +127,7 @@ public class CraftArmorStand extends CraftLivingEntity implements ArmorStand {
 
     @Override
     public EulerAngle getHeadPose() {
-        return CraftArmorStand.fromNMS(this.getHandle().getHeadPose());
+        return CraftArmorStand.fromNMS(this.getHandle().headPose);
     }
 
     @Override
@@ -187,9 +192,9 @@ public class CraftArmorStand extends CraftLivingEntity implements ArmorStand {
 
     private static EulerAngle fromNMS(Rotations old) {
         return new EulerAngle(
-            Math.toRadians(old.x()),
-            Math.toRadians(old.y()),
-            Math.toRadians(old.z())
+            Math.toRadians(old.getX()),
+            Math.toRadians(old.getY()),
+            Math.toRadians(old.getZ())
         );
     }
 
@@ -225,29 +230,49 @@ public class CraftArmorStand extends CraftLivingEntity implements ArmorStand {
     public boolean hasEquipmentLock(EquipmentSlot equipmentSlot, LockType lockType) {
         return (this.getHandle().disabledSlots & (1 << CraftEquipmentSlot.getNMS(equipmentSlot).getFilterBit(lockType.ordinal() * 8))) != 0;
     }
-
+    // Paper start
     @Override
     public boolean canMove() {
-        return this.getHandle().canMove;
+        return getHandle().canMove;
     }
 
     @Override
     public void setCanMove(boolean move) {
-        this.getHandle().canMove = move;
+        getHandle().canMove = move;
     }
 
     @Override
     public ItemStack getItem(org.bukkit.inventory.EquipmentSlot slot) {
-        Preconditions.checkArgument(slot != null, "slot cannot be null");
-        Preconditions.checkArgument(slot != EquipmentSlot.BODY, "Cannot get body item");
-        return this.getEquipment().getItem(slot);
+        com.google.common.base.Preconditions.checkArgument(slot != null, "slot");
+        com.google.common.base.Preconditions.checkArgument(slot != EquipmentSlot.BODY, "Cannot get body item");
+        return getHandle().getItemBySlot(org.bukkit.craftbukkit.CraftEquipmentSlot.getNMS(slot)).asBukkitMirror();
     }
 
     @Override
     public void setItem(org.bukkit.inventory.EquipmentSlot slot, ItemStack item) {
-        Preconditions.checkArgument(slot != null, "slot cannot be null");
-        Preconditions.checkArgument(slot != EquipmentSlot.BODY, "Cannot set body item");
-        this.getEquipment().setItem(slot, item);
+        com.google.common.base.Preconditions.checkArgument(slot != null, "slot");
+        com.google.common.base.Preconditions.checkArgument(slot != EquipmentSlot.BODY, "Cannot set body item");
+        switch (slot) {
+            case HAND:
+                getEquipment().setItemInMainHand(item);
+                return;
+            case OFF_HAND:
+                getEquipment().setItemInOffHand(item);
+                return;
+            case FEET:
+                setBoots(item);
+                return;
+            case LEGS:
+                setLeggings(item);
+                return;
+            case CHEST:
+                setChestplate(item);
+                return;
+            case HEAD:
+                setHelmet(item);
+                return;
+        }
+        throw new UnsupportedOperationException(slot.name());
     }
 
     @Override
@@ -269,90 +294,90 @@ public class CraftArmorStand extends CraftLivingEntity implements ArmorStand {
             net.minecraft.world.entity.EquipmentSlot nmsSlot = org.bukkit.craftbukkit.CraftEquipmentSlot.getNMS(slot);
             disabled += (1 << nmsSlot.getFilterBit(0)) + (1 << nmsSlot.getFilterBit(8)) + (1 << nmsSlot.getFilterBit(16));
         }
-        this.getHandle().disabledSlots = disabled;
+        getHandle().disabledSlots = disabled;
     }
 
     @Override
     public void addDisabledSlots(org.bukkit.inventory.EquipmentSlot... slots) {
-        java.util.Set<org.bukkit.inventory.EquipmentSlot> disabled = this.getDisabledSlots();
+        java.util.Set<org.bukkit.inventory.EquipmentSlot> disabled = getDisabledSlots();
         java.util.Collections.addAll(disabled, slots);
         setDisabledSlots(disabled.toArray(new org.bukkit.inventory.EquipmentSlot[0]));
     }
 
     @Override
     public void removeDisabledSlots(org.bukkit.inventory.EquipmentSlot... slots) {
-        java.util.Set<org.bukkit.inventory.EquipmentSlot> disabled = this.getDisabledSlots();
+        java.util.Set<org.bukkit.inventory.EquipmentSlot> disabled = getDisabledSlots();
         for (final org.bukkit.inventory.EquipmentSlot slot : slots) disabled.remove(slot);
         setDisabledSlots(disabled.toArray(new org.bukkit.inventory.EquipmentSlot[0]));
     }
 
     @Override
     public boolean isSlotDisabled(org.bukkit.inventory.EquipmentSlot slot) {
-        return this.getHandle().isDisabled(org.bukkit.craftbukkit.CraftEquipmentSlot.getNMS(slot));
+        return getHandle().isDisabled(org.bukkit.craftbukkit.CraftEquipmentSlot.getNMS(slot));
     }
 
     @Override
     public io.papermc.paper.math.Rotations getBodyRotations() {
-        return fromNMSRotations(this.getHandle().getBodyPose());
+        return fromNMSRotations(getHandle().bodyPose);
     }
 
     @Override
     public void setBodyRotations(io.papermc.paper.math.Rotations rotations) {
-        this.getHandle().setBodyPose(toNMSRotations(rotations));
+        getHandle().setBodyPose(toNMSRotations(rotations));
     }
 
     @Override
     public io.papermc.paper.math.Rotations getLeftArmRotations() {
-        return fromNMSRotations(this.getHandle().getLeftArmPose());
+        return fromNMSRotations(getHandle().leftArmPose);
     }
 
     @Override
     public void setLeftArmRotations(io.papermc.paper.math.Rotations rotations) {
-        this.getHandle().setLeftArmPose(toNMSRotations(rotations));
+        getHandle().setLeftArmPose(toNMSRotations(rotations));
     }
 
     @Override
     public io.papermc.paper.math.Rotations getRightArmRotations() {
-        return fromNMSRotations(this.getHandle().getRightArmPose());
+        return fromNMSRotations(getHandle().rightArmPose);
     }
 
     @Override
     public void setRightArmRotations(io.papermc.paper.math.Rotations rotations) {
-        this.getHandle().setRightArmPose(toNMSRotations(rotations));
+        getHandle().setRightArmPose(toNMSRotations(rotations));
     }
 
     @Override
     public io.papermc.paper.math.Rotations getLeftLegRotations() {
-        return fromNMSRotations(this.getHandle().getLeftLegPose());
+        return fromNMSRotations(getHandle().leftLegPose);
     }
 
     @Override
     public void setLeftLegRotations(io.papermc.paper.math.Rotations rotations) {
-        this.getHandle().setLeftLegPose(toNMSRotations(rotations));
+        getHandle().setLeftLegPose(toNMSRotations(rotations));
     }
 
     @Override
     public io.papermc.paper.math.Rotations getRightLegRotations() {
-        return fromNMSRotations(this.getHandle().getRightLegPose());
+        return fromNMSRotations(getHandle().rightLegPose);
     }
 
     @Override
     public void setRightLegRotations(io.papermc.paper.math.Rotations rotations) {
-        this.getHandle().setRightLegPose(toNMSRotations(rotations));
+        getHandle().setRightLegPose(toNMSRotations(rotations));
     }
 
     @Override
     public io.papermc.paper.math.Rotations getHeadRotations() {
-        return fromNMSRotations(this.getHandle().getHeadPose());
+        return fromNMSRotations(getHandle().headPose);
     }
 
     @Override
     public void setHeadRotations(io.papermc.paper.math.Rotations rotations) {
-        this.getHandle().setHeadPose(toNMSRotations(rotations));
+        getHandle().setHeadPose(toNMSRotations(rotations));
     }
 
     private static io.papermc.paper.math.Rotations fromNMSRotations(Rotations old) {
-        return io.papermc.paper.math.Rotations.ofDegrees(old.x(), old.y(), old.z());
+        return io.papermc.paper.math.Rotations.ofDegrees(old.getX(), old.getY(), old.getZ());
     }
 
     private static Rotations toNMSRotations(io.papermc.paper.math.Rotations old) {
@@ -369,4 +394,5 @@ public class CraftArmorStand extends CraftLivingEntity implements ArmorStand {
         this.getHandle().canTick = tick;
         this.getHandle().canTickSetByAPI = true;
     }
+    // Paper end
 }

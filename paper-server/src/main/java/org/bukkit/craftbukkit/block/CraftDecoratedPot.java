@@ -21,8 +21,8 @@ import org.bukkit.inventory.DecoratedPotInventory;
 
 public class CraftDecoratedPot extends CraftBlockEntityState<DecoratedPotBlockEntity> implements DecoratedPot {
 
-    public CraftDecoratedPot(World world, DecoratedPotBlockEntity blockEntity) {
-        super(world, blockEntity);
+    public CraftDecoratedPot(World world, DecoratedPotBlockEntity tileEntity) {
+        super(world, tileEntity);
     }
 
     protected CraftDecoratedPot(CraftDecoratedPot state, Location location) {
@@ -40,7 +40,7 @@ public class CraftDecoratedPot extends CraftBlockEntityState<DecoratedPotBlockEn
             return this.getSnapshotInventory();
         }
 
-        return new CraftInventoryDecoratedPot(this.getBlockEntity());
+        return new CraftInventoryDecoratedPot(this.getTileEntity());
     }
 
     // Paper start - expose loot table

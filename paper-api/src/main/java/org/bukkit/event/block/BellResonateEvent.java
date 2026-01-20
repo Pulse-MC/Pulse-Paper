@@ -4,7 +4,6 @@ import java.util.List;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -13,18 +12,16 @@ import org.jetbrains.annotations.NotNull;
  */
 public class BellResonateEvent extends BlockEvent {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final List<LivingEntity> resonatedEntities;
 
-    @ApiStatus.Internal
-    public BellResonateEvent(@NotNull Block bell, @NotNull List<LivingEntity> resonatedEntities) {
-        super(bell);
+    public BellResonateEvent(@NotNull Block theBlock, @NotNull List<LivingEntity> resonatedEntities) {
+        super(theBlock);
         this.resonatedEntities = resonatedEntities;
     }
 
     /**
-     * Get a mutable list of all {@link LivingEntity entities} to be
+     * Get a mutable list of all {@link LivingEntity LivingEntities} to be
      * highlighted by the bell's resonating. This list can be added to or
      * removed from to change which entities are highlighted, and may be empty
      * if no entities were resonated as a result of this event.
@@ -37,17 +34,17 @@ public class BellResonateEvent extends BlockEvent {
      */
     @NotNull
     public List<LivingEntity> getResonatedEntities() {
-        return this.resonatedEntities;
+        return resonatedEntities;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

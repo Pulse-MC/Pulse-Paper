@@ -12,6 +12,11 @@ public class CraftIllager extends CraftRaider implements Illager {
 
     @Override
     public AbstractIllager getHandle() {
-        return (AbstractIllager) this.entity;
+        return (AbstractIllager) super.getHandle();
+    }
+
+    @Override
+    public String toString() {
+        return "CraftIllager";
     }
 }

@@ -13,4 +13,9 @@ public class CraftMonster extends CraftCreature implements Monster, CraftEnemy {
     public net.minecraft.world.entity.monster.Monster getHandle() {
         return (net.minecraft.world.entity.monster.Monster) this.entity;
     }
+
+    @Override
+    public String toString() {
+        return "CraftMonster";
+    }
 }

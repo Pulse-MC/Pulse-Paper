@@ -3,20 +3,16 @@ package org.bukkit.event.hanging;
 import org.bukkit.entity.Hanging;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Triggered when a hanging entity is removed
  */
 public class HangingBreakEvent extends HangingEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    private final HangingBreakEvent.RemoveCause cause;
+    private static final HandlerList handlers = new HandlerList();
     private boolean cancelled;
+    private final HangingBreakEvent.RemoveCause cause;
 
-    @ApiStatus.Internal
     public HangingBreakEvent(@NotNull final Hanging hanging, @NotNull final HangingBreakEvent.RemoveCause cause) {
         super(hanging);
         this.cause = cause;
@@ -29,28 +25,17 @@ public class HangingBreakEvent extends HangingEvent implements Cancellable {
      */
     @NotNull
     public HangingBreakEvent.RemoveCause getCause() {
-        return this.cause;
+        return cause;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
     public void setCancelled(boolean cancel) {
         this.cancelled = cancel;
-    }
-
-    @NotNull
-    @Override
-    public HandlerList getHandlers() {
-        return HANDLER_LIST;
-    }
-
-    @NotNull
-    public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
     }
 
     /**
@@ -77,5 +62,16 @@ public class HangingBreakEvent extends HangingEvent implements Cancellable {
          * Removed by an uncategorised cause
          */
         DEFAULT,
+    }
+
+    @NotNull
+    @Override
+    public HandlerList getHandlers() {
+        return handlers;
+    }
+
+    @NotNull
+    public static HandlerList getHandlerList() {
+        return handlers;
     }
 }

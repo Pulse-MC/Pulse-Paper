@@ -8,14 +8,13 @@ import org.bukkit.block.spawner.SpawnerEntry;
 import org.bukkit.entity.EntitySnapshot;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.minecart.SpawnerMinecart;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a basic entity spawner. <br>
  * May be a {@link SpawnerMinecart}, {@link CreatureSpawner} or {@link TrialSpawnerConfiguration}.
  */
-@NullMarked
 public interface BaseSpawner {
 
     /**
@@ -24,7 +23,7 @@ public interface BaseSpawner {
      * @return The creature type or null if it not set.
      */
     @Nullable
-    EntityType getSpawnedType();
+    public EntityType getSpawnedType();
 
     /**
      * Set the spawner's creature type. <br>
@@ -32,7 +31,7 @@ public interface BaseSpawner {
      *
      * @param creatureType The creature type or null to clear.
      */
-    void setSpawnedType(@Nullable EntityType creatureType);
+    public void setSpawnedType(@Nullable EntityType creatureType);
 
     /**
      * Get the spawner's delay.
@@ -41,14 +40,14 @@ public interface BaseSpawner {
      *
      * @return The delay.
      */
-    int getDelay();
+    public int getDelay();
 
     /**
      * Set the spawner's delay.
      *
      * @param delay The delay.
      */
-    void setDelay(int delay);
+    public void setDelay(int delay);
 
     /**
      * Get the maximum distance(squared) a player can be in order for this
@@ -62,7 +61,7 @@ public interface BaseSpawner {
      * @return the maximum distance(squared) a player can be in order for this
      * spawner to be active.
      */
-    int getRequiredPlayerRange();
+    public int getRequiredPlayerRange();
 
     /**
      * Set the maximum distance (squared) a player can be in order for this
@@ -74,7 +73,7 @@ public interface BaseSpawner {
      * @param requiredPlayerRange the maximum distance (squared) a player can be
      * in order for this spawner to be active.
      */
-    void setRequiredPlayerRange(int requiredPlayerRange);
+    public void setRequiredPlayerRange(int requiredPlayerRange);
 
     /**
      * Get the radius around which the spawner will attempt to spawn mobs in.
@@ -90,7 +89,7 @@ public interface BaseSpawner {
      *
      * @return the spawn range
      */
-    int getSpawnRange();
+    public int getSpawnRange();
 
     /**
      * Set the new spawn range.
@@ -99,7 +98,7 @@ public interface BaseSpawner {
      * @param spawnRange the new spawn range
      * @see #getSpawnRange()
      */
-    void setSpawnRange(int spawnRange);
+    public void setSpawnRange(int spawnRange);
 
     /**
      * Gets the {@link EntitySnapshot} that will be spawned by this spawner or null
@@ -112,7 +111,7 @@ public interface BaseSpawner {
      *         spawner.
      */
     @Nullable
-    EntitySnapshot getSpawnedEntity();
+    public EntitySnapshot getSpawnedEntity();
 
     /**
      * Sets the entity that will be spawned by this spawner. <br>
@@ -124,7 +123,7 @@ public interface BaseSpawner {
      *
      * @param snapshot the entity snapshot or null to clear
      */
-    void setSpawnedEntity(@Nullable EntitySnapshot snapshot);
+    public void setSpawnedEntity(@Nullable EntitySnapshot snapshot);
 
     /**
      * Sets the {@link SpawnerEntry} that will be spawned by this spawner. <br>
@@ -133,14 +132,14 @@ public interface BaseSpawner {
      *
      * @param spawnerEntry the spawner entry to use
      */
-    void setSpawnedEntity(SpawnerEntry spawnerEntry);
+    public void setSpawnedEntity(@NotNull SpawnerEntry spawnerEntry);
 
     /**
      * Adds a new {@link EntitySnapshot} to the list of entities this spawner can
      * spawn.
      * <p>
      * The weight will determine how often this entry is chosen to spawn, higher
-     * weighted entries will spawn more often than lower-weighted ones. <br>
+     * weighted entries will spawn more often than lower weighted ones. <br>
      * The {@link SpawnRule} will determine under what conditions this entry can
      * spawn, passing null will use the default conditions for the given entity.
      *
@@ -148,7 +147,7 @@ public interface BaseSpawner {
      * @param weight    the weight
      * @param spawnRule the spawn rule for this entity, or null
      */
-    void addPotentialSpawn(EntitySnapshot snapshot, int weight, @Nullable SpawnRule spawnRule);
+    public void addPotentialSpawn(@NotNull EntitySnapshot snapshot, int weight, @Nullable SpawnRule spawnRule);
 
     /**
      * Adds a new {@link SpawnerEntry} to the list of entities this spawner can
@@ -157,7 +156,7 @@ public interface BaseSpawner {
      * @param spawnerEntry the spawner entry to use
      * @see #addPotentialSpawn(EntitySnapshot, int, SpawnRule)
      */
-    void addPotentialSpawn(final SpawnerEntry spawnerEntry);
+    public void addPotentialSpawn(@NotNull final SpawnerEntry spawnerEntry);
 
     /**
      * Sets the list of {@link SpawnerEntry} this spawner can spawn. <br>
@@ -166,7 +165,7 @@ public interface BaseSpawner {
      *
      * @param entries the list of entries
      */
-    void setPotentialSpawns(final Collection<SpawnerEntry> entries);
+    public void setPotentialSpawns(@NotNull final Collection<SpawnerEntry> entries);
 
     /**
      * Gets a list of potential spawns from this spawner or an empty list if no
@@ -178,5 +177,6 @@ public interface BaseSpawner {
      *         entities have been assigned to this spawner
      * @see #getSpawnedType()
      */
-    List<SpawnerEntry> getPotentialSpawns();
+    @NotNull
+    public List<SpawnerEntry> getPotentialSpawns();
 }

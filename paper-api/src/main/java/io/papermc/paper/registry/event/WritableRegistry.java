@@ -5,6 +5,7 @@ import io.papermc.paper.registry.RegistryBuilderFactory;
 import io.papermc.paper.registry.TypedKey;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * A registry which supports registering new objects.
@@ -12,6 +13,8 @@ import org.jetbrains.annotations.ApiStatus;
  * @param <T> registry entry type
  * @param <B> registry entry builder type
  */
+@ApiStatus.Experimental
+@NullMarked
 @ApiStatus.NonExtendable
 public interface WritableRegistry<T, B extends RegistryBuilder<T>> {
 

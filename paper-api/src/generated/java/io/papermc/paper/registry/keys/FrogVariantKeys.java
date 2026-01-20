@@ -22,8 +22,8 @@ import org.jspecify.annotations.NullMarked;
         "unused",
         "SpellCheckingInspection"
 })
+@GeneratedFrom("1.21.4")
 @NullMarked
-@GeneratedFrom("1.21.8")
 public final class FrogVariantKeys {
     /**
      * {@code minecraft:cold}
@@ -49,13 +49,7 @@ public final class FrogVariantKeys {
     private FrogVariantKeys() {
     }
 
-    /**
-     * Creates a typed key for {@link Frog.Variant} in the registry {@code minecraft:frog_variant}.
-     *
-     * @param key the value's key in the registry
-     * @return a new typed key
-     */
-    public static TypedKey<Frog.Variant> create(final Key key) {
+    private static TypedKey<Frog.Variant> create(final Key key) {
         return TypedKey.create(RegistryKey.FROG_VARIANT, key);
     }
 }

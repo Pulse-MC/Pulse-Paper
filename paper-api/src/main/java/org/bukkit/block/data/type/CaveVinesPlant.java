@@ -11,19 +11,8 @@ public interface CaveVinesPlant extends BlockData {
      * Gets the value of the 'berries' property.
      *
      * @return the 'berries' value
-     * @deprecated bad name, use {@link #hasBerries()}
      */
-    @Deprecated
-    default boolean isBerries() {
-        return this.hasBerries();
-    }
-
-    /**
-     * Gets the value of the 'berries' property.
-     *
-     * @return the 'berries' value
-     */
-    boolean hasBerries();
+    boolean isBerries();
 
     /**
      * Sets the value of the 'berries' property.

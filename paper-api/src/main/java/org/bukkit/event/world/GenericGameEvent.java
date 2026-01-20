@@ -6,28 +6,24 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a generic Mojang game event.
- * <br>
+ *
  * Specific Bukkit events should be used where possible, this event is mainly
  * used internally by Sculk sensors.
  */
 public class GenericGameEvent extends WorldEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final GameEvent event;
     private final Location location;
     private final Entity entity;
     private int radius;
-
     private boolean cancelled;
 
-    @ApiStatus.Internal
     public GenericGameEvent(@NotNull GameEvent event, @NotNull Location location, @Nullable Entity entity, int radius, boolean isAsync) {
         super(location.getWorld(), isAsync);
         this.event = event;
@@ -43,7 +39,7 @@ public class GenericGameEvent extends WorldEvent implements Cancellable {
      */
     @NotNull
     public GameEvent getEvent() {
-        return this.event;
+        return event;
     }
 
     /**
@@ -53,17 +49,17 @@ public class GenericGameEvent extends WorldEvent implements Cancellable {
      */
     @NotNull
     public Location getLocation() {
-        return this.location.clone();
+        return location.clone(); // Paper - clone to avoid changes
     }
 
     /**
      * Get the entity which triggered this event, if present.
      *
-     * @return triggering entity or {@code null}
+     * @return triggering entity or null
      */
     @Nullable
     public Entity getEntity() {
-        return this.entity;
+        return entity;
     }
 
     /**
@@ -72,7 +68,7 @@ public class GenericGameEvent extends WorldEvent implements Cancellable {
      * @return broadcast radius
      */
     public int getRadius() {
-        return this.radius;
+        return radius;
     }
 
     /**
@@ -92,17 +88,17 @@ public class GenericGameEvent extends WorldEvent implements Cancellable {
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

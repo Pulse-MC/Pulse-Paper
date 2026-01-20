@@ -15,21 +15,22 @@ import org.jetbrains.annotations.NotNull;
  * {@link org.bukkit.block.Smoker}, and {@link org.bukkit.block.BlastFurnace}.
  */
 public class FurnaceStartSmeltEvent extends InventoryBlockStartEvent {
-
+    // Paper - remove HandlerList
     private final CookingRecipe<?> recipe;
     private int totalCookTime;
 
-    @ApiStatus.Internal
     @Deprecated(forRemoval = true)
     public FurnaceStartSmeltEvent(@NotNull final Block furnace, @NotNull ItemStack source, @NotNull final CookingRecipe<?> recipe) {
+        // Paper start
         this(furnace, source, recipe, recipe.getCookingTime());
     }
 
     @ApiStatus.Internal
     public FurnaceStartSmeltEvent(final @NotNull Block furnace, final @NotNull ItemStack source, final @NotNull CookingRecipe<?> recipe, final int cookingTime) {
+        // Paper end
         super(furnace, source);
         this.recipe = recipe;
-        this.totalCookTime = cookingTime;
+        this.totalCookTime = cookingTime; // Paper - furnace cook speed multiplier
     }
 
     /**
@@ -39,7 +40,7 @@ public class FurnaceStartSmeltEvent extends InventoryBlockStartEvent {
      */
     @NotNull
     public CookingRecipe<?> getRecipe() {
-        return this.recipe;
+        return recipe;
     }
 
     /**
@@ -48,7 +49,7 @@ public class FurnaceStartSmeltEvent extends InventoryBlockStartEvent {
      * @return the total cook time
      */
     public int getTotalCookTime() {
-        return this.totalCookTime;
+        return totalCookTime;
     }
 
     /**
@@ -59,4 +60,6 @@ public class FurnaceStartSmeltEvent extends InventoryBlockStartEvent {
     public void setTotalCookTime(int cookTime) {
         this.totalCookTime = cookTime;
     }
+
+    // Paper - remove HandlerList
 }

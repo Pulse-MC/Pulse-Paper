@@ -4,8 +4,10 @@ import com.google.common.collect.Lists;
 import io.papermc.paper.registry.RegistryKey;
 import java.util.List;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.NullMarked;
 
 @ApiStatus.Internal
+@NullMarked
 record RegistryValueSetImpl<T>(RegistryKey<T> registryKey, List<T> values) implements RegistryValueSet<T> {
 
     RegistryValueSetImpl {

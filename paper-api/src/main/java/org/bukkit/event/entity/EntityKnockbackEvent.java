@@ -7,7 +7,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -18,16 +17,13 @@ import org.jetbrains.annotations.NotNull;
 @Deprecated(forRemoval = true) // Paper
 public class EntityKnockbackEvent extends EntityEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final KnockbackCause cause;
     private final double force;
     private final Vector rawKnockback;
     private Vector knockback;
-
     private boolean cancelled;
 
-    @ApiStatus.Internal
     public EntityKnockbackEvent(@NotNull final LivingEntity entity, @NotNull final KnockbackCause cause, final double force, @NotNull final Vector rawKnockback, @NotNull final Vector knockback) {
         super(entity);
 
@@ -40,7 +36,7 @@ public class EntityKnockbackEvent extends EntityEvent implements Cancellable {
     @NotNull
     @Override
     public LivingEntity getEntity() {
-        return (LivingEntity) this.entity;
+        return (LivingEntity) entity;
     }
 
     /**
@@ -50,12 +46,11 @@ public class EntityKnockbackEvent extends EntityEvent implements Cancellable {
      */
     @NotNull
     public KnockbackCause getCause() {
-        return this.cause;
+        return cause;
     }
 
     /**
-     * Gets the raw force of the knockback.
-     * <p>
+     * Gets the raw force of the knockback. <br>
      * This value is based on factors such as the {@link Enchantment#KNOCKBACK}
      * level of an attacker and the
      * {@link Attribute#KNOCKBACK_RESISTANCE} of the entity.
@@ -63,7 +58,7 @@ public class EntityKnockbackEvent extends EntityEvent implements Cancellable {
      * @return the knockback force
      */
     public double getForce() {
-        return this.force;
+        return force;
     }
 
     /**
@@ -76,7 +71,7 @@ public class EntityKnockbackEvent extends EntityEvent implements Cancellable {
      */
     @NotNull
     public Vector getKnockback() {
-        return this.rawKnockback.clone();
+        return rawKnockback.clone();
     }
 
     /**
@@ -92,7 +87,7 @@ public class EntityKnockbackEvent extends EntityEvent implements Cancellable {
      */
     @NotNull
     public Vector getFinalKnockback() {
-        return this.knockback.clone();
+        return knockback.clone();
     }
 
     /**
@@ -109,23 +104,23 @@ public class EntityKnockbackEvent extends EntityEvent implements Cancellable {
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
     public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        cancelled = cancel;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     /**

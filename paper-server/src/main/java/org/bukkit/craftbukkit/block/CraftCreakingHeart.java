@@ -7,8 +7,8 @@ import org.bukkit.block.CreakingHeart;
 
 public class CraftCreakingHeart extends CraftBlockEntityState<CreakingHeartBlockEntity> implements CreakingHeart {
 
-    public CraftCreakingHeart(World world, CreakingHeartBlockEntity blockEntity) {
-        super(world, blockEntity);
+    public CraftCreakingHeart(World world, CreakingHeartBlockEntity tileEntity) {
+        super(world, tileEntity);
     }
 
     protected CraftCreakingHeart(CraftCreakingHeart state, Location location) {

@@ -1,6 +1,5 @@
 package org.bukkit.event.block;
 
-import net.kyori.adventure.text.Component;
 import org.bukkit.block.Block;
 import org.bukkit.block.sign.Side;
 import org.bukkit.entity.Player;
@@ -9,52 +8,49 @@ import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.util.List;
 
 /**
  * Called when a sign is changed by a player.
  * <p>
- * If this event is cancelled, the sign will not be changed.
+ * If a Sign Change event is cancelled, the sign will not be changed.
  */
 public class SignChangeEvent extends BlockEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    private boolean cancel = false;
     private final Player player;
-    private final List<Component> adventure$lines;
+    private final java.util.List<net.kyori.adventure.text.Component> adventure$lines; // Paper
     private final Side side;
 
-    private boolean cancelled;
-
+    // Paper start
     @ApiStatus.Internal
-    public SignChangeEvent(@NotNull final Block sign, @NotNull final Player player, @NotNull final java.util.List<net.kyori.adventure.text.Component> adventure$lines, @NotNull Side side) {
-        super(sign);
+    public SignChangeEvent(@NotNull final Block theBlock, @NotNull final Player player, @NotNull final java.util.List<net.kyori.adventure.text.Component> adventure$lines, @NotNull Side side) {
+        super(theBlock);
         this.player = player;
         this.adventure$lines = adventure$lines;
         this.side = side;
     }
 
-    @ApiStatus.Internal
     @Deprecated(forRemoval = true)
-    public SignChangeEvent(@NotNull final Block sign, @NotNull final Player player, @NotNull final java.util.List<net.kyori.adventure.text.Component> adventure$lines) {
-        this(sign, player, adventure$lines, Side.FRONT);
+    public SignChangeEvent(@NotNull final Block theBlock, @NotNull final Player player, @NotNull final java.util.List<net.kyori.adventure.text.Component> adventure$lines) {
+        this(theBlock, player, adventure$lines, Side.FRONT);
     }
+    // Paper end
 
-    @ApiStatus.Internal
     @Deprecated(since = "1.19.4", forRemoval = true)
-    public SignChangeEvent(@NotNull final Block sign, @NotNull final Player thePlayer, @NotNull final String[] theLines) {
-        this(sign, thePlayer, theLines, Side.FRONT);
+    public SignChangeEvent(@NotNull final Block theBlock, @NotNull final Player thePlayer, @NotNull final String[] theLines) {
+        this(theBlock, thePlayer, theLines, Side.FRONT);
     }
 
-    @ApiStatus.Internal
     @Deprecated(forRemoval = true)
-    public SignChangeEvent(@NotNull final Block sign, @NotNull final Player thePlayer, @NotNull final String[] theLines, @NotNull Side side) {
-        super(sign);
+    public SignChangeEvent(@NotNull final Block theBlock, @NotNull final Player thePlayer, @NotNull final String[] theLines, @NotNull Side side) {
+        super(theBlock);
         this.player = thePlayer;
+        // Paper start
         this.adventure$lines = new java.util.ArrayList<>();
         for (String theLine : theLines) {
             this.adventure$lines.add(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(theLine));
         }
+        // Paper end
         this.side = side;
     }
 
@@ -65,9 +61,10 @@ public class SignChangeEvent extends BlockEvent implements Cancellable {
      */
     @NotNull
     public Player getPlayer() {
-        return this.player;
+        return player;
     }
 
+    // Paper start
     /**
      * Gets all of the lines of text from the sign involved in this event.
      *
@@ -101,6 +98,7 @@ public class SignChangeEvent extends BlockEvent implements Cancellable {
     public void line(int index, net.kyori.adventure.text.@Nullable Component line) throws IndexOutOfBoundsException {
         this.adventure$lines.set(index, line);
     }
+    // Paper end
 
     /**
      * Gets all of the lines of text from the sign involved in this event.
@@ -111,7 +109,7 @@ public class SignChangeEvent extends BlockEvent implements Cancellable {
     @NotNull
     @Deprecated // Paper
     public String[] getLines() {
-        return this.adventure$lines.stream().map(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()::serialize).toArray(String[]::new); // Paper
+        return adventure$lines.stream().map(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()::serialize).toArray(String[]::new); // Paper
     }
 
     /**
@@ -141,7 +139,7 @@ public class SignChangeEvent extends BlockEvent implements Cancellable {
      */
     @Deprecated // Paper
     public void setLine(int index, @Nullable String line) throws IndexOutOfBoundsException {
-        this.adventure$lines.set(index, line != null ? net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(line) : null); // Paper
+        adventure$lines.set(index, line != null ? net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(line) : null); // Paper
     }
 
     /**
@@ -151,27 +149,27 @@ public class SignChangeEvent extends BlockEvent implements Cancellable {
      */
     @NotNull
     public Side getSide() {
-        return this.side;
+        return side;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancel;
     }
 
     @Override
     public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        this.cancel = cancel;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

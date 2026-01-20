@@ -6,7 +6,6 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,17 +25,13 @@ import org.jetbrains.annotations.NotNull;
  * former state. Otherwise any additional items will be discarded.
  */
 public class InventoryMoveItemEvent extends Event implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    private boolean cancelled;
     private final Inventory sourceInventory;
     private final Inventory destinationInventory;
     private ItemStack itemStack;
     private final boolean didSourceInitiate;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
     public InventoryMoveItemEvent(@NotNull final Inventory sourceInventory, @NotNull final ItemStack itemStack, @NotNull final Inventory destinationInventory, final boolean didSourceInitiate) {
         Preconditions.checkArgument(itemStack != null, "ItemStack cannot be null");
         this.sourceInventory = sourceInventory;
@@ -52,7 +47,7 @@ public class InventoryMoveItemEvent extends Event implements Cancellable {
      */
     @NotNull
     public Inventory getSource() {
-        return this.sourceInventory;
+        return sourceInventory;
     }
 
     /**
@@ -63,7 +58,7 @@ public class InventoryMoveItemEvent extends Event implements Cancellable {
      */
     @NotNull
     public ItemStack getItem() {
-        return this.itemStack;
+        return itemStack; // Paper - Removed clone, handled better in Server
     }
 
     /**
@@ -74,7 +69,7 @@ public class InventoryMoveItemEvent extends Event implements Cancellable {
      * @param itemStack The ItemStack
      */
     public void setItem(@NotNull ItemStack itemStack) {
-        Preconditions.checkArgument(itemStack != null, "ItemStack cannot be null. Cancel the event if you want nothing to be transferred.");
+        Preconditions.checkArgument(itemStack != null, "ItemStack cannot be null.  Cancel the event if you want nothing to be transferred.");
         this.itemStack = itemStack.clone();
     }
 
@@ -85,7 +80,7 @@ public class InventoryMoveItemEvent extends Event implements Cancellable {
      */
     @NotNull
     public Inventory getDestination() {
-        return this.destinationInventory;
+        return destinationInventory;
     }
 
     /**
@@ -96,12 +91,12 @@ public class InventoryMoveItemEvent extends Event implements Cancellable {
      */
     @NotNull
     public Inventory getInitiator() {
-        return this.didSourceInitiate ? this.sourceInventory : this.destinationInventory;
+        return didSourceInitiate ? sourceInventory : destinationInventory;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
@@ -112,11 +107,11 @@ public class InventoryMoveItemEvent extends Event implements Cancellable {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

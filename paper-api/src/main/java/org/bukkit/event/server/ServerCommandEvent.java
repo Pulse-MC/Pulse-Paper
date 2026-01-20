@@ -3,7 +3,6 @@ package org.bukkit.event.server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -36,33 +35,19 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  * If the event is cancelled, processing of the command will halt.
  * <p>
- * The state of whether there is a slash (<code>/</code>) at the
+ * The state of whether or not there is a slash (<code>/</code>) at the
  * beginning of the message should be preserved. If a slash is added or
  * removed, unexpected behavior may result.
  */
 public class ServerCommandEvent extends ServerEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    private final CommandSender sender;
+    private static final HandlerList handlers = new HandlerList();
     private String command;
+    private final CommandSender sender;
+    private boolean cancel = false;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
     public ServerCommandEvent(@NotNull final CommandSender sender, @NotNull final String command) {
-        this.sender = sender;
         this.command = command;
-    }
-
-    /**
-     * Get the command sender.
-     *
-     * @return The sender
-     */
-    @NotNull
-    public CommandSender getSender() {
-        return this.sender;
+        this.sender = sender;
     }
 
     /**
@@ -73,7 +58,7 @@ public class ServerCommandEvent extends ServerEvent implements Cancellable {
      */
     @NotNull
     public String getCommand() {
-        return this.command;
+        return command;
     }
 
     /**
@@ -85,24 +70,34 @@ public class ServerCommandEvent extends ServerEvent implements Cancellable {
         this.command = message;
     }
 
-    @Override
-    public boolean isCancelled() {
-        return this.cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+    /**
+     * Get the command sender.
+     *
+     * @return The sender
+     */
+    @NotNull
+    public CommandSender getSender() {
+        return sender;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return cancel;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.cancel = cancel;
     }
 }

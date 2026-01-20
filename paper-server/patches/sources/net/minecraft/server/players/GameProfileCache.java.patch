@@ -1,6 +1,6 @@
 --- a/net/minecraft/server/players/GameProfileCache.java
 +++ b/net/minecraft/server/players/GameProfileCache.java
-@@ -54,6 +_,10 @@
+@@ -56,6 +_,10 @@
      private final AtomicLong operationCount = new AtomicLong();
      @Nullable
      private Executor executor;
@@ -11,7 +11,7 @@
  
      public GameProfileCache(GameProfileRepository profileRepository, File file) {
          this.profileRepository = profileRepository;
-@@ -62,17 +_,21 @@
+@@ -64,10 +_,12 @@
      }
  
      private void safeAdd(GameProfileCache.GameProfileInfo profile) {
@@ -24,17 +24,16 @@
      }
  
      private static Optional<GameProfile> lookupGameProfile(GameProfileRepository profileRepo, String name) {
-         if (!StringUtil.isValidPlayerName(name)) {
-             return createUnknownProfile(name);
-         } else {
--            Optional<GameProfile> optional = profileRepo.findProfileByName(name);
-+            final boolean shouldLookup = !org.apache.commons.lang3.StringUtils.isBlank(name)  // Paper - Don't lookup a profile with a blank name
-+                && io.papermc.paper.configuration.GlobalConfiguration.get().proxies.isProxyOnlineMode(); // Paper - Add setting for proxy online mode status
-+            Optional<GameProfile> optional = shouldLookup ? profileRepo.findProfileByName(name) : Optional.empty(); // Paper - Don't lookup a profile with a blank name
-             return optional.isEmpty() ? createUnknownProfile(name) : optional;
-         }
-     }
-@@ -86,7 +_,7 @@
+@@ -86,6 +_,8 @@
+                     atomicReference.set(null);
+                 }
+             };
++            if (!org.apache.commons.lang3.StringUtils.isBlank(name) // Paper - Don't lookup a profile with a blank name
++                && io.papermc.paper.configuration.GlobalConfiguration.get().proxies.isProxyOnlineMode()) // Paper - Add setting for proxy online mode status
+             profileRepo.findProfilesByNames(new String[]{name}, profileLookupCallback);
+             GameProfile gameProfile = atomicReference.get();
+             return gameProfile != null ? Optional.of(gameProfile) : createUnknownProfile(name);
+@@ -101,7 +_,7 @@
      }
  
      private static boolean usesAuthentication() {
@@ -43,7 +42,7 @@
      }
  
      public void add(GameProfile gameProfile) {
-@@ -96,15 +_,29 @@
+@@ -111,15 +_,29 @@
          Date time = instance.getTime();
          GameProfileCache.GameProfileInfo gameProfileInfo = new GameProfileCache.GameProfileInfo(gameProfile, time);
          this.safeAdd(gameProfileInfo);
@@ -74,7 +73,7 @@
          GameProfileCache.GameProfileInfo gameProfileInfo = this.profilesByName.get(string);
          boolean flag = false;
          if (gameProfileInfo != null && new Date().getTime() >= gameProfileInfo.expirationDate.getTime()) {
-@@ -118,19 +_,24 @@
+@@ -133,19 +_,24 @@
          if (gameProfileInfo != null) {
              gameProfileInfo.setLastAccess(this.getNextOperation());
              optional = Optional.of(gameProfileInfo.getProfile());
@@ -102,7 +101,7 @@
      }
  
      public CompletableFuture<Optional<GameProfile>> getAsync(String name) {
-@@ -142,7 +_,7 @@
+@@ -157,7 +_,7 @@
                  return completableFuture;
              } else {
                  CompletableFuture<Optional<GameProfile>> completableFuture1 = CompletableFuture.<Optional<GameProfile>>supplyAsync(
@@ -111,7 +110,7 @@
                      )
                      .whenCompleteAsync((gameProfile, exception) -> this.requests.remove(name), this.executor);
                  this.requests.put(name, completableFuture1);
-@@ -152,6 +_,7 @@
+@@ -167,6 +_,7 @@
      }
  
      public Optional<GameProfile> get(UUID uuid) {
@@ -119,7 +118,7 @@
          GameProfileCache.GameProfileInfo gameProfileInfo = this.profilesByUUID.get(uuid);
          if (gameProfileInfo == null) {
              return Optional.empty();
-@@ -159,6 +_,7 @@
+@@ -174,6 +_,7 @@
              gameProfileInfo.setLastAccess(this.getNextOperation());
              return Optional.of(gameProfileInfo.getProfile());
          }
@@ -127,7 +126,7 @@
      }
  
      public void setExecutor(Executor exectutor) {
-@@ -191,6 +_,11 @@
+@@ -206,6 +_,11 @@
  
              return (List<GameProfileCache.GameProfileInfo>)var9;
          } catch (FileNotFoundException var7) {
@@ -139,7 +138,7 @@
          } catch (JsonParseException | IOException var8) {
              LOGGER.warn("Failed to load profile cache {}", this.file, var8);
          }
-@@ -198,24 +_,45 @@
+@@ -213,24 +_,45 @@
          return list;
      }
  

@@ -14,30 +14,50 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface TrimMaterial extends Keyed, Translatable {
 
-    // Start generate - TrimMaterial
-    // @GeneratedFrom 1.21.8
-    TrimMaterial AMETHYST = getTrimMaterial("amethyst");
-
-    TrimMaterial COPPER = getTrimMaterial("copper");
-
-    TrimMaterial DIAMOND = getTrimMaterial("diamond");
-
-    TrimMaterial EMERALD = getTrimMaterial("emerald");
-
-    TrimMaterial GOLD = getTrimMaterial("gold");
-
-    TrimMaterial IRON = getTrimMaterial("iron");
-
-    TrimMaterial LAPIS = getTrimMaterial("lapis");
-
-    TrimMaterial NETHERITE = getTrimMaterial("netherite");
-
-    TrimMaterial QUARTZ = getTrimMaterial("quartz");
-
-    TrimMaterial REDSTONE = getTrimMaterial("redstone");
-
-    TrimMaterial RESIN = getTrimMaterial("resin");
-    // End generate - TrimMaterial
+    /**
+     * {@link Material#QUARTZ}.
+     */
+    public static final TrimMaterial QUARTZ = getTrimMaterial("quartz");
+    /**
+     * {@link Material#IRON_INGOT}.
+     */
+    public static final TrimMaterial IRON = getTrimMaterial("iron");
+    /**
+     * {@link Material#NETHERITE_INGOT}.
+     */
+    public static final TrimMaterial NETHERITE = getTrimMaterial("netherite");
+    /**
+     * {@link Material#REDSTONE}.
+     */
+    public static final TrimMaterial REDSTONE = getTrimMaterial("redstone");
+    /**
+     * {@link Material#COPPER_INGOT}.
+     */
+    public static final TrimMaterial COPPER = getTrimMaterial("copper");
+    /**
+     * {@link Material#GOLD_INGOT}.
+     */
+    public static final TrimMaterial GOLD = getTrimMaterial("gold");
+    /**
+     * {@link Material#EMERALD}.
+     */
+    public static final TrimMaterial EMERALD = getTrimMaterial("emerald");
+    /**
+     * {@link Material#DIAMOND}.
+     */
+    public static final TrimMaterial DIAMOND = getTrimMaterial("diamond");
+    /**
+     * {@link Material#LAPIS_LAZULI}.
+     */
+    public static final TrimMaterial LAPIS = getTrimMaterial("lapis");
+    /**
+     * {@link Material#AMETHYST_SHARD}.
+     */
+    public static final TrimMaterial AMETHYST = getTrimMaterial("amethyst");
+    /**
+     * {@link Material#RESIN_BRICK}.
+     */
+    public static final TrimMaterial RESIN = getTrimMaterial("resin");
 
     @NotNull
     private static TrimMaterial getTrimMaterial(@NotNull String key) {
@@ -79,5 +99,6 @@ public interface TrimMaterial extends Keyed, Translatable {
     default net.kyori.adventure.key.@org.jetbrains.annotations.NotNull Key key() {
         return org.bukkit.Keyed.super.key();
     }
+
     // Paper end - Registry#getKey
 }

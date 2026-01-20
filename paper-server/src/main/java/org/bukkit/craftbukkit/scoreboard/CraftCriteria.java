@@ -8,8 +8,8 @@ import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.RenderType;
 
 public final class CraftCriteria implements Criteria {
-    private static final Map<String, CraftCriteria> DEFAULTS;
-    private static final CraftCriteria DUMMY;
+    static final Map<String, CraftCriteria> DEFAULTS;
+    static final CraftCriteria DUMMY;
 
     static {
         ImmutableMap.Builder<String, CraftCriteria> defaults = ImmutableMap.builder();
@@ -22,25 +22,25 @@ public final class CraftCriteria implements Criteria {
         }
 
         DEFAULTS = defaults.build();
-        DUMMY = DEFAULTS.get(ObjectiveCriteria.DUMMY.getName());
+        DUMMY = DEFAULTS.get("dummy");
     }
 
     final ObjectiveCriteria criteria;
-    final String name;
+    final String bukkitName;
 
-    private CraftCriteria(String name) {
-        this.name = name;
+    private CraftCriteria(String bukkitName) {
+        this.bukkitName = bukkitName;
         this.criteria = CraftCriteria.DUMMY.criteria;
     }
 
     private CraftCriteria(ObjectiveCriteria criteria) {
         this.criteria = criteria;
-        this.name = criteria.getName();
+        this.bukkitName = criteria.getName();
     }
 
     @Override
     public String getName() {
-        return this.name;
+        return this.bukkitName;
     }
 
     @Override
@@ -53,12 +53,14 @@ public final class CraftCriteria implements Criteria {
         return RenderType.values()[this.criteria.getDefaultRenderType().ordinal()];
     }
 
+    // Paper start
     public static CraftCriteria getFromNMS(ObjectiveCriteria criteria) {
         return java.util.Objects.requireNonNullElseGet(CraftCriteria.DEFAULTS.get(criteria.getName()), () -> new CraftCriteria(criteria));
     }
+    // Paper end
 
     public static CraftCriteria getFromNMS(Objective objective) {
-        return getFromNMS(objective.getCriteria());
+        return java.util.Objects.requireNonNullElseGet(CraftCriteria.DEFAULTS.get(objective.getCriteria().getName()), () -> new CraftCriteria(objective.getCriteria())); // Paper
     }
 
     public static CraftCriteria getFromBukkit(String name) {
@@ -71,16 +73,15 @@ public final class CraftCriteria implements Criteria {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof final CraftCriteria craftCriteria)) {
+    public boolean equals(Object that) {
+        if (!(that instanceof CraftCriteria)) {
             return false;
         }
-
-        return craftCriteria.name.equals(this.name);
+        return ((CraftCriteria) that).bukkitName.equals(this.bukkitName);
     }
 
     @Override
     public int hashCode() {
-        return this.name.hashCode() ^ CraftCriteria.class.hashCode();
+        return this.bukkitName.hashCode() ^ CraftCriteria.class.hashCode();
     }
 }

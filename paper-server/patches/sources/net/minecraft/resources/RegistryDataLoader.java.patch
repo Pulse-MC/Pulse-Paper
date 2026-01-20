@@ -1,28 +1,6 @@
 --- a/net/minecraft/resources/RegistryDataLoader.java
 +++ b/net/minecraft/resources/RegistryDataLoader.java
-@@ -206,11 +_,21 @@
-         final Map<ResourceKey<? extends Registry<?>>, RegistryOps.RegistryInfo<?>> map = new HashMap<>();
-         registryLookups.forEach(registryLookup -> map.put(registryLookup.key(), createInfoForContextRegistry((HolderLookup.RegistryLookup<?>)registryLookup)));
-         loaders.forEach(loader -> map.put(loader.registry.key(), createInfoForNewRegistry(loader.registry)));
-+        // this creates a HolderLookup.Provider to be used exclusively to obtain real instances of values to pre-populate builders
-+        // for the Registry Modification API. This concatenates the context registry lookups and the empty registries about to be filled.
-+        final HolderLookup.Provider providerForBuilders = HolderLookup.Provider.create(java.util.stream.Stream.concat(registryLookups.stream(), loaders.stream().map(Loader::registry))); // Paper - add method to get the value for pre-filling builders in the reg mod API
-         return new RegistryOps.RegistryInfoLookup() {
-             @Override
-             public <T> Optional<RegistryOps.RegistryInfo<T>> lookup(ResourceKey<? extends Registry<? extends T>> registryKey) {
-                 return Optional.ofNullable((RegistryOps.RegistryInfo<T>)map.get(registryKey));
-             }
-+
-+            // Paper start - add method to get the value for pre-filling builders in the reg mod API
-+            @Override
-+            public HolderLookup.Provider lookupForValueCopyViaBuilders() {
-+                return providerForBuilders;
-+            }
-+            // Paper end - add method to get the value for pre-filling builders in the reg mod API
-         };
-     }
- 
-@@ -274,13 +_,14 @@
+@@ -247,13 +_,14 @@
          RegistryOps<JsonElement> ops,
          ResourceKey<E> resourceKey,
          Resource resource,
@@ -31,7 +9,7 @@
 +        io.papermc.paper.registry.data.util.Conversions conversions // Paper - pass conversions
      ) throws IOException {
          try (Reader reader = resource.openAsReader()) {
-             JsonElement jsonElement = StrictJsonParser.parse(reader);
+             JsonElement jsonElement = JsonParser.parseReader(reader);
              DataResult<E> dataResult = codec.parse(ops, jsonElement);
              E orThrow = dataResult.getOrThrow();
 -            registry.register(resourceKey, orThrow, registrationInfo);
@@ -39,7 +17,7 @@
          }
      }
  
-@@ -294,6 +_,7 @@
+@@ -267,6 +_,7 @@
          FileToIdConverter fileToIdConverter = FileToIdConverter.registry(registry.key());
          RegistryOps<JsonElement> registryOps = RegistryOps.create(JsonOps.INSTANCE, registryInfoLookup);
  
@@ -47,7 +25,7 @@
          for (Entry<ResourceLocation, Resource> entry : fileToIdConverter.listMatchingResources(resourceManager).entrySet()) {
              ResourceLocation resourceLocation = entry.getKey();
              ResourceKey<E> resourceKey = ResourceKey.create(registry.key(), fileToIdConverter.fileToId(resourceLocation));
-@@ -301,7 +_,7 @@
+@@ -274,7 +_,7 @@
              RegistrationInfo registrationInfo = REGISTRATION_INFO_CACHE.apply(resource.knownPackInfo());
  
              try {
@@ -56,7 +34,7 @@
              } catch (Exception var14) {
                  loadingErrors.put(
                      resourceKey,
-@@ -310,7 +_,9 @@
+@@ -283,7 +_,9 @@
              }
          }
  
@@ -67,7 +45,7 @@
      }
  
      static <E> void loadContentsFromNetwork(
-@@ -327,6 +_,7 @@
+@@ -300,6 +_,7 @@
              RegistryOps<JsonElement> registryOps1 = RegistryOps.create(JsonOps.INSTANCE, registryInfoLookup);
              FileToIdConverter fileToIdConverter = FileToIdConverter.registry(registry.key());
  
@@ -75,7 +53,7 @@
              for (RegistrySynchronization.PackedRegistryEntry packedRegistryEntry : networkedRegistryData.elements) {
                  ResourceKey<E> resourceKey = ResourceKey.create(registry.key(), packedRegistryEntry.id());
                  Optional<Tag> optional = packedRegistryEntry.data();
-@@ -345,7 +_,7 @@
+@@ -318,7 +_,7 @@
  
                      try {
                          Resource resourceOrThrow = resourceProvider.getResourceOrThrow(resourceLocation);
@@ -84,11 +62,11 @@
                      } catch (Exception var17) {
                          loadingErrors.put(resourceKey, new IllegalStateException("Failed to parse local data", var17));
                      }
-@@ -387,6 +_,7 @@
+@@ -360,6 +_,7 @@
  
          RegistryDataLoader.Loader<T> create(Lifecycle registryLifecycle, Map<ResourceKey<?>, Exception> loadingErrors) {
              WritableRegistry<T> writableRegistry = new MappedRegistry<>(this.key, registryLifecycle);
-+            io.papermc.paper.registry.PaperRegistryAccess.instance().registerRegistry(writableRegistry); // Paper - initialize API registry
++            io.papermc.paper.registry.PaperRegistryAccess.instance().registerRegistry(this.key, writableRegistry); // Paper - initialize API registry
              return new RegistryDataLoader.Loader<>(this, writableRegistry, loadingErrors);
          }
  

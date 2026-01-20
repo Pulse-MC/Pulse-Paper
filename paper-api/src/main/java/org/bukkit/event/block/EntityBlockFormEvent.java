@@ -3,7 +3,6 @@ package org.bukkit.event.block;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -16,10 +15,8 @@ import org.jetbrains.annotations.NotNull;
  * </ul>
  */
 public class EntityBlockFormEvent extends BlockFormEvent {
-
     private final Entity entity;
 
-    @ApiStatus.Internal
     public EntityBlockFormEvent(@NotNull final Entity entity, @NotNull final Block block, @NotNull final BlockState blockstate) {
         super(block, blockstate);
 
@@ -33,6 +30,6 @@ public class EntityBlockFormEvent extends BlockFormEvent {
      */
     @NotNull
     public Entity getEntity() {
-        return this.entity;
+        return entity;
     }
 }

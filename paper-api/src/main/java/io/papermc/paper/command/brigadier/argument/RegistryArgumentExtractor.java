@@ -3,10 +3,12 @@ package io.papermc.paper.command.brigadier.argument;
 import com.mojang.brigadier.context.CommandContext;
 import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.TypedKey;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Utilities for extracting registry-related arguments from a {@link CommandContext}.
  */
+@NullMarked
 public final class RegistryArgumentExtractor {
 
     /**

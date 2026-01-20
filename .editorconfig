@@ -1,5 +1,3 @@
-root = true
-
 [*]
 charset = utf-8
 end_of_line = lf
@@ -42,5 +40,5 @@ ij_java_use_fq_class_names = true
 [paper-server/src/minecraft/resources/data/**/*.json]
 indent_size = 2
 
-[paper-{server,api}/src/generated/java/**/*.java]
+[paper-api/src/generated/java/**/*.java]
 ij_java_imports_layout = $*, |, *

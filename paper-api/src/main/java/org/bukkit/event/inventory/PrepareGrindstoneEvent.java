@@ -1,9 +1,9 @@
 package org.bukkit.event.inventory;
 
+import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.GrindstoneInventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,7 +12,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class PrepareGrindstoneEvent extends com.destroystokyo.paper.event.inventory.PrepareGrindstoneEvent { // Paper
 
-    @ApiStatus.Internal
+    // Paper - move HandlerList to PrepareInventoryResultEvent
+
     public PrepareGrindstoneEvent(@NotNull InventoryView inventory, @Nullable ItemStack result) {
         super(inventory, result);
     }
@@ -20,6 +21,8 @@ public class PrepareGrindstoneEvent extends com.destroystokyo.paper.event.invent
     @NotNull
     @Override
     public GrindstoneInventory getInventory() {
-        return super.getInventory();
+        return (GrindstoneInventory) super.getInventory();
     }
+
+    // Paper - move HandlerList to PrepareInventoryResultEvent
 }

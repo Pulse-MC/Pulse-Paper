@@ -15,7 +15,12 @@ public class CraftGuardian extends CraftMonster implements Guardian {
 
     @Override
     public net.minecraft.world.entity.monster.Guardian getHandle() {
-        return (net.minecraft.world.entity.monster.Guardian) this.entity;
+        return (net.minecraft.world.entity.monster.Guardian) super.getHandle();
+    }
+
+    @Override
+    public String toString() {
+        return "CraftGuardian";
     }
 
     @Override

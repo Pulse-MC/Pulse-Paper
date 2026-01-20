@@ -12,11 +12,6 @@ public class CraftPiglinAbstract extends CraftMonster implements PiglinAbstract 
     }
 
     @Override
-    public AbstractPiglin getHandle() {
-        return (AbstractPiglin) this.entity;
-    }
-
-    @Override
     public boolean isImmuneToZombification() {
         return this.getHandle().isImmuneToZombification();
     }
@@ -98,5 +93,10 @@ public class CraftPiglinAbstract extends CraftMonster implements PiglinAbstract 
 
     @Override
     public void setBreed(boolean b) {
+    }
+
+    @Override
+    public AbstractPiglin getHandle() {
+        return (AbstractPiglin) super.getHandle();
     }
 }

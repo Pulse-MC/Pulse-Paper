@@ -13,13 +13,10 @@ import org.jetbrains.annotations.Nullable;
  * Called when a ThrownExpBottle hits and releases experience.
  */
 public class ExpBottleEvent extends ProjectileHitEvent {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private int exp;
     private boolean showEffect = true;
 
-    @ApiStatus.Internal
     @Deprecated(since = "1.20.2", forRemoval = true)
     public ExpBottleEvent(@NotNull final ThrownExpBottle bottle, final int exp) {
         this(bottle, null, null, null, exp);
@@ -34,13 +31,13 @@ public class ExpBottleEvent extends ProjectileHitEvent {
     @NotNull
     @Override
     public ThrownExpBottle getEntity() {
-        return (ThrownExpBottle) this.entity;
+        return (ThrownExpBottle) entity;
     }
 
     /**
      * This method indicates if the particle effect should be shown.
      *
-     * @return {@code true} if the effect will be shown, {@code false} otherwise
+     * @return true if the effect will be shown, false otherwise
      */
     public boolean getShowEffect() {
         return this.showEffect;
@@ -51,7 +48,7 @@ public class ExpBottleEvent extends ProjectileHitEvent {
      * <p>
      * This does not change the experience created.
      *
-     * @param showEffect {@code true} indicates the effect will be shown, false
+     * @param showEffect true indicates the effect will be shown, false
      *     indicates no effect will be shown
      */
     public void setShowEffect(final boolean showEffect) {
@@ -66,7 +63,7 @@ public class ExpBottleEvent extends ProjectileHitEvent {
      * @return the total amount of experience to be created
      */
     public int getExperience() {
-        return this.exp;
+        return exp;
     }
 
     /**
@@ -83,11 +80,11 @@ public class ExpBottleEvent extends ProjectileHitEvent {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

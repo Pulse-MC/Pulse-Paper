@@ -4,22 +4,18 @@ import org.bukkit.entity.Egg;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Called when a player throws an egg and it might hatch
  */
 public class PlayerEggThrowEvent extends PlayerEvent {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final Egg egg;
     private boolean hatching;
     private EntityType hatchType;
     private byte numHatches;
 
-    @ApiStatus.Internal
     public PlayerEggThrowEvent(@NotNull final Player player, @NotNull final Egg egg, final boolean hatching, final byte numHatches, @NotNull final EntityType hatchingType) {
         super(player);
         this.egg = egg;
@@ -35,7 +31,7 @@ public class PlayerEggThrowEvent extends PlayerEvent {
      */
     @NotNull
     public Egg getEgg() {
-        return this.egg;
+        return egg;
     }
 
     /**
@@ -45,13 +41,13 @@ public class PlayerEggThrowEvent extends PlayerEvent {
      * @return boolean Whether the egg is going to hatch or not
      */
     public boolean isHatching() {
-        return this.hatching;
+        return hatching;
     }
 
     /**
      * Sets whether the egg will hatch or not.
      *
-     * @param hatching {@code true} if you want the egg to hatch, {@code false} if you want it
+     * @param hatching true if you want the egg to hatch, false if you want it
      *     not to
      */
     public void setHatching(boolean hatching) {
@@ -65,7 +61,7 @@ public class PlayerEggThrowEvent extends PlayerEvent {
      */
     @NotNull
     public EntityType getHatchingType() {
-        return this.hatchType;
+        return hatchType;
     }
 
     /**
@@ -90,13 +86,13 @@ public class PlayerEggThrowEvent extends PlayerEvent {
      * @return The number of mobs going to be hatched by the egg
      */
     public byte getNumHatches() {
-        return this.numHatches;
+        return numHatches;
     }
 
     /**
      * Change the number of mobs coming out of the hatched egg
      * <p>
-     * The boolean hatching will override this number. I.e. If hatching =
+     * The boolean hatching will override this number. Ie. If hatching =
      * false, this number will not matter
      *
      * @param numHatches The number of mobs coming out of the egg
@@ -108,11 +104,11 @@ public class PlayerEggThrowEvent extends PlayerEvent {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

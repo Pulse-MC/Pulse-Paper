@@ -18,7 +18,6 @@ public class HelpTopicAmendment {
 
     /**
      * Gets the amended full text
-     *
      * @return the full text
      */
     public String getFullText() {
@@ -27,7 +26,6 @@ public class HelpTopicAmendment {
 
     /**
      * Gets the amended short text
-     *
      * @return the short text
      */
     public String getShortText() {
@@ -36,7 +34,6 @@ public class HelpTopicAmendment {
 
     /**
      * Gets the name of the topic being amended
-     *
      * @return the topic name
      */
     public String getTopicName() {
@@ -45,7 +42,6 @@ public class HelpTopicAmendment {
 
     /**
      * Gets the amended permission
-     *
      * @return the permission
      */
     public String getPermission() {

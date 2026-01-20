@@ -9,17 +9,13 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Called when an entity combusts.
  * <p>
- * If this event is cancelled, the entity will not combust.
+ * If an Entity Combust event is cancelled, the entity will not combust.
  */
 public class EntityCombustEvent extends EntityEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private float duration;
+    private boolean cancel;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
     @Deprecated(since = "1.21", forRemoval = true)
     public EntityCombustEvent(@NotNull final Entity combustee, final int duration) {
         this(combustee, (float) duration);
@@ -29,6 +25,17 @@ public class EntityCombustEvent extends EntityEvent implements Cancellable {
     public EntityCombustEvent(@NotNull final Entity combustee, final float duration) {
         super(combustee);
         this.duration = duration;
+        this.cancel = false;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return cancel;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.cancel = cancel;
     }
 
     /**
@@ -36,7 +43,7 @@ public class EntityCombustEvent extends EntityEvent implements Cancellable {
      *     for
      */
     public float getDuration() {
-        return this.duration;
+        return duration;
     }
 
     /**
@@ -66,24 +73,14 @@ public class EntityCombustEvent extends EntityEvent implements Cancellable {
         this.duration = duration;
     }
 
-    @Override
-    public boolean isCancelled() {
-        return this.cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
-    }
-
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

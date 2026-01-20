@@ -4,7 +4,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Item;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -15,23 +14,29 @@ import org.jetbrains.annotations.NotNull;
  * minutes. This behavior is not guaranteed and may change in future versions.
  */
 public class ItemDespawnEvent extends EntityEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    private boolean canceled;
     private final Location location;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
-    public ItemDespawnEvent(@NotNull final Item despawnee, @NotNull final Location location) {
+    public ItemDespawnEvent(@NotNull final Item despawnee, @NotNull final Location loc) {
         super(despawnee);
-        this.location = location;
+        location = loc;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return canceled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        canceled = cancel;
     }
 
     @NotNull
     @Override
     public Item getEntity() {
-        return (Item) this.entity;
+        return (Item) entity;
     }
 
     /**
@@ -41,27 +46,17 @@ public class ItemDespawnEvent extends EntityEvent implements Cancellable {
      */
     @NotNull
     public Location getLocation() {
-        return this.location.clone();
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return this.cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        return location.clone(); // Paper - clone to avoid changes
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

@@ -18,7 +18,12 @@ public class CraftSniffer extends CraftAnimals implements Sniffer {
 
     @Override
     public net.minecraft.world.entity.animal.sniffer.Sniffer getHandle() {
-        return (net.minecraft.world.entity.animal.sniffer.Sniffer) this.entity;
+        return (net.minecraft.world.entity.animal.sniffer.Sniffer) super.getHandle();
+    }
+
+    @Override
+    public String toString() {
+        return "CraftSniffer";
     }
 
     @Override
@@ -30,10 +35,12 @@ public class CraftSniffer extends CraftAnimals implements Sniffer {
     public void removeExploredLocation(Location location) {
         Preconditions.checkArgument(location != null, "location cannot be null");
 
-        BlockPos pos = CraftLocation.toBlockPosition(location);
+        BlockPos blockPosition = CraftLocation.toBlockPosition(location);
+        // Paper start
         net.minecraft.world.level.Level level = location.getWorld() != null ? ((org.bukkit.craftbukkit.CraftWorld) location.getWorld()).getHandle() : this.getHandle().level();
-        net.minecraft.core.GlobalPos globalPos = net.minecraft.core.GlobalPos.of(level.dimension(), pos);
+        net.minecraft.core.GlobalPos globalPos = net.minecraft.core.GlobalPos.of(level.dimension(), blockPosition);
         this.getHandle().getBrain().setMemory(MemoryModuleType.SNIFFER_EXPLORED_POSITIONS, this.getHandle().getExploredPositions().filter(blockPositionExplored -> !blockPositionExplored.equals(globalPos)).collect(Collectors.toList()));
+        // Paper end
     }
 
     @Override

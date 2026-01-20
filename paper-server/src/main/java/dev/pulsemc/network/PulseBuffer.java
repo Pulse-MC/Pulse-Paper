@@ -2,6 +2,7 @@ package dev.pulsemc.network;
 
 import dev.pulsemc.config.ConfigManager;
 import dev.pulsemc.api.events.PulsePacketSendEvent;
+import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
@@ -12,7 +13,6 @@ import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.bukkit.Bukkit;
-import io.netty.channel.ChannelFutureListener;
 import org.jspecify.annotations.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -34,10 +34,10 @@ public class PulseBuffer {
         this.listener = listener;
     }
 
-    private record PacketEntry(Packet<?> packet, @Nullable ChannelFutureListener listener) {}
+    private record PacketEntry(Packet<?> packet, @Nullable PacketSendListener listener) {}
     private final List<PacketEntry> blockQueue = new ArrayList<>();
 
-    public void add(Packet<?> packet, @Nullable ChannelFutureListener sendListener) {
+    public void add(Packet<?> packet, @Nullable PacketSendListener sendListener){
         if (packet == null) return;
         String packetName = packet.getClass().getSimpleName();
 
@@ -144,7 +144,7 @@ public class PulseBuffer {
         return 0;
     }
 
-    private void handleBlockUpdate(Packet<?> packet, ChannelFutureListener listener) {
+    private void handleBlockUpdate(Packet<?> packet, @Nullable PacketSendListener listener) {
         blockQueue.add(new PacketEntry(packet, listener));
     }
 
@@ -203,7 +203,7 @@ public class PulseBuffer {
             packet instanceof ClientboundSectionBlocksUpdatePacket;
     }
 
-    private void queuePacketToNetty(Packet<?> packet, ChannelFutureListener listenerCb) {
+    private void queuePacketToNetty(Packet<?> packet, @Nullable PacketSendListener listenerCb) {
         listener.connection.send(packet, listenerCb, false);
 
         if (getPendingBytes() > (ConfigManager.maxBatchBytes - ConfigManager.safety_margin)) {

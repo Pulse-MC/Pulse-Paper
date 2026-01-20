@@ -4,7 +4,6 @@ import java.util.Set;
 import org.bukkit.Warning;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -15,24 +14,23 @@ import org.jetbrains.annotations.NotNull;
  * @deprecated chat previews have been removed
  */
 @Deprecated(since = "1.19.1")
-@Warning
+@Warning(false)
 public class AsyncPlayerChatPreviewEvent extends AsyncPlayerChatEvent {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
+    private static final HandlerList handlers = new HandlerList();
 
-    @ApiStatus.Internal
-    public AsyncPlayerChatPreviewEvent(final boolean async, @NotNull final Player player, @NotNull final String message, @NotNull final Set<Player> players) {
-        super(async, player, message, players);
+    public AsyncPlayerChatPreviewEvent(final boolean async, @NotNull final Player who, @NotNull final String message, @NotNull final Set<Player> players) {
+        super(async, who, message, players);
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

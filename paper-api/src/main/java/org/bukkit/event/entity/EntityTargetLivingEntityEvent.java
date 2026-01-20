@@ -2,7 +2,6 @@ package org.bukkit.event.entity;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,9 +10,7 @@ import org.jetbrains.annotations.Nullable;
  * LivingEntity's.
  */
 public class EntityTargetLivingEntityEvent extends EntityTargetEvent {
-
-    @ApiStatus.Internal
-    public EntityTargetLivingEntityEvent(@NotNull final Entity entity, @Nullable final LivingEntity target, @NotNull final TargetReason reason) {
+    public EntityTargetLivingEntityEvent(@NotNull final Entity entity, @Nullable final LivingEntity target, @NotNull final TargetReason reason) { // Paper
         super(entity, target, reason);
     }
 
@@ -26,10 +23,10 @@ public class EntityTargetLivingEntityEvent extends EntityTargetEvent {
     /**
      * Set the Entity that you want the mob to target.
      * <p>
-     * It is possible to be {@code null}, {@code null} will cause the entity to be
+     * It is possible to be null, null will cause the entity to be
      * target-less.
      * <p>
-     * Must be a LivingEntity, or {@code null}.
+     * Must be a LivingEntity, or null.
      *
      * @param target The entity to target
      */

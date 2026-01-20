@@ -10,6 +10,11 @@ public class CraftElderGuardian extends CraftGuardian implements ElderGuardian {
     }
 
     @Override
+    public String toString() {
+        return "CraftElderGuardian";
+    }
+
+    @Override
     public boolean isElder() {
         return true;
     }

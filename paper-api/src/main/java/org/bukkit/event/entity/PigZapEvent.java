@@ -1,34 +1,43 @@
 package org.bukkit.event.entity;
 
-import com.destroystokyo.paper.event.entity.EntityZapEvent;
+import java.util.Collections;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LightningStrike;
 import org.bukkit.entity.Pig;
 import org.bukkit.entity.PigZombie;
 import org.bukkit.event.Cancellable;
-import org.jetbrains.annotations.ApiStatus;
+import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Stores data for pigs being zapped
  */
-public class PigZapEvent extends EntityZapEvent implements Cancellable {
-
-    private final PigZombie zombifiedPiglin;
+public class PigZapEvent extends com.destroystokyo.paper.event.entity.EntityZapEvent implements Cancellable { // Paper
+    // private static final HandlerList handlers = new HandlerList(); // Paper - moved in the super class
+    private boolean canceled;
+    private final PigZombie pigzombie;
     private final LightningStrike bolt;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
-    public PigZapEvent(@NotNull final Pig pig, @NotNull final LightningStrike bolt, @NotNull final PigZombie zombifiedPiglin) {
-        super(pig, bolt, zombifiedPiglin);
+    public PigZapEvent(@NotNull final Pig pig, @NotNull final LightningStrike bolt, @NotNull final PigZombie pigzombie) {
+        super(pig, bolt, pigzombie); // Paper
         this.bolt = bolt;
-        this.zombifiedPiglin = zombifiedPiglin;
+        this.pigzombie = pigzombie;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return canceled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        canceled = cancel;
     }
 
     @NotNull
     @Override
     public Pig getEntity() {
-        return (Pig) this.entity;
+        return (Pig) entity;
     }
 
     /**
@@ -38,11 +47,11 @@ public class PigZapEvent extends EntityZapEvent implements Cancellable {
      */
     @NotNull
     public LightningStrike getLightning() {
-        return this.bolt;
+        return bolt;
     }
 
     /**
-     * Gets the zombified piglin that will replace the pig, provided the event is
+     * Gets the zombie pig that will replace the pig, provided the event is
      * not cancelled first.
      *
      * @return resulting entity
@@ -51,16 +60,21 @@ public class PigZapEvent extends EntityZapEvent implements Cancellable {
     @NotNull
     @Deprecated(since = "1.13.2")
     public PigZombie getPigZombie() {
-        return this.zombifiedPiglin;
+        return pigzombie;
     }
 
+    // Paper start
+    /*
+    @NotNull
     @Override
-    public boolean isCancelled() {
-        return this.cancelled;
+    public HandlerList getHandlers() {
+        return handlers;
     }
 
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+    @NotNull
+    public static HandlerList getHandlerList() {
+        return handlers;
     }
+    */
+    // Paper end
 }

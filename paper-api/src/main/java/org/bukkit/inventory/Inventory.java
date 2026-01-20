@@ -400,7 +400,7 @@ public interface Inventory extends Iterable<ItemStack> {
     /**
      * Gets the block or entity belonging to the open inventory
      *
-     * @param useSnapshot Create a snapshot if the holder is a block entity
+     * @param useSnapshot Create a snapshot if the holder is a tile entity
      * @return The holder of the inventory; null if it has no holder.
      */
     @Nullable

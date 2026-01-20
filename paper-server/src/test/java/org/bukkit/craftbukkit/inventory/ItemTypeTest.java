@@ -56,7 +56,7 @@ public class ItemTypeTest {
     @Test
     public void testStaticItemTypeUsageBuilder() {
         final ItemStack armor = ItemType.DIAMOND_LEGGINGS.createItemStack(a ->
-            ((ArmorMeta) a).setTrim(new ArmorTrim(TrimMaterial.EMERALD, TrimPattern.COAST))
+            a.setTrim(new ArmorTrim(TrimMaterial.EMERALD, TrimPattern.COAST))
         );
 
         final ItemMeta itemMeta = armor.getItemMeta();

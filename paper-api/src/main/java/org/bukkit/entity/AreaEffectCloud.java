@@ -223,7 +223,7 @@ public interface AreaEffectCloud extends Entity {
      * @param type the potion effect type to check for
      * @return true if the potion has this effect
      */
-    boolean hasCustomEffect(@NotNull PotionEffectType type);
+    boolean hasCustomEffect(@Nullable PotionEffectType type);
 
     /**
      * Removes all custom potion effects from this cloud.
@@ -241,9 +241,9 @@ public interface AreaEffectCloud extends Entity {
     /**
      * Sets the color of this cloud. Will be applied as a tint to its particles.
      *
-     * @param color cloud color or {@code null} to reset to default
+     * @param color cloud color
      */
-    void setColor(@Nullable Color color);
+    void setColor(@NotNull Color color);
 
     /**
      * Retrieve the original source of this cloud.

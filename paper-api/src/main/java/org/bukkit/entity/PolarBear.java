@@ -3,6 +3,7 @@ package org.bukkit.entity;
 /**
  * Represents a polar bear.
  */
+// Paper start
 public interface PolarBear extends Animals {
 
     /**
@@ -20,3 +21,4 @@ public interface PolarBear extends Animals {
     void setStanding(boolean standing);
 
 }
+// Paper end

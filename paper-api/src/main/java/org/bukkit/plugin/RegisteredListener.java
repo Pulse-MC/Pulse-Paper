@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
  * Stores relevant information for plugin listeners
  */
 public class RegisteredListener {
-
     private final Listener listener;
     private final EventPriority priority;
     private final Plugin plugin;
@@ -80,6 +79,7 @@ public class RegisteredListener {
         return ignoreCancelled;
     }
 
+    // Paper start
     /**
      * Get the executor for this registration.
      *
@@ -100,4 +100,5 @@ public class RegisteredListener {
             + "\", ignoringCancelled=" + this.ignoreCancelled
             + "}";
     }
+    // Paper end
 }

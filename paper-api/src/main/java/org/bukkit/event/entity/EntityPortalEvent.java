@@ -1,7 +1,6 @@
 package org.bukkit.event.entity;
 
 import org.bukkit.Location;
-import org.bukkit.PortalType;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.ApiStatus;
@@ -15,46 +14,52 @@ import org.jetbrains.annotations.Nullable;
  * For players see {@link org.bukkit.event.player.PlayerPortalEvent}
  */
 public class EntityPortalEvent extends EntityTeleportEvent {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    private final PortalType type;
+    private static final HandlerList handlers = new HandlerList();
     private int searchRadius = 128;
     private boolean canCreatePortal = true;
     private int creationRadius = 16;
+    private final org.bukkit.PortalType type; // Paper
 
-    @ApiStatus.Internal
     public EntityPortalEvent(@NotNull final Entity entity, @NotNull final Location from, @Nullable final Location to) {
-        this(entity, from, to, 128);
+        this(entity, from, to, 128); // Paper
     }
 
-    @ApiStatus.Internal
     public EntityPortalEvent(@NotNull Entity entity, @NotNull Location from, @Nullable Location to, int searchRadius) {
         super(entity, from, to);
         this.searchRadius = searchRadius;
-        this.type = PortalType.CUSTOM;
+        this.type = org.bukkit.PortalType.CUSTOM; // Paper
     }
 
-    @ApiStatus.Internal
     public EntityPortalEvent(@NotNull Entity entity, @NotNull Location from, @Nullable Location to, int searchRadius, boolean canCreatePortal, int creationRadius) {
-        this(entity, from, to, searchRadius, canCreatePortal, creationRadius, PortalType.CUSTOM);
+        // Paper start
+        this(entity, from, to, searchRadius, canCreatePortal, creationRadius, org.bukkit.PortalType.CUSTOM);
     }
 
     @ApiStatus.Internal
-    public EntityPortalEvent(@NotNull Entity entity, @NotNull Location from, @Nullable Location to, int searchRadius, boolean canCreatePortal, int creationRadius, final @NotNull PortalType portalType) {
+    public EntityPortalEvent(@NotNull Entity entity, @NotNull Location from, @Nullable Location to, int searchRadius, boolean canCreatePortal, int creationRadius, final @NotNull org.bukkit.PortalType portalType) {
         super(entity, from, to);
         this.type = portalType;
+        // Paper end
         this.searchRadius = searchRadius;
         this.canCreatePortal = canCreatePortal;
         this.creationRadius = creationRadius;
     }
 
+    // Paper start
     /**
-     * For {@link PortalType#NETHER}, this is initially just the starting point
+     * Get the portal type relating to this event.
+     *
+     * @return the portal type
+     */
+    public @NotNull org.bukkit.PortalType getPortalType() {
+        return this.type;
+    }
+    /**
+     * For {@link org.bukkit.PortalType#NETHER}, this is initially just the starting point
      * for the search for a portal to teleport to. It will initially just be the {@link #getFrom()}
      * scaled for dimension scaling and clamped to be inside the world border.
      * <p>
-     * For {@link PortalType#ENDER}, this will initially be the exact destination
+     * For {@link org.bukkit.PortalType#ENDER}, this will initially be the exact destination
      * either, the world spawn for <i>end->any world</i> or end spawn for <i>any world->end</i>.
      *
      * @return starting point for search or exact destination
@@ -67,21 +72,13 @@ public class EntityPortalEvent extends EntityTeleportEvent {
     /**
      * See the description of {@link #getTo()}.
      * @param to starting point for search or exact destination
-     *           or {@code null} to cancel
+     *           or null to cancel
      */
     @Override
     public void setTo(@Nullable final Location to) {
         super.setTo(to);
     }
-
-    /**
-     * Get the portal type relating to this event.
-     *
-     * @return the portal type
-     */
-    public @NotNull PortalType getPortalType() {
-        return this.type;
-    }
+    // Paper end
 
     /**
      * Set the Block radius to search in for available portals.
@@ -99,7 +96,7 @@ public class EntityPortalEvent extends EntityTeleportEvent {
      * @return the currently set search radius
      */
     public int getSearchRadius() {
-        return this.searchRadius;
+        return searchRadius;
     }
 
     /**
@@ -109,7 +106,7 @@ public class EntityPortalEvent extends EntityTeleportEvent {
      * @return whether there should create be a destination portal created
      */
     public boolean getCanCreatePortal() {
-        return this.canCreatePortal;
+        return canCreatePortal;
     }
 
     /**
@@ -126,10 +123,10 @@ public class EntityPortalEvent extends EntityTeleportEvent {
     /**
      * Sets the maximum radius the world is searched for a free space from the
      * given location.
-     * <p>
+     *
      * If enough free space is found then the portal will be created there, if
      * not it will force create with air-space at the target location.
-     * <p>
+     *
      * Does not apply to end portal target platforms which will always appear at
      * the target location.
      *
@@ -143,27 +140,27 @@ public class EntityPortalEvent extends EntityTeleportEvent {
     /**
      * Gets the maximum radius the world is searched for a free space from the
      * given location.
-     * <p>
+     *
      * If enough free space is found then the portal will be created there, if
      * not it will force create with air-space at the target location.
-     * <p>
+     *
      * Does not apply to end portal target platforms which will always appear at
      * the target location.
      *
      * @return the currently set creation radius
      */
     public int getCreationRadius() {
-        return this.creationRadius;
+        return creationRadius;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

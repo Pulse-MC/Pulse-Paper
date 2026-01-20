@@ -11,6 +11,11 @@ public class CraftStray extends CraftAbstractSkeleton implements Stray {
     }
 
     @Override
+    public String toString() {
+        return "CraftStray";
+    }
+
+    @Override
     public SkeletonType getSkeletonType() {
         return SkeletonType.STRAY;
     }

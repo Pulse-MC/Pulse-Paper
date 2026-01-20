@@ -71,9 +71,9 @@ public final class RandomSourceWrapper implements RandomSource {
         }
 
         @Override
-        public void setSeed(long seed) {
+        public void setSeed(long l) {
             if (this.random != null) {
-                this.random.setSeed(seed);
+                this.random.setSeed(l);
             }
         }
 
@@ -83,8 +83,8 @@ public final class RandomSourceWrapper implements RandomSource {
         }
 
         @Override
-        public int nextInt(int bound) {
-            return this.random.nextInt(bound);
+        public int nextInt(int i) {
+            return this.random.nextInt(i);
         }
 
         @Override
@@ -113,8 +113,8 @@ public final class RandomSourceWrapper implements RandomSource {
         }
 
         @Override
-        public int nextInt(int origin, int bound) {
-            return this.random.nextInt(origin, bound);
+        public int nextInt(int var0, int var1) {
+            return this.random.nextInt(var0, var1);
         }
     }
 }

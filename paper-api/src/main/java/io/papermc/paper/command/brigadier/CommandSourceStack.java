@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -20,6 +21,8 @@ import org.jspecify.annotations.Nullable;
  * exist yet, or no specific sender is available. Methods on such a {@link CommandSender}
  * will either have no effect or throw an {@link UnsupportedOperationException}.</p>
  */
+@ApiStatus.Experimental
+@NullMarked
 @ApiStatus.NonExtendable
 public interface CommandSourceStack {
 

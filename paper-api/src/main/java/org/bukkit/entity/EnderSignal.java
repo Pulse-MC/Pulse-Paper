@@ -15,7 +15,7 @@ public interface EnderSignal extends Entity {
      *
      * @return the {@link Location} this EnderSignal is moving towards.
      */
-    @Nullable
+    @NotNull
     public Location getTargetLocation();
 
     /**

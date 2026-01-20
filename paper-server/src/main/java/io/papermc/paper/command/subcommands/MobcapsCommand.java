@@ -162,7 +162,7 @@ public final class MobcapsCommand implements PaperSubcommand {
         }
 
         final ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
-        final ServerLevel level = serverPlayer.level();
+        final ServerLevel level = serverPlayer.serverLevel();
 
         if (!level.paperConfig().entities.spawning.perPlayerMobSpawns) {
             sender.sendMessage(Component.text("Use '/paper mobcaps' for worlds where per-player mob spawning is disabled.", NamedTextColor.RED));

@@ -4,14 +4,8 @@ import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.entity.WitherSkull;
 
 public class CraftWitherSkull extends CraftFireball implements WitherSkull {
-
     public CraftWitherSkull(CraftServer server, net.minecraft.world.entity.projectile.WitherSkull entity) {
         super(server, entity);
-    }
-
-    @Override
-    public net.minecraft.world.entity.projectile.WitherSkull getHandle() {
-        return (net.minecraft.world.entity.projectile.WitherSkull) this.entity;
     }
 
     @Override
@@ -22,5 +16,15 @@ public class CraftWitherSkull extends CraftFireball implements WitherSkull {
     @Override
     public boolean isCharged() {
         return this.getHandle().isDangerous();
+    }
+
+    @Override
+    public net.minecraft.world.entity.projectile.WitherSkull getHandle() {
+        return (net.minecraft.world.entity.projectile.WitherSkull) this.entity;
+    }
+
+    @Override
+    public String toString() {
+        return "CraftWitherSkull";
     }
 }

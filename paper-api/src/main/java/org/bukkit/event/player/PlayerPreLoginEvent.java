@@ -2,8 +2,6 @@ package org.bukkit.event.player;
 
 import java.net.InetAddress;
 import java.util.UUID;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Warning;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -27,16 +25,13 @@ import org.jetbrains.annotations.NotNull;
 @Deprecated(since = "1.3.2")
 @Warning(reason = "This event causes a login thread to synchronize with the main thread")
 public class PlayerPreLoginEvent extends Event {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    private Result result;
+    private net.kyori.adventure.text.Component message; // Paper
     private final String name;
     private final InetAddress ipAddress;
     private final UUID uniqueId;
-    private Result result;
-    private Component message;
 
-    @ApiStatus.Internal
     @Deprecated(since = "1.7.5", forRemoval = true)
     public PlayerPreLoginEvent(@NotNull final String name, @NotNull final InetAddress ipAddress) {
         this(name, ipAddress, null);
@@ -45,7 +40,7 @@ public class PlayerPreLoginEvent extends Event {
     @ApiStatus.Internal
     public PlayerPreLoginEvent(@NotNull final String name, @NotNull final InetAddress ipAddress, @NotNull final UUID uniqueId) {
         this.result = Result.ALLOWED;
-        this.message = Component.empty();
+        this.message = net.kyori.adventure.text.Component.empty(); // Paper
         this.name = name;
         this.ipAddress = ipAddress;
         this.uniqueId = uniqueId;
@@ -58,7 +53,7 @@ public class PlayerPreLoginEvent extends Event {
      */
     @NotNull
     public Result getResult() {
-        return this.result;
+        return result;
     }
 
     /**
@@ -70,22 +65,24 @@ public class PlayerPreLoginEvent extends Event {
         this.result = result;
     }
 
+    // Paper start
     /**
-     * Gets the current kick message that will be used when the outcome is not allowed
+     * Gets the current kick message that will be used if getResult() !=
+     * Result.ALLOWED
      *
      * @return Current kick message
      */
     @NotNull
-    public Component kickMessage() {
-        return this.message;
+    public net.kyori.adventure.text.Component kickMessage() {
+        return message;
     }
 
     /**
-     * Sets the kick message to display when the outcome is not allowed
+     * Sets the kick message to display if getResult() != Result.ALLOWED
      *
      * @param message New kick message
      */
-    public void kickMessage(@NotNull final Component message) {
+    public void kickMessage(@NotNull final net.kyori.adventure.text.Component message) {
         this.message = message;
     }
 
@@ -95,13 +92,14 @@ public class PlayerPreLoginEvent extends Event {
      * @param result New result for disallowing the player
      * @param message Kick message to display to the user
      */
-    public void disallow(@NotNull final Result result, @NotNull final Component message) {
+    public void disallow(@NotNull final Result result, @NotNull final net.kyori.adventure.text.Component message) {
         this.result = result;
         this.message = message;
     }
-
+    // Paper end
     /**
-     * Gets the current kick message that will be used when the outcome is not allowed
+     * Gets the current kick message that will be used if getResult() !=
+     * Result.ALLOWED
      *
      * @return Current kick message
      * @deprecated in favour of {@link #kickMessage()}
@@ -109,26 +107,26 @@ public class PlayerPreLoginEvent extends Event {
     @Deprecated // Paper
     @NotNull
     public String getKickMessage() {
-        return LegacyComponentSerializer.legacySection().serialize(this.message);
+        return net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(this.message); // Paper
     }
 
     /**
-     * Sets the kick message to display when the outcome is not allowed
+     * Sets the kick message to display if getResult() != Result.ALLOWED
      *
      * @param message New kick message
-     * @deprecated in favour of {@link #kickMessage(Component)}
+     * @deprecated in favour of {@link #kickMessage(net.kyori.adventure.text.Component)}
      */
-    @Deprecated
+    @Deprecated // Paper
     public void setKickMessage(@NotNull final String message) {
-        this.message = LegacyComponentSerializer.legacySection().deserialize(message);
+        this.message = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(message); // Paper
     }
 
     /**
      * Allows the player to log in
      */
     public void allow() {
-        this.result = Result.ALLOWED;
-        this.message = Component.empty();
+        result = Result.ALLOWED;
+        message = net.kyori.adventure.text.Component.empty(); // Paper
     }
 
     /**
@@ -136,12 +134,12 @@ public class PlayerPreLoginEvent extends Event {
      *
      * @param result New result for disallowing the player
      * @param message Kick message to display to the user
-     * @deprecated in favour of {@link #disallow(org.bukkit.event.player.PlayerPreLoginEvent.Result, Component)}
+     * @deprecated in favour of {@link #disallow(org.bukkit.event.player.PlayerPreLoginEvent.Result, net.kyori.adventure.text.Component)}
      */
     @Deprecated // Paper
     public void disallow(@NotNull final Result result, @NotNull final String message) {
         this.result = result;
-        this.message = LegacyComponentSerializer.legacySection().deserialize(message);
+        this.message = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(message); // Paper
     }
 
     /**
@@ -151,7 +149,7 @@ public class PlayerPreLoginEvent extends Event {
      */
     @NotNull
     public String getName() {
-        return this.name;
+        return name;
     }
 
     /**
@@ -161,7 +159,13 @@ public class PlayerPreLoginEvent extends Event {
      */
     @NotNull
     public InetAddress getAddress() {
-        return this.ipAddress;
+        return ipAddress;
+    }
+
+    @NotNull
+    @Override
+    public HandlerList getHandlers() {
+        return handlers;
     }
 
     /**
@@ -171,18 +175,12 @@ public class PlayerPreLoginEvent extends Event {
      */
     @NotNull
     public UUID getUniqueId() {
-        return this.uniqueId;
-    }
-
-    @NotNull
-    @Override
-    public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return uniqueId;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     /**

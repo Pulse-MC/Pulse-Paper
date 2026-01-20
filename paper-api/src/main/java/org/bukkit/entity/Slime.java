@@ -25,6 +25,7 @@ public interface Slime extends Mob, Enemy {
      */
     public void setSize(int sz);
 
+    // Paper start
     /**
      * Get whether this slime can randomly wander/jump around on its own
      *
@@ -38,4 +39,5 @@ public interface Slime extends Mob, Enemy {
      * @param canWander true if can wander
      */
     public void setWander(boolean canWander);
+    // Paper end
 }

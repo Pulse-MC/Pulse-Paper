@@ -19,6 +19,7 @@ public interface Ghast extends Flying, Enemy {
      */
     void setCharging(boolean flag);
 
+    // Paper start
     /**
      * Returns the explosion power of shot fireballs.
      *
@@ -33,4 +34,5 @@ public interface Ghast extends Flying, Enemy {
      * @throws IllegalArgumentException if the explosion power is less than 0 or greater than 127
      */
     void setExplosionPower(int explosionPower);
+    // Paper end
 }

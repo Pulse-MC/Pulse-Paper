@@ -16,6 +16,11 @@ public class CraftBogged extends CraftAbstractSkeleton implements Bogged, io.pap
     }
 
     @Override
+    public String toString() {
+        return "CraftBogged";
+    }
+
+    @Override
     public Skeleton.SkeletonType getSkeletonType() {
         return Skeleton.SkeletonType.BOGGED;
     }

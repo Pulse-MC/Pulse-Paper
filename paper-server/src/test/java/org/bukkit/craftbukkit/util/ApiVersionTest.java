@@ -69,9 +69,9 @@ public class ApiVersionTest {
     public void testCurrentVersionUpdated() {
         ApiVersion apiVersionOne = null;
         try {
-            apiVersionOne = ApiVersion.getOrCreateVersion(SharedConstants.getCurrentVersion().name());
+            apiVersionOne = ApiVersion.getOrCreateVersion(SharedConstants.getCurrentVersion().getName());
         } catch (IllegalArgumentException ex) {
-            if (!SharedConstants.getCurrentVersion().stable()) {
+            if (!SharedConstants.getCurrentVersion().isStable()) {
                 return;
             }
         }

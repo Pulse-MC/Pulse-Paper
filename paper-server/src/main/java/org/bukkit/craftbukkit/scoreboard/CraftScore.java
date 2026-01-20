@@ -1,6 +1,5 @@
 package org.bukkit.craftbukkit.scoreboard;
 
-import com.google.common.base.Preconditions;
 import net.minecraft.world.scores.ReadOnlyScoreInfo;
 import net.minecraft.world.scores.ScoreHolder;
 import net.minecraft.world.scores.Scoreboard;
@@ -41,34 +40,34 @@ final class CraftScore implements Score {
 
     @Override
     public int getScore() {
-        this.objective.checkState();
+        Scoreboard board = this.objective.checkState().board;
 
-        Scoreboard board = this.objective.getScoreboard().getHandle();
         ReadOnlyScoreInfo score = board.getPlayerScoreInfo(this.entry, this.objective.getHandle());
-        if (score != null) {
+        if (score != null) { // Lazy
             return score.value();
         }
 
-        return 0;
+        return 0; // Lazy
     }
 
     @Override
     public void setScore(int score) {
-        this.objective.checkState();
-        this.objective.getScoreboard().getHandle().getOrCreatePlayerScore(this.entry, this.objective.getHandle()).set(score);
+        this.objective.checkState().board.getOrCreatePlayerScore(this.entry, this.objective.getHandle()).set(score);
     }
 
+
+    // Paper start - add number format
     @Override
     public io.papermc.paper.scoreboard.numbers.NumberFormat numberFormat() {
-        this.objective.checkState();
-
-        ReadOnlyScoreInfo scoreInfo = this.objective.getScoreboard().getHandle()
+        ReadOnlyScoreInfo scoreInfo = this.objective.checkState().board
             .getPlayerScoreInfo(this.entry, this.objective.getHandle());
+
         if (scoreInfo == null) {
             return null;
         }
 
         net.minecraft.network.chat.numbers.NumberFormat vanilla = scoreInfo.numberFormat();
+
         if (vanilla == null) {
             return null;
         }
@@ -79,10 +78,9 @@ final class CraftScore implements Score {
 
     @Override
     public void numberFormat(io.papermc.paper.scoreboard.numbers.NumberFormat format) {
-        this.objective.checkState();
+        final net.minecraft.world.scores.ScoreAccess access = this.objective.checkState()
+            .board.getOrCreatePlayerScore(this.entry, this.objective.getHandle());
 
-        final net.minecraft.world.scores.ScoreAccess access = this.objective.getScoreboard()
-            .getHandle().getOrCreatePlayerScore(this.entry, this.objective.getHandle());
         if (format == null) {
             access.numberFormatOverride(null);
             return;
@@ -90,12 +88,12 @@ final class CraftScore implements Score {
 
         access.numberFormatOverride(io.papermc.paper.util.PaperScoreboardFormat.asVanilla(format));
     }
+    // Paper end - add number format
 
     @Override
     public boolean isScoreSet() {
-        this.objective.checkState();
+        Scoreboard board = this.objective.checkState().board;
 
-        Scoreboard board = this.objective.getScoreboard().getHandle();
         return board.getPlayerScoreInfo(this.entry, this.objective.getHandle()) != null;
     }
 
@@ -104,32 +102,29 @@ final class CraftScore implements Score {
         return this.objective.getScoreboard();
     }
 
+    // Paper start
     @Override
     public void resetScore() {
-        this.objective.checkState();
-
-        Scoreboard board = this.objective.getScoreboard().getHandle();
+        Scoreboard board = this.objective.checkState().board;
         board.resetSinglePlayerScore(entry, this.objective.getHandle());
     }
+    // Paper end
 
+    // Paper start - add more score API
     @Override
     public boolean isTriggerable() {
-        this.objective.checkState();
-
         if (this.objective.getTrackedCriteria() != org.bukkit.scoreboard.Criteria.TRIGGER) {
             return false;
         }
-        final Scoreboard board = this.objective.getScoreboard().getHandle();
+        final Scoreboard board = this.objective.checkState().board;
         final ReadOnlyScoreInfo scoreInfo = board.getPlayerScoreInfo(this.entry, this.objective.getHandle());
         return scoreInfo != null && !scoreInfo.isLocked();
     }
 
     @Override
     public void setTriggerable(final boolean triggerable) {
-        Preconditions.checkArgument(this.objective.getTrackedCriteria() == org.bukkit.scoreboard.Criteria.TRIGGER, "the criteria isn't 'trigger'");
-        this.objective.checkState();
-
-        final Scoreboard board = this.objective.getScoreboard().getHandle();
+        com.google.common.base.Preconditions.checkArgument(this.objective.getTrackedCriteria() == org.bukkit.scoreboard.Criteria.TRIGGER, "the criteria isn't 'trigger'");
+        final Scoreboard board = this.objective.checkState().board;
         if (triggerable) {
             board.getOrCreatePlayerScore(this.entry, this.objective.getHandle()).unlock();
         } else {
@@ -139,9 +134,7 @@ final class CraftScore implements Score {
 
     @Override
     public net.kyori.adventure.text.Component customName() {
-        this.objective.checkState();
-
-        final Scoreboard board = this.objective.getScoreboard().getHandle();
+        final Scoreboard board = this.objective.checkState().board;
         final ReadOnlyScoreInfo scoreInfo = board.getPlayerScoreInfo(this.entry, this.objective.getHandle());
         if (scoreInfo == null) {
             return null; // If score doesn't exist, don't create one
@@ -152,9 +145,8 @@ final class CraftScore implements Score {
 
     @Override
     public void customName(final net.kyori.adventure.text.Component customName) {
-        this.objective.checkState();
-
-        final Scoreboard board = this.objective.getScoreboard().getHandle();
+        final Scoreboard board = this.objective.checkState().board;
         board.getOrCreatePlayerScore(this.entry, this.objective.getHandle()).display(io.papermc.paper.adventure.PaperAdventure.asVanilla(customName));
     }
+    // Paper end - add more score API
 }

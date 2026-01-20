@@ -1,13 +1,21 @@
 --- a/net/minecraft/world/inventory/AbstractContainerMenu.java
 +++ b/net/minecraft/world/inventory/AbstractContainerMenu.java
-@@ -65,6 +_,36 @@
+@@ -19,6 +_,8 @@
+ import net.minecraft.ReportedException;
+ import net.minecraft.core.NonNullList;
+ import net.minecraft.core.registries.BuiltInRegistries;
++import net.minecraft.network.chat.Component;
++import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+ import net.minecraft.server.level.ServerPlayer;
+ import net.minecraft.util.Mth;
+ import net.minecraft.world.Container;
+@@ -63,6 +_,32 @@
      @Nullable
      private ContainerSynchronizer synchronizer;
      private boolean suppressRemoteUpdates;
 +    // CraftBukkit start
 +    public boolean checkReachable = true;
 +    public abstract org.bukkit.inventory.InventoryView getBukkitView();
-+
 +    public void transferTo(AbstractContainerMenu other, org.bukkit.craftbukkit.entity.CraftHumanEntity player) {
 +        org.bukkit.inventory.InventoryView source = this.getBukkitView(), destination = other.getBukkitView();
 +        ((org.bukkit.craftbukkit.inventory.CraftInventory) source.getTopInventory()).getInventory().onClose(player);
@@ -15,75 +23,47 @@
 +        ((org.bukkit.craftbukkit.inventory.CraftInventory) destination.getTopInventory()).getInventory().onOpen(player);
 +        ((org.bukkit.craftbukkit.inventory.CraftInventory) destination.getBottomInventory()).getInventory().onOpen(player);
 +    }
-+
-+    @Nullable
-+    private net.minecraft.network.chat.Component title;
-+    public final net.minecraft.network.chat.Component getTitle() {
++    private Component title;
++    public final Component getTitle() {
 +        // Paper start - return chat component with empty text instead of throwing error
-+        if (this.title == null) {
-+            return net.minecraft.network.chat.Component.empty();
++        // Preconditions.checkState(this.title != null, "Title not set");
++        if (this.title == null){
++            return Component.literal("");
 +        }
 +        // Paper end - return chat component with empty text instead of throwing error
 +        return this.title;
 +    }
-+
-+    public final void setTitle(net.minecraft.network.chat.Component title) {
++    public final void setTitle(Component title) {
 +        com.google.common.base.Preconditions.checkState(this.title == null, "Title already set");
 +        this.title = title;
 +    }
-+
 +    public void startOpen() {}
 +    // CraftBukkit end
  
      protected AbstractContainerMenu(@Nullable MenuType<?> menuType, int containerId) {
          this.menuType = menuType;
-@@ -176,8 +_,43 @@
+@@ -168,8 +_,18 @@
  
          if (this.synchronizer != null) {
-             this.synchronizer.sendInitialData(this, list, carried.copy(), this.remoteDataSlots.toIntArray());
+             this.synchronizer.sendInitialData(this, this.remoteSlots, this.remoteCarried, this.remoteDataSlots.toIntArray());
 -        }
 -    }
 +            this.synchronizer.sendOffHandSlotChange(); // Paper - Sync offhand slot in menus; update player's offhand since the offhand slot is not added to the slots for menus but can be changed by swapping from a menu slot
 +        }
 +    }
 +
-+    // Paper start
-+    public void forceHeldSlot(final net.minecraft.world.InteractionHand hand) {
-+        this.sendAllDataToRemote();
-+    }
-+
-+    public void forceHeldSlotAndArmor(final net.minecraft.world.InteractionHand hand) {
-+        this.sendAllDataToRemote();
-+    }
-+
-+    public void forceSlot(final Container container, final int slot) {
-+        final int slotsIndex = this.findSlot(container, slot).orElse(-1);
-+        if (slotsIndex == -1) {
-+            return;
-+        }
-+
-+        final ItemStack item = this.slots.get(slotsIndex).getItem();
-+        this.remoteSlots.get(slotsIndex).force(item);
-+
-+        if (this.synchronizer != null) {
-+            this.synchronizer.sendSlotChange(this, slotsIndex, item.copy());
-+        }
-+    }
-+    // Paper end
-+
-+    // CraftBukkit start - from synchronizeCarriedToRemote
++    // CraftBukkit start
 +    public void broadcastCarriedItem() {
-+        ItemStack carried = this.getCarried();
-+        this.remoteCarried.force(carried);
++        this.remoteCarried = this.getCarried().copy();
 +        if (this.synchronizer != null) {
-+            this.synchronizer.sendCarriedChange(this, carried.copy());
++            this.synchronizer.sendCarriedChange(this, this.remoteCarried);
 +        }
 +    }
 +    // CraftBukkit end
  
      public void removeSlotListener(ContainerListener listener) {
          this.containerListeners.remove(listener);
-@@ -243,7 +_,7 @@
+@@ -235,7 +_,7 @@
              this.lastSlots.set(slotIndex, itemStack1);
  
              for (ContainerListener containerListener : this.containerListeners) {
@@ -92,7 +72,7 @@
              }
          }
      }
-@@ -351,6 +_,7 @@
+@@ -343,6 +_,7 @@
                      this.resetQuickCraft();
                  }
              } else if (this.quickcraftStatus == 1) {
@@ -100,15 +80,15 @@
                  Slot slot = this.slots.get(slotId);
                  ItemStack carried = this.getCarried();
                  if (canItemQuickReplace(slot, carried, true)
-@@ -375,6 +_,7 @@
+@@ -367,6 +_,7 @@
                      }
  
                      int count = this.getCarried().getCount();
-+                    it.unimi.dsi.fastutil.ints.Int2ObjectMap<net.minecraft.world.item.ItemStack> draggedSlots = new it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<>(); // CraftBukkit - Store slots from drag in map (raw slot id -> new stack)
++                    java.util.Map<Integer, ItemStack> draggedSlots = new java.util.HashMap<>(); // CraftBukkit - Store slots from drag in map (raw slot id -> new stack)
  
                      for (Slot slot1 : this.quickcraftSlots) {
                          ItemStack carried1 = this.getCarried();
-@@ -387,12 +_,46 @@
+@@ -379,12 +_,48 @@
                              int min = Math.min(itemStack.getMaxStackSize(), slot1.getMaxStackSize(itemStack));
                              int min1 = Math.min(getQuickCraftPlaceCount(this.quickcraftSlots, this.quickcraftType, itemStack) + i2, min);
                              count -= min1 - i2;
@@ -125,43 +105,45 @@
 +
 +                    // CraftBukkit start - InventoryDragEvent
 +                    org.bukkit.inventory.InventoryView view = this.getBukkitView();
-+                    org.bukkit.inventory.ItemStack newCarried = org.bukkit.craftbukkit.inventory.CraftItemStack.asCraftMirror(itemStack);
-+                    newCarried.setAmount(count);
-+                    java.util.Map<Integer, org.bukkit.inventory.ItemStack> eventMap = new java.util.HashMap<>();
-+                    for (it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry<net.minecraft.world.item.ItemStack> entry : draggedSlots.int2ObjectEntrySet()) {
-+                        eventMap.put(entry.getIntKey(), org.bukkit.craftbukkit.inventory.CraftItemStack.asBukkitCopy(entry.getValue()));
++                    org.bukkit.inventory.ItemStack newcursor = org.bukkit.craftbukkit.inventory.CraftItemStack.asCraftMirror(itemStack);
++                    newcursor.setAmount(count);
++                    java.util.Map<Integer, org.bukkit.inventory.ItemStack> eventmap = new java.util.HashMap<>();
++                    for (java.util.Map.Entry<Integer, ItemStack> ditem : draggedSlots.entrySet()) {
++                        eventmap.put(ditem.getKey(), org.bukkit.craftbukkit.inventory.CraftItemStack.asBukkitCopy(ditem.getValue()));
 +                    }
 +
 +                    // It's essential that we set the cursor to the new value here to prevent item duplication if a plugin closes the inventory.
-+                    ItemStack oldCarried = this.getCarried();
-+                    this.setCarried(org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(newCarried));
++                    ItemStack oldCursor = this.getCarried();
++                    this.setCarried(org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(newcursor));
 +
-+                    org.bukkit.event.inventory.InventoryDragEvent event = new org.bukkit.event.inventory.InventoryDragEvent(
-+                        view,
-+                        newCarried,
-+                        org.bukkit.craftbukkit.inventory.CraftItemStack.asBukkitCopy(oldCarried),
-+                        this.quickcraftType == QUICKCRAFT_TYPE_GREEDY,
-+                        eventMap
-+                    );
-+                    event.callEvent();
++                    org.bukkit.event.inventory.InventoryDragEvent event = new org.bukkit.event.inventory.InventoryDragEvent(view, (newcursor.getType() != org.bukkit.Material.AIR ? newcursor : null), org.bukkit.craftbukkit.inventory.CraftItemStack.asBukkitCopy(oldCursor), this.quickcraftType == 1, eventmap);
++                    player.level().getCraftServer().getPluginManager().callEvent(event);
++
++                    // Whether or not a change was made to the inventory that requires an update.
++                    boolean needsUpdate = event.getResult() != org.bukkit.event.Event.Result.DEFAULT;
 +
 +                    if (event.getResult() != org.bukkit.event.Event.Result.DENY) {
-+                        for (final it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry<net.minecraft.world.item.ItemStack> entry : draggedSlots.int2ObjectEntrySet()) {
-+                            view.setItem(entry.getIntKey(), org.bukkit.craftbukkit.inventory.CraftItemStack.asBukkitCopy(entry.getValue()));
++                        for (java.util.Map.Entry<Integer, ItemStack> dslot : draggedSlots.entrySet()) {
++                            view.setItem(dslot.getKey(), org.bukkit.craftbukkit.inventory.CraftItemStack.asBukkitCopy(dslot.getValue()));
 +                        }
-+                        // The only time the carried item will be set to empty is if the inventory is closed by the server.
++                        // The only time the carried item will be set to null is if the inventory is closed by the server.
 +                        // If the inventory is closed by the server, then the cursor items are dropped.  This is why we change the cursor early.
-+                        if (!this.getCarried().isEmpty()) {
++                        if (this.getCarried() != null) {
 +                            this.setCarried(org.bukkit.craftbukkit.inventory.CraftItemStack.asNMSCopy(event.getCursor()));
++                            needsUpdate = true;
 +                        }
 +                    } else {
-+                        this.setCarried(oldCarried);
++                        this.setCarried(oldCursor);
++                    }
++
++                    if (needsUpdate && player instanceof ServerPlayer) {
++                        this.sendAllDataToRemote();
 +                    }
 +                    // CraftBukkit end
                  }
  
                  this.resetQuickCraft();
-@@ -406,8 +_,11 @@
+@@ -398,8 +_,11 @@
              if (slotId == -999) {
                  if (!this.getCarried().isEmpty()) {
                      if (clickAction == ClickAction.PRIMARY) {
@@ -174,16 +156,16 @@
                      } else {
                          player.drop(this.getCarried().split(1), true);
                      }
-@@ -469,8 +_,18 @@
+@@ -461,8 +_,18 @@
                  }
  
                  slot.setChanged();
 +                // CraftBukkit start - Make sure the client has the right slot contents
-+                if (player instanceof ServerPlayer serverPlayer && slot.getMaxStackSize() != Container.MAX_STACK) {
-+                    serverPlayer.connection.send(new net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket(this.containerId, this.incrementStateId(), slot.index, slot.getItem()));
++                if (player instanceof ServerPlayer serverPlayer && slot.getMaxStackSize() != 64) {
++                    serverPlayer.connection.send(new ClientboundContainerSetSlotPacket(this.containerId, this.incrementStateId(), slot.index, slot.getItem()));
 +                    // Updating a crafting inventory makes the client reset the result slot, have to send it again
 +                    if (this.getBukkitView().getType() == org.bukkit.event.inventory.InventoryType.WORKBENCH || this.getBukkitView().getType() == org.bukkit.event.inventory.InventoryType.CRAFTING) {
-+                        serverPlayer.connection.send(new net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket(this.containerId, this.incrementStateId(), 0, this.getSlot(0).getItem()));
++                        serverPlayer.connection.send(new ClientboundContainerSetSlotPacket(this.containerId, this.incrementStateId(), 0, this.getSlot(0).getItem()));
 +                    }
 +                }
 +                // CraftBukkit end
@@ -193,7 +175,7 @@
              ItemStack item = inventory.getItem(button);
              Slot slot = this.slots.get(slotId);
              ItemStack carried = slot.getItem();
-@@ -590,8 +_,9 @@
+@@ -582,8 +_,9 @@
          if (player instanceof ServerPlayer) {
              ItemStack carried = this.getCarried();
              if (!carried.isEmpty()) {
@@ -204,7 +186,7 @@
              }
          }
      }
-@@ -637,6 +_,14 @@
+@@ -629,6 +_,14 @@
      public abstract boolean stillValid(Player player);
  
      protected boolean moveItemStackTo(ItemStack stack, int startIndex, int endIndex, boolean reverseDirection) {
@@ -219,7 +201,7 @@
          boolean flag = false;
          int i = startIndex;
          if (reverseDirection) {
-@@ -647,18 +_,27 @@
+@@ -639,18 +_,27 @@
              while (!stack.isEmpty() && (reverseDirection ? i >= startIndex : i < endIndex)) {
                  Slot slot = this.slots.get(i);
                  ItemStack item = slot.getItem();
@@ -247,7 +229,7 @@
                          flag = true;
                      }
                  }
-@@ -681,10 +_,21 @@
+@@ -673,10 +_,21 @@
              while (reverseDirection ? i >= startIndex : i < endIndex) {
                  Slot slotx = this.slots.get(i);
                  ItemStack itemx = slotx.getItem();
@@ -269,7 +251,7 @@
                      flag = true;
                      break;
                  }
-@@ -768,6 +_,11 @@
+@@ -760,6 +_,11 @@
      }
  
      public ItemStack getCarried() {
@@ -281,7 +263,7 @@
          return this.carried;
      }
  
-@@ -820,4 +_,15 @@
+@@ -808,4 +_,15 @@
          this.stateId = this.stateId + 1 & 32767;
          return this.stateId;
      }

@@ -7,10 +7,10 @@ bypass the need to get a player chunk, then get the either,
 then unwrap it...
 
 diff --git a/net/minecraft/server/level/ServerChunkCache.java b/net/minecraft/server/level/ServerChunkCache.java
-index 483b1a06a2937553553af10aaad3ebc6f9ceef17..92a39927d7bd9af3ab67c2595d8ed435a2da6a69 100644
+index c3553385074108d686425a7637b8975076d906b9..2f49dbc919f7f5eea9abce6106723c72f5ae45fb 100644
 --- a/net/minecraft/server/level/ServerChunkCache.java
 +++ b/net/minecraft/server/level/ServerChunkCache.java
-@@ -224,6 +224,12 @@ public class ServerChunkCache extends ChunkSource {
+@@ -218,6 +218,12 @@ public class ServerChunkCache extends ChunkSource {
          if (Thread.currentThread() != this.mainThread) {
              return CompletableFuture.<ChunkAccess>supplyAsync(() -> this.getChunk(x, z, chunkStatus, requireChunk), this.mainThreadProcessor).join();
          } else {
@@ -23,7 +23,7 @@ index 483b1a06a2937553553af10aaad3ebc6f9ceef17..92a39927d7bd9af3ab67c2595d8ed435
              ProfilerFiller profilerFiller = Profiler.get();
              profilerFiller.incrementCounter("getChunk");
              long packedChunkPos = ChunkPos.asLong(x, z);
-@@ -258,30 +264,7 @@ public class ServerChunkCache extends ChunkSource {
+@@ -252,30 +258,7 @@ public class ServerChunkCache extends ChunkSource {
          if (Thread.currentThread() != this.mainThread) {
              return null;
          } else {

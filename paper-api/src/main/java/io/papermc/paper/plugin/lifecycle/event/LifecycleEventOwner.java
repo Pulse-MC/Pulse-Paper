@@ -2,6 +2,7 @@ package io.papermc.paper.plugin.lifecycle.event;
 
 import io.papermc.paper.plugin.configuration.PluginMeta;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Implemented by types that are considered owners
@@ -10,6 +11,8 @@ import org.jetbrains.annotations.ApiStatus;
  * a {@link LifecycleEventManager} where you can register
  * event handlers.
  */
+@ApiStatus.Experimental
+@NullMarked
 @ApiStatus.NonExtendable
 public interface LifecycleEventOwner {
 

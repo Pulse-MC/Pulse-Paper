@@ -8,14 +8,8 @@ import org.bukkit.craftbukkit.util.CraftLocation;
 import org.bukkit.entity.EnderCrystal;
 
 public class CraftEnderCrystal extends CraftEntity implements EnderCrystal {
-
     public CraftEnderCrystal(CraftServer server, EndCrystal entity) {
         super(server, entity);
-    }
-
-    @Override
-    public EndCrystal getHandle() {
-        return (EndCrystal) this.entity;
     }
 
     @Override
@@ -37,11 +31,21 @@ public class CraftEnderCrystal extends CraftEntity implements EnderCrystal {
     @Override
     public void setBeamTarget(Location location) {
         if (location == null) {
-            this.getHandle().setBeamTarget(null);
+            this.getHandle().setBeamTarget((BlockPos) null);
         } else if (location.getWorld() != this.getWorld()) {
             throw new IllegalArgumentException("Cannot set beam target location to different world");
         } else {
             this.getHandle().setBeamTarget(CraftLocation.toBlockPosition(location));
         }
+    }
+
+    @Override
+    public EndCrystal getHandle() {
+        return (EndCrystal) this.entity;
+    }
+
+    @Override
+    public String toString() {
+        return "CraftEnderCrystal";
     }
 }

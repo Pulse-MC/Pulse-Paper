@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/entity/item/ItemEntity.java
 +++ b/net/minecraft/world/entity/item/ItemEntity.java
-@@ -53,6 +_,9 @@
+@@ -49,6 +_,9 @@
      @Nullable
      public UUID target;
      public final float bobOffs;
@@ -10,7 +10,7 @@
  
      public ItemEntity(EntityType<? extends ItemEntity> entityType, Level level) {
          super(entityType, level);
-@@ -61,7 +_,12 @@
+@@ -57,7 +_,12 @@
      }
  
      public ItemEntity(Level level, double posX, double posY, double posZ, ItemStack itemStack) {
@@ -24,22 +24,7 @@
      }
  
      public ItemEntity(Level level, double posX, double posY, double posZ, ItemStack itemStack, double deltaX, double deltaY, double deltaZ) {
-@@ -79,6 +_,14 @@
-         this.bobOffs = other.bobOffs;
-     }
- 
-+    // Paper start - Require item entities to send their location precisely (Fixes MC-4)
-+    {
-+        if (io.papermc.paper.configuration.GlobalConfiguration.get().misc.sendFullPosForItemEntities) {
-+            this.setRequiresPrecisePosition(true);
-+        }
-+    }
-+    // Paper end - Require item entities to send their location precisely (Fixes MC-4)
-+
-     @Override
-     public boolean dampensVibrations() {
-         return this.getItem().is(ItemTags.DAMPENS_VIBRATIONS);
-@@ -116,7 +_,7 @@
+@@ -119,7 +_,7 @@
      @Override
      public void tick() {
          if (this.getItem().isEmpty()) {
@@ -48,7 +33,7 @@
          } else {
              super.tick();
              if (this.pickupDelay > 0 && this.pickupDelay != 32767) {
-@@ -144,11 +_,15 @@
+@@ -147,11 +_,15 @@
                  }
              }
  
@@ -59,14 +44,14 @@
                  float f = 0.98F;
 -                if (this.onGround()) {
 +                // Paper start - Friction API
-+                if (this.frictionState == net.kyori.adventure.util.TriState.FALSE) {
++                if (frictionState == net.kyori.adventure.util.TriState.FALSE) {
 +                    f = 1F;
 +                } else if (this.onGround()) {
 +                    // Paper end - Friction API
                      f = this.level().getBlockState(this.getBlockPosBelowThatAffectsMyMovement()).getBlock().getFriction() * 0.98F;
                  }
  
-@@ -181,8 +_,14 @@
+@@ -184,8 +_,14 @@
                  }
              }
  
@@ -83,7 +68,7 @@
              }
          }
      }
-@@ -207,9 +_,18 @@
+@@ -210,9 +_,18 @@
  
      private void mergeWithNeighbours() {
          if (this.isMergable()) {
@@ -103,7 +88,7 @@
                      this.tryToMerge(itemEntity);
                      if (this.isRemoved()) {
                          break;
-@@ -221,7 +_,7 @@
+@@ -224,14 +_,14 @@
  
      private boolean isMergable() {
          ItemStack item = this.getItem();
@@ -112,7 +97,15 @@
      }
  
      private void tryToMerge(ItemEntity itemEntity) {
-@@ -254,11 +_,16 @@
+         ItemStack item = this.getItem();
+         ItemStack item1 = itemEntity.getItem();
+         if (Objects.equals(this.target, itemEntity.target) && areMergable(item, item1)) {
+-            if (item1.getCount() < item.getCount()) {
++            if (true || item1.getCount() < item.getCount()) { // Spigot
+                 merge(this, item, itemEntity, item1);
+             } else {
+                 merge(itemEntity, item1, this, item);
+@@ -257,11 +_,16 @@
      }
  
      private static void merge(ItemEntity destinationEntity, ItemStack destinationStack, ItemEntity originEntity, ItemStack originStack) {
@@ -130,7 +123,7 @@
          }
      }
  
-@@ -286,12 +_,17 @@
+@@ -289,12 +_,17 @@
          } else if (!this.getItem().canBeHurtBy(damageSource)) {
              return false;
          } else {
@@ -149,38 +142,40 @@
              }
  
              return true;
-@@ -313,6 +_,11 @@
+@@ -322,6 +_,11 @@
          if (!this.getItem().isEmpty()) {
-             output.store("Item", ItemStack.CODEC, this.getItem());
+             compound.put("Item", this.getItem().save(this.registryAccess()));
          }
 +        // Paper start - Friction API
 +        if (this.frictionState != net.kyori.adventure.util.TriState.NOT_SET) {
-+            output.putString("Paper.FrictionState", this.frictionState.toString());
++            compound.putString("Paper.FrictionState", this.frictionState.toString());
 +        }
 +        // Paper end - Friction API
      }
  
      @Override
-@@ -323,8 +_,17 @@
-         this.target = input.read("Owner", UUIDUtil.CODEC).orElse(null);
-         this.thrower = EntityReference.read(input, "Thrower");
-         this.setItem(input.read("Item", ItemStack.CODEC).orElse(ItemStack.EMPTY));
+@@ -347,9 +_,19 @@
+         } else {
+             this.setItem(ItemStack.EMPTY);
+         }
 +        // Paper start - Friction API
-+        input.getString("Paper.FrictionState").ifPresent(frictionState -> {
++        if (compound.contains("Paper.FrictionState")) {
++            String fs = compound.getString("Paper.FrictionState");
 +            try {
-+                this.frictionState = net.kyori.adventure.util.TriState.valueOf(frictionState);
++                frictionState = net.kyori.adventure.util.TriState.valueOf(fs);
 +            } catch (Exception ignored) {
-+                com.mojang.logging.LogUtils.getLogger().error("Unknown friction state {} for {}", frictionState, this);
++                com.mojang.logging.LogUtils.getLogger().error("Unknown friction state {} for {}", fs, this);
 +            }
-+        });
++        }
 +        // Paper end - Friction API
+ 
          if (this.getItem().isEmpty()) {
 -            this.discard();
 +            this.discard(null); // CraftBukkit - add Bukkit remove cause
          }
      }
  
-@@ -334,10 +_,73 @@
+@@ -359,10 +_,73 @@
              ItemStack item = this.getItem();
              Item item1 = item.getItem();
              int count = item.getCount();
@@ -255,7 +250,7 @@
                      item.setCount(count);
                  }
  
-@@ -375,6 +_,7 @@
+@@ -400,6 +_,7 @@
  
      public void setItem(ItemStack stack) {
          this.getEntityData().set(DATA_ITEM, stack);
@@ -263,7 +258,7 @@
      }
  
      @Override
-@@ -427,7 +_,7 @@
+@@ -453,7 +_,7 @@
  
      public void makeFakeItem() {
          this.setNeverPickUp();

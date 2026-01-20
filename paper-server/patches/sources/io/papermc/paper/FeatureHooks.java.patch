@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/io/papermc/paper/FeatureHooks.java
-@@ -1,0 +_,246 @@
+@@ -1,0 +_,234 @@
 +package io.papermc.paper;
 +
 +import io.papermc.paper.command.PaperSubcommand;
@@ -33,14 +33,6 @@
 +
 +public final class FeatureHooks {
 +
-+    // this includes non-accessible entities
-+    public static Iterable<Entity> getAllEntities(final net.minecraft.server.level.ServerLevel world) {
-+        return ((net.minecraft.world.level.entity.LevelEntityGetterAdapter<Entity>)world.getEntities()).sectionStorage.getAllEntities();
-+    }
-+
-+    public static void setPlayerChunkUnloadDelay(final long ticks) {
-+    }
-+
 +    public static void initChunkTaskScheduler(final boolean useParallelGen) {
 +    }
 +
@@ -72,7 +64,7 @@
 +
 +    public static Set<Chunk> getSentChunks(final ServerPlayer player) {
 +        final ObjectSet<Chunk> chunks = new ObjectOpenHashSet<>();
-+        final World world = player.level().getWorld();
++        final World world = player.serverLevel().getWorld();
 +        player.getChunkTrackingView().forEach(pos -> {
 +            final org.bukkit.Chunk chunk = world.getChunkAt(pos.longKey);
 +            chunks.add(chunk);
@@ -147,16 +139,16 @@
 +    public static java.util.Collection<org.bukkit.plugin.Plugin> getPluginChunkTickets(net.minecraft.server.level.ServerLevel world,
 +                                                                                       int x, int z) {
 +        net.minecraft.server.level.DistanceManager chunkDistanceManager = world.getChunkSource().chunkMap.distanceManager;
-+        List<net.minecraft.server.level.Ticket> tickets = chunkDistanceManager.ticketStorage.tickets.get(ChunkPos.asLong(x, z));
++        net.minecraft.util.SortedArraySet<net.minecraft.server.level.Ticket<?>> tickets = chunkDistanceManager.tickets.get(ChunkPos.asLong(x, z));
 +
 +        if (tickets == null) {
 +            return java.util.Collections.emptyList();
 +        }
 +
 +        com.google.common.collect.ImmutableList.Builder<org.bukkit.plugin.Plugin> ret = com.google.common.collect.ImmutableList.builder();
-+        for (net.minecraft.server.level.Ticket ticket : tickets) {
++        for (net.minecraft.server.level.Ticket<?> ticket : tickets) {
 +            if (ticket.getType() == net.minecraft.server.level.TicketType.PLUGIN_TICKET) {
-+                ret.add((org.bukkit.plugin.Plugin) ticket.getIdentifier());
++                ret.add((org.bukkit.plugin.Plugin) ticket.key);
 +            }
 +        }
 +
@@ -167,12 +159,12 @@
 +        Map<org.bukkit.plugin.Plugin, com.google.common.collect.ImmutableList.Builder<Chunk>> ret = new HashMap<>();
 +        net.minecraft.server.level.DistanceManager chunkDistanceManager = world.getChunkSource().chunkMap.distanceManager;
 +
-+        for (it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry<List<net.minecraft.server.level.Ticket>> chunkTickets : chunkDistanceManager.ticketStorage.tickets.long2ObjectEntrySet()) {
++        for (it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry<net.minecraft.util.SortedArraySet<net.minecraft.server.level.Ticket<?>>> chunkTickets : chunkDistanceManager.tickets.long2ObjectEntrySet()) {
 +            long chunkKey = chunkTickets.getLongKey();
-+            List<net.minecraft.server.level.Ticket> tickets = chunkTickets.getValue();
++            net.minecraft.util.SortedArraySet<net.minecraft.server.level.Ticket<?>> tickets = chunkTickets.getValue();
 +
 +            org.bukkit.Chunk chunk = null;
-+            for (net.minecraft.server.level.Ticket ticket : tickets) {
++            for (net.minecraft.server.level.Ticket<?> ticket : tickets) {
 +                if (ticket.getType() != net.minecraft.server.level.TicketType.PLUGIN_TICKET) {
 +                    continue;
 +                }
@@ -181,7 +173,7 @@
 +                    chunk = world.getWorld().getChunkAt(ChunkPos.getX(chunkKey), ChunkPos.getZ(chunkKey));
 +                }
 +
-+                ret.computeIfAbsent((org.bukkit.plugin.Plugin) ticket.getIdentifier(), (key) -> com.google.common.collect.ImmutableList.builder()).add(chunk);
++                ret.computeIfAbsent((org.bukkit.plugin.Plugin) ticket.key, (key) -> com.google.common.collect.ImmutableList.builder()).add(chunk);
 +            }
 +        }
 +
@@ -223,11 +215,7 @@
 +    }
 +
 +    public static void closeEntityManager(net.minecraft.server.level.ServerLevel world, boolean save) {
-+        try {
-+            world.entityManager.close(save);
-+        } catch (final java.io.IOException exception) {
-+            throw new RuntimeException("Failed to close entity manager", exception);
-+        }
++        world.entityManager.close(save);
 +    }
 +
 +    public static java.util.concurrent.Executor getWorldgenExecutor() {

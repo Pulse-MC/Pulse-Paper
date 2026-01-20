@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/entity/LightningBolt.java
 +++ b/net/minecraft/world/entity/LightningBolt.java
-@@ -40,6 +_,7 @@
+@@ -39,6 +_,7 @@
      private ServerPlayer cause;
      private final Set<Entity> hitEntities = Sets.newHashSet();
      private int blocksSetOnFire;
@@ -8,7 +8,7 @@
  
      public LightningBolt(EntityType<? extends LightningBolt> entityType, Level level) {
          super(entityType, level);
-@@ -77,7 +_,7 @@
+@@ -76,7 +_,7 @@
      @Override
      public void tick() {
          super.tick();
@@ -17,7 +17,7 @@
              if (this.level().isClientSide()) {
                  this.level()
                      .playLocalSound(
-@@ -108,7 +_,7 @@
+@@ -107,7 +_,7 @@
                  }
  
                  this.powerLightningRod();
@@ -26,7 +26,7 @@
                  this.gameEvent(GameEvent.LIGHTNING_STRIKE);
              }
          }
-@@ -131,7 +_,7 @@
+@@ -130,7 +_,7 @@
                      }
                  }
  
@@ -35,12 +35,12 @@
              } else if (this.life < -this.random.nextInt(10)) {
                  this.flashes--;
                  this.life = 1;
-@@ -140,10 +_,10 @@
+@@ -139,10 +_,10 @@
              }
          }
  
 -        if (this.life >= 0) {
-+        if (this.life >= 0 && !this.isEffect) { // Paper - Properly handle lightning effects api
++        if (this.life >= 0 && !this.isEffect) { // CraftBukkit - add !this.visualOnly // Paper - Properly handle lightning effects api
              if (!(this.level() instanceof ServerLevel)) {
                  this.level().setSkyFlashTime(2);
 -            } else if (!this.visualOnly) {
@@ -48,7 +48,7 @@
                  List<Entity> entities = this.level()
                      .getEntities(
                          this,
-@@ -169,26 +_,34 @@
+@@ -168,26 +_,34 @@
      }
  
      private void spawnFire(int extraIgnitions) {
@@ -59,8 +59,8 @@
              if (this.level().getBlockState(blockPos).isAir() && state.canSurvive(this.level(), blockPos)) {
 -                this.level().setBlockAndUpdate(blockPos, state);
 -                this.blocksSetOnFire++;
-+                // CraftBukkit start
-+                if (!org.bukkit.craftbukkit.event.CraftEventFactory.callBlockIgniteEvent(this.level(), blockPos, this).isCancelled()) {
++                // CraftBukkit start - add "!visualOnly"
++                if (!this.visualOnly && !org.bukkit.craftbukkit.event.CraftEventFactory.callBlockIgniteEvent(this.level(), blockPos, this).isCancelled()) {
 +                    this.level().setBlockAndUpdate(blockPos, state);
 +                    this.blocksSetOnFire++;
 +                }
@@ -73,8 +73,8 @@
                  if (this.level().getBlockState(blockPos1).isAir() && state.canSurvive(this.level(), blockPos1)) {
 -                    this.level().setBlockAndUpdate(blockPos1, state);
 -                    this.blocksSetOnFire++;
-+                    // CraftBukkit start
-+                    if (!org.bukkit.craftbukkit.event.CraftEventFactory.callBlockIgniteEvent(this.level(), blockPos1, this).isCancelled()) {
++                    // CraftBukkit start - add "!visualOnly"
++                    if (!this.visualOnly && !org.bukkit.craftbukkit.event.CraftEventFactory.callBlockIgniteEvent(this.level(), blockPos1, this).isCancelled()) {
 +                        this.level().setBlockAndUpdate(blockPos1, state);
 +                        this.blocksSetOnFire++;
 +                    }
@@ -89,7 +89,7 @@
          BlockState blockState = level.getBlockState(pos);
          BlockPos blockPos;
          BlockState blockState1;
-@@ -201,22 +_,27 @@
+@@ -200,22 +_,27 @@
          }
  
          if (blockState1.getBlock() instanceof WeatheringCopper) {
@@ -121,7 +121,7 @@
              if (optional.isEmpty()) {
                  break;
              }
-@@ -225,11 +_,17 @@
+@@ -224,11 +_,17 @@
          }
      }
  

@@ -24,110 +24,67 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface Art extends OldEnum<Art>, Keyed {
 
-    // Start generate - Art
-    // @GeneratedFrom 1.21.8
-    Art ALBAN = getArt("alban");
-
-    Art AZTEC = getArt("aztec");
-
-    Art AZTEC2 = getArt("aztec2");
-
-    Art BACKYARD = getArt("backyard");
-
-    Art BAROQUE = getArt("baroque");
-
-    Art BOMB = getArt("bomb");
-
-    Art BOUQUET = getArt("bouquet");
-
-    Art BURNING_SKULL = getArt("burning_skull");
-
-    Art BUST = getArt("bust");
-
-    Art CAVEBIRD = getArt("cavebird");
-
-    Art CHANGING = getArt("changing");
-
-    Art COTAN = getArt("cotan");
-
-    Art COURBET = getArt("courbet");
-
-    Art CREEBET = getArt("creebet");
-
-    Art DENNIS = getArt("dennis");
-
-    Art DONKEY_KONG = getArt("donkey_kong");
-
-    Art EARTH = getArt("earth");
-
-    Art ENDBOSS = getArt("endboss");
-
-    Art FERN = getArt("fern");
-
-    Art FIGHTERS = getArt("fighters");
-
-    Art FINDING = getArt("finding");
-
-    Art FIRE = getArt("fire");
-
-    Art GRAHAM = getArt("graham");
-
-    Art HUMBLE = getArt("humble");
+    /**
+     * Create an inlined painting variant.
+     *
+     * @param value a consumer for the builder factory
+     * @return the created painting variant
+     */
+    @ApiStatus.Experimental
+    static @NotNull Art create(final @NotNull Consumer<RegistryBuilderFactory<Art, ? extends PaintingVariantRegistryEntry.Builder>> value) {
+        return InlinedRegistryBuilderProvider.instance().createPaintingVariant(value);
+    }
 
     Art KEBAB = getArt("kebab");
-
-    Art LOWMIST = getArt("lowmist");
-
-    Art MATCH = getArt("match");
-
-    Art MEDITATIVE = getArt("meditative");
-
-    Art ORB = getArt("orb");
-
-    Art OWLEMONS = getArt("owlemons");
-
-    Art PASSAGE = getArt("passage");
-
-    Art PIGSCENE = getArt("pigscene");
-
+    Art AZTEC = getArt("aztec");
+    Art ALBAN = getArt("alban");
+    Art AZTEC2 = getArt("aztec2");
+    Art BOMB = getArt("bomb");
     Art PLANT = getArt("plant");
-
-    Art POINTER = getArt("pointer");
-
-    Art POND = getArt("pond");
-
-    Art POOL = getArt("pool");
-
-    Art PRAIRIE_RIDE = getArt("prairie_ride");
-
-    Art SEA = getArt("sea");
-
-    Art SKELETON = getArt("skeleton");
-
-    Art SKULL_AND_ROSES = getArt("skull_and_roses");
-
-    Art STAGE = getArt("stage");
-
-    Art SUNFLOWERS = getArt("sunflowers");
-
-    Art SUNSET = getArt("sunset");
-
-    Art TIDES = getArt("tides");
-
-    Art UNPACKED = getArt("unpacked");
-
-    Art VOID = getArt("void");
-
-    Art WANDERER = getArt("wanderer");
-
     Art WASTELAND = getArt("wasteland");
-
-    Art WATER = getArt("water");
-
-    Art WIND = getArt("wind");
-
+    Art POOL = getArt("pool");
+    Art COURBET = getArt("courbet");
+    Art SEA = getArt("sea");
+    Art SUNSET = getArt("sunset");
+    Art CREEBET = getArt("creebet");
+    Art WANDERER = getArt("wanderer");
+    Art GRAHAM = getArt("graham");
+    Art MATCH = getArt("match");
+    Art BUST = getArt("bust");
+    Art STAGE = getArt("stage");
+    Art VOID = getArt("void");
+    Art SKULL_AND_ROSES = getArt("skull_and_roses");
     Art WITHER = getArt("wither");
-    // End generate - Art
+    Art FIGHTERS = getArt("fighters");
+    Art POINTER = getArt("pointer");
+    Art PIGSCENE = getArt("pigscene");
+    Art BURNING_SKULL = getArt("burning_skull");
+    Art SKELETON = getArt("skeleton");
+    Art DONKEY_KONG = getArt("donkey_kong");
+    Art EARTH = getArt("earth");
+    Art WIND = getArt("wind");
+    Art WATER = getArt("water");
+    Art FIRE = getArt("fire");
+    Art BAROQUE = getArt("baroque");
+    Art HUMBLE = getArt("humble");
+    Art MEDITATIVE = getArt("meditative");
+    Art PRAIRIE_RIDE = getArt("prairie_ride");
+    Art UNPACKED = getArt("unpacked");
+    Art BACKYARD = getArt("backyard");
+    Art BOUQUET = getArt("bouquet");
+    Art CAVEBIRD = getArt("cavebird");
+    Art CHANGING = getArt("changing");
+    Art COTAN = getArt("cotan");
+    Art ENDBOSS = getArt("endboss");
+    Art FERN = getArt("fern");
+    Art FINDING = getArt("finding");
+    Art LOWMIST = getArt("lowmist");
+    Art ORB = getArt("orb");
+    Art OWLEMONS = getArt("owlemons");
+    Art PASSAGE = getArt("passage");
+    Art POND = getArt("pond");
+    Art SUNFLOWERS = getArt("sunflowers");
+    Art TIDES = getArt("tides");
 
     @NotNull
     private static Art getArt(@NotNull String key) {

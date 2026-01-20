@@ -3,19 +3,16 @@ package org.bukkit.event.entity;
 import org.bukkit.Chunk;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.world.ChunkLoadEvent;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Called when a creature is spawned into a world.
  * <p>
- * If this event is cancelled, the creature will not spawn.
+ * If a Creature Spawn event is cancelled, the creature will not spawn.
  */
 public class CreatureSpawnEvent extends EntitySpawnEvent {
-
     private final SpawnReason spawnReason;
 
-    @ApiStatus.Internal
     public CreatureSpawnEvent(@NotNull final LivingEntity spawnee, @NotNull final SpawnReason spawnReason) {
         super(spawnee);
         this.spawnReason = spawnReason;
@@ -24,7 +21,7 @@ public class CreatureSpawnEvent extends EntitySpawnEvent {
     @NotNull
     @Override
     public LivingEntity getEntity() {
-        return (LivingEntity) this.entity;
+        return (LivingEntity) entity;
     }
 
     /**
@@ -35,7 +32,7 @@ public class CreatureSpawnEvent extends EntitySpawnEvent {
      */
     @NotNull
     public SpawnReason getSpawnReason() {
-        return this.spawnReason;
+        return spawnReason;
     }
 
     /**
@@ -209,6 +206,7 @@ public class CreatureSpawnEvent extends EntitySpawnEvent {
          * When a creature is spawned by an enchantment
          */
         ENCHANTMENT,
+        // Paper start - Fixes and additions to the SpawnReason API
         /**
          * When an entity spawns from an ominous item spawner
          */
@@ -217,15 +215,12 @@ public class CreatureSpawnEvent extends EntitySpawnEvent {
          * When an entity spawns from a bucket
          */
         BUCKET,
+        // Paper end - Fixes and additions to the SpawnReason API
         /**
          * When a creature is spawned by a potion effect, for example:
          * {@link org.bukkit.potion.PotionType#OOZING}, {@link org.bukkit.potion.PotionType#INFESTED}
          */
         POTION_EFFECT,
-        /**
-         * When a creature is spawned by being rehydrated
-         */
-        REHYDRATION,
         /**
          * When a creature is spawned by plugins
          */

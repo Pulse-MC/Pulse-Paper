@@ -14,7 +14,12 @@ public class CraftBlockDisplay extends CraftDisplay implements BlockDisplay {
 
     @Override
     public net.minecraft.world.entity.Display.BlockDisplay getHandle() {
-        return (net.minecraft.world.entity.Display.BlockDisplay) this.entity;
+        return (net.minecraft.world.entity.Display.BlockDisplay) super.getHandle();
+    }
+
+    @Override
+    public String toString() {
+        return "CraftBlockDisplay";
     }
 
     @Override

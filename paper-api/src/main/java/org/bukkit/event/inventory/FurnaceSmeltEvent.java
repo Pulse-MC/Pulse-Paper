@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class FurnaceSmeltEvent extends BlockCookEvent {
 
-    @ApiStatus.Internal
     @Deprecated(forRemoval = true)
     public FurnaceSmeltEvent(@NotNull final Block furnace, @NotNull final ItemStack source, @NotNull final ItemStack result) {
         super(furnace, source, result);

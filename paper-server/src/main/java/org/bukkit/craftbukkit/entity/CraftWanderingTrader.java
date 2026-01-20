@@ -1,7 +1,6 @@
 package org.bukkit.craftbukkit.entity;
 
 import org.bukkit.craftbukkit.CraftServer;
-import org.bukkit.craftbukkit.util.CraftLocation;
 import org.bukkit.entity.WanderingTrader;
 
 public class CraftWanderingTrader extends CraftAbstractVillager implements WanderingTrader {
@@ -16,6 +15,11 @@ public class CraftWanderingTrader extends CraftAbstractVillager implements Wande
     }
 
     @Override
+    public String toString() {
+        return "CraftWanderingTrader";
+    }
+
+    @Override
     public int getDespawnDelay() {
         return this.getHandle().getDespawnDelay();
     }
@@ -25,6 +29,7 @@ public class CraftWanderingTrader extends CraftAbstractVillager implements Wande
         this.getHandle().setDespawnDelay(despawnDelay);
     }
 
+    // Paper start - Add more WanderingTrader API
     @Override
     public void setCanDrinkPotion(boolean bool) {
         getHandle().canDrinkPotion = bool;
@@ -52,16 +57,17 @@ public class CraftWanderingTrader extends CraftAbstractVillager implements Wande
             return null;
         }
 
-        return CraftLocation.toBukkit(pos, this.getHandle().level());
+        return io.papermc.paper.util.MCUtil.toLocation(this.getHandle().level(), pos);
     }
 
     @Override
     public void setWanderingTowards(org.bukkit.Location location) {
         net.minecraft.core.BlockPos pos = null;
         if (location != null) {
-            pos = CraftLocation.toBlockPosition(location);
+            pos = io.papermc.paper.util.MCUtil.toBlockPosition(location);
         }
 
         this.getHandle().setWanderTarget(pos);
     }
+    // Paper end
 }

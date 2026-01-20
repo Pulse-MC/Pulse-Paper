@@ -12,10 +12,11 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents a group of {@link EquipmentSlot}.
  */
+@ApiStatus.Experimental
 public final class EquipmentSlotGroup implements Predicate<EquipmentSlot> {
 
     private static final Map<String, EquipmentSlotGroup> BY_NAME = new HashMap<>();
-
+    //
     public static final EquipmentSlotGroup ANY = get("any", (test) -> true, EquipmentSlot.HAND);
     public static final EquipmentSlotGroup MAINHAND = get("mainhand", EquipmentSlot.HAND);
     public static final EquipmentSlotGroup OFFHAND = get("offhand", EquipmentSlot.OFF_HAND);
@@ -25,9 +26,8 @@ public final class EquipmentSlotGroup implements Predicate<EquipmentSlot> {
     public static final EquipmentSlotGroup CHEST = get("chest", EquipmentSlot.CHEST);
     public static final EquipmentSlotGroup HEAD = get("head", EquipmentSlot.HEAD);
     public static final EquipmentSlotGroup ARMOR = get("armor", (test) -> test == EquipmentSlot.FEET || test == EquipmentSlot.LEGS || test == EquipmentSlot.CHEST || test == EquipmentSlot.HEAD || test == EquipmentSlot.BODY, EquipmentSlot.CHEST); // Paper - add missing slot type
-    public static final EquipmentSlotGroup BODY = get("body", EquipmentSlot.BODY);
-    public static final EquipmentSlotGroup SADDLE = get("saddle", EquipmentSlot.SADDLE);
-
+    public static final EquipmentSlotGroup BODY = get("body", EquipmentSlot.BODY); // Paper - add missing slot group
+    //
     private final String key;
     private final Predicate<EquipmentSlot> predicate;
     private final EquipmentSlot example;

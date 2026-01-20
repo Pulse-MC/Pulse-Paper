@@ -28,6 +28,7 @@ public interface TextDisplay extends Display {
     @Deprecated // Paper
     void setText(@Nullable String text);
 
+    // Paper start
     /**
      * Gets the displayed text.
      *
@@ -41,6 +42,7 @@ public interface TextDisplay extends Display {
      * @param text the new text
      */
     void text(net.kyori.adventure.text.@Nullable Component text);
+    // Paper end
 
     /**
      * Gets the maximum line width before wrapping.

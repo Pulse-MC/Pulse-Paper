@@ -2,7 +2,6 @@ package org.bukkit;
 
 import io.papermc.paper.raytracing.PositionedRayTraceConfigurationBuilder;
 import java.io.File;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -68,7 +67,7 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
     void setVoidDamageEnabled(boolean enabled);
 
     /**
-     * Gets the damage applied to the entities when they are in the void in this world.
+     * Gets the damage applied to the player when they are in the void in this world.
      * Check {@link #isVoidDamageEnabled()} to see if void damage is enabled.
      *
      * @return amount of damage to apply
@@ -77,7 +76,7 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
     float getVoidDamageAmount();
 
     /**
-     * Sets the damage applied to the entities when they are in the void in this world.
+     * Sets the damage applied to the player when they are in the void in this world.
      * Check {@link #isVoidDamageEnabled()} to see if void damage is enabled.
      *
      * @param voidDamageAmount amount of damage to apply
@@ -102,27 +101,27 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     // Paper start
     /**
-     * @return The amount of entities in this world
+     * @return The amount of Entities in this world
      */
     int getEntityCount();
 
     /**
-     * @return The amount of block entities in this world
+     * @return The amount of Tile Entities in this world
      */
     int getTileEntityCount();
 
     /**
-     * @return The amount of tickable block entities in this world
+     * @return The amount of Tickable Tile Entities in this world
      */
     int getTickableTileEntityCount();
 
     /**
-     * @return The amount of chunks in this world
+     * @return The amount of Chunks in this world
      */
     int getChunkCount();
 
     /**
-     * @return The amount of players in this world
+     * @return The amount of Players in this world
      */
     int getPlayerCount();
     // Paper end
@@ -730,10 +729,7 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
      * @param location Location to spawn the tree
      * @param type Type of the tree to create
      * @return true if the tree was created successfully, otherwise false
-     * @deprecated in favor of {@link #generateTree(Location, java.util.Random, TreeType)} to specify its own random instance
-     * and this method is not accessible through {@link RegionAccessor}
      */
-    @Deprecated(since = "1.21.6")
     public boolean generateTree(@NotNull Location location, @NotNull TreeType type);
 
     /**
@@ -745,7 +741,7 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
      *     this method
      * @return true if the tree was created successfully, otherwise false
      * @see #generateTree(org.bukkit.Location, java.util.Random, org.bukkit.TreeType, java.util.function.Consumer)
-     * @deprecated this method does not handle block entities (bee nests)
+     * @deprecated this method does not handle tile entities (bee nests)
      */
     @Deprecated(since = "1.17.1")
     public boolean generateTree(@NotNull Location loc, @NotNull TreeType type, @NotNull BlockChangeDelegate delegate);
@@ -854,7 +850,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
     // Paper start - additional getNearbyEntities API
     /**
      * Gets nearby LivingEntities within the specified radius (bounding box)
-     *
      * @param loc Center location
      * @param radius Radius
      * @return the collection of entities near location. This will always be a non-null collection.
@@ -865,7 +860,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     /**
      * Gets nearby LivingEntities within the specified radius (bounding box)
-     *
      * @param loc Center location
      * @param xzRadius X/Z Radius
      * @param yRadius Y Radius
@@ -877,7 +871,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     /**
      * Gets nearby LivingEntities within the specified radius (bounding box)
-     *
      * @param loc Center location
      * @param xRadius X Radius
      * @param yRadius Y Radius
@@ -890,7 +883,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     /**
      * Gets nearby LivingEntities within the specified radius (bounding box)
-     *
      * @param loc Center location
      * @param radius X Radius
      * @param predicate a predicate used to filter results
@@ -902,7 +894,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     /**
      * Gets nearby LivingEntities within the specified radius (bounding box)
-     *
      * @param loc Center location
      * @param xzRadius X/Z Radius
      * @param yRadius Y Radius
@@ -915,7 +906,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     /**
      * Gets nearby LivingEntities within the specified radius (bounding box)
-     *
      * @param loc Center location
      * @param xRadius X Radius
      * @param yRadius Y Radius
@@ -929,7 +919,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     /**
      * Gets nearby players within the specified radius (bounding box)
-     *
      * @param loc Center location
      * @param radius X/Y/Z Radius
      * @return the collection of living entities near location. This will always be a non-null collection.
@@ -940,7 +929,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     /**
      * Gets nearby players within the specified radius (bounding box)
-     *
      * @param loc Center location
      * @param xzRadius X/Z Radius
      * @param yRadius Y Radius
@@ -952,7 +940,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     /**
      * Gets nearby players within the specified radius (bounding box)
-     *
      * @param loc Center location
      * @param xRadius X Radius
      * @param yRadius Y Radius
@@ -965,7 +952,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     /**
      * Gets nearby players within the specified radius (bounding box)
-     *
      * @param loc Center location
      * @param radius X/Y/Z Radius
      * @param predicate a predicate used to filter results
@@ -977,7 +963,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     /**
      * Gets nearby players within the specified radius (bounding box)
-     *
      * @param loc Center location
      * @param xzRadius X/Z Radius
      * @param yRadius Y Radius
@@ -990,7 +975,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     /**
      * Gets nearby players within the specified radius (bounding box)
-     *
      * @param loc Center location
      * @param xRadius X Radius
      * @param yRadius Y Radius
@@ -1004,7 +988,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     /**
      * Gets all nearby entities of the specified type, within the specified radius (bounding box)
-     *
      * @param clazz Type to filter by
      * @param loc Center location
      * @param radius X/Y/Z radius to search within
@@ -1017,7 +1000,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     /**
      * Gets all nearby entities of the specified type, within the specified radius, with x and x radius matching (bounding box)
-     *
      * @param clazz Type to filter by
      * @param loc Center location
      * @param xzRadius X/Z radius to search within
@@ -1031,7 +1013,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     /**
      * Gets all nearby entities of the specified type, within the specified radius (bounding box)
-     *
      * @param clazz Type to filter by
      * @param loc Center location
      * @param xRadius X Radius
@@ -1046,7 +1027,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     /**
      * Gets all nearby entities of the specified type, within the specified radius (bounding box)
-     *
      * @param clazz Type to filter by
      * @param loc Center location
      * @param radius X/Y/Z radius to search within
@@ -1060,7 +1040,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
     /**
      * Gets all nearby entities of the specified type, within the specified radius, with x and x radius matching (bounding box)
-     *
      * @param clazz Type to filter by
      * @param loc Center location
      * @param xzRadius X/Z radius to search within
@@ -1075,7 +1054,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
 
      /**
       * Gets all nearby entities of the specified type, within the specified radius (bounding box)
-      *
       * @param clazz Type to filter by
       * @param loc Center location
       * @param xRadius X Radius
@@ -1085,13 +1063,16 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
       * @param <T> the entity type
       * @return the collection of entities near location. This will always be a non-null collection.
       */
-    default <T extends Entity> @NotNull Collection<T> getNearbyEntitiesByType(@Nullable Class<? extends T> clazz, final @NotNull Location loc, final double xRadius, final double yRadius, final double zRadius, final @Nullable Predicate<? super T> predicate) {
+     default <T extends Entity> @NotNull Collection<T> getNearbyEntitiesByType(@Nullable Class<? extends Entity> clazz, final @NotNull Location loc, final double xRadius, final double yRadius, final double zRadius, final @Nullable Predicate<? super T> predicate) {
+         if (clazz == null) {
+            clazz = Entity.class;
+        }
         final List<T> nearby = new ArrayList<>();
-        for (final Entity entity : this.getNearbyEntities(loc, xRadius, yRadius, zRadius)) {
+        for (final Entity bukkitEntity : this.getNearbyEntities(loc, xRadius, yRadius, zRadius)) {
             //noinspection unchecked
-            if ((clazz == null || clazz.isInstance(entity)) && (predicate == null || predicate.test((T) entity))) {
+            if (clazz.isAssignableFrom(bukkitEntity.getClass()) && (predicate == null || predicate.test((T) bukkitEntity))) {
                 //noinspection unchecked
-                nearby.add((T) entity);
+                nearby.add((T) bukkitEntity);
             }
         }
         return nearby;
@@ -2868,17 +2849,7 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
      * @return The folder of this world.
      */
     @NotNull
-    default File getWorldFolder() {
-        return getWorldPath().toFile();
-    }
-    
-    /**
-     * Gets the path of this world on disk.
-     *
-     * @return The path of this world.
-     */
-    @NotNull
-    Path getWorldPath();
+    public File getWorldFolder();
 
     /**
      * Gets the type of this world.
@@ -2898,13 +2869,6 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
      * @return True if structures are being generated.
      */
     public boolean canGenerateStructures();
-
-    /**
-     * Checks if the bonus chest is enabled.
-     *
-     * @return {@code true} if the bonus chest is enabled, {@code false} otherwise
-     */
-    boolean hasBonusChest();
 
     /**
      * Gets whether the world is hardcore or not.

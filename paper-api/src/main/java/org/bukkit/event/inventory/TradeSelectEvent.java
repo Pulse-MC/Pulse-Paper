@@ -4,7 +4,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.Merchant;
 import org.bukkit.inventory.MerchantInventory;
 import org.bukkit.inventory.view.MerchantView;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -16,14 +15,22 @@ import org.jetbrains.annotations.NotNull;
  */
 public class TradeSelectEvent extends InventoryInteractEvent {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    //
     private final int index;
 
-    @ApiStatus.Internal
     public TradeSelectEvent(@NotNull MerchantView transaction, int newIndex) {
         super(transaction);
         this.index = newIndex;
+    }
+
+    /**
+     * Used to get the index of the trade the player clicked on.
+     *
+     * @return The index of the trade clicked by the player
+     */
+    public int getIndex() {
+        return index;
     }
 
     @NotNull
@@ -39,7 +46,7 @@ public class TradeSelectEvent extends InventoryInteractEvent {
      */
     @NotNull
     public Merchant getMerchant() {
-        return this.getInventory().getMerchant();
+        return getInventory().getMerchant();
     }
 
     @NotNull
@@ -48,23 +55,14 @@ public class TradeSelectEvent extends InventoryInteractEvent {
         return (MerchantView) super.getView();
     }
 
-    /**
-     * Used to get the index of the trade the player clicked on.
-     *
-     * @return The index of the trade clicked by the player
-     */
-    public int getIndex() {
-        return this.index;
-    }
-
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

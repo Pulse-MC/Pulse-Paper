@@ -1,32 +1,26 @@
 package org.bukkit.event.player;
 
-import org.bukkit.Warning;
 import org.bukkit.block.Sign;
 import org.bukkit.block.sign.Side;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * This event is fired when a sign is opened by the player.
- *
  * @deprecated use {@link io.papermc.paper.event.player.PlayerOpenSignEvent}
  */
-@Deprecated(forRemoval = true)
-@Warning
+@Deprecated(forRemoval = true) // Paper
+@org.bukkit.Warning(false) // Paper
 public class PlayerSignOpenEvent extends PlayerEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final Sign sign;
     private final Side side;
     private final Cause cause;
-
     private boolean cancelled;
 
-    @ApiStatus.Internal
     public PlayerSignOpenEvent(@NotNull final Player player, @NotNull final Sign sign, @NotNull final Side side, @NotNull final Cause cause) {
         super(player);
         this.sign = sign;
@@ -77,12 +71,12 @@ public class PlayerSignOpenEvent extends PlayerEvent implements Cancellable {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     public enum Cause {
@@ -102,6 +96,6 @@ public class PlayerSignOpenEvent extends PlayerEvent implements Cancellable {
         /**
          * Indicate the sign was opened for an unknown reason.
          */
-        UNKNOWN
+        UNKNOWN;
     }
 }

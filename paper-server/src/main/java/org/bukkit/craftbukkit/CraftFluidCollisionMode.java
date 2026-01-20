@@ -7,13 +7,18 @@ public final class CraftFluidCollisionMode {
 
     private CraftFluidCollisionMode() {}
 
-    public static Fluid toFluid(FluidCollisionMode fluidCollisionMode) {
+    public static Fluid toNMS(FluidCollisionMode fluidCollisionMode) {
         if (fluidCollisionMode == null) return null;
 
-        return switch (fluidCollisionMode) {
-            case ALWAYS -> Fluid.ANY;
-            case SOURCE_ONLY -> Fluid.SOURCE_ONLY;
-            case NEVER -> Fluid.NONE;
-        };
+        switch (fluidCollisionMode) {
+            case ALWAYS:
+                return Fluid.ANY;
+            case SOURCE_ONLY:
+                return Fluid.SOURCE_ONLY;
+            case NEVER:
+                return Fluid.NONE;
+            default:
+                return null;
+        }
     }
 }

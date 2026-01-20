@@ -5,7 +5,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -14,14 +13,13 @@ import org.jetbrains.annotations.NotNull;
  */
 public class FluidLevelChangeEvent extends BlockEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    private BlockData newData;
+    private static final HandlerList handlers = new HandlerList();
     private boolean cancelled;
+    //
+    private BlockData newData;
 
-    @ApiStatus.Internal
-    public FluidLevelChangeEvent(@NotNull Block fluid, @NotNull BlockData newData) {
-        super(fluid);
+    public FluidLevelChangeEvent(@NotNull Block theBlock, @NotNull BlockData newData) {
+        super(theBlock);
         this.newData = newData;
     }
 
@@ -32,7 +30,7 @@ public class FluidLevelChangeEvent extends BlockEvent implements Cancellable {
      */
     @NotNull
     public BlockData getNewData() {
-        return this.newData;
+        return newData;
     }
 
     /**
@@ -50,7 +48,7 @@ public class FluidLevelChangeEvent extends BlockEvent implements Cancellable {
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
@@ -61,11 +59,11 @@ public class FluidLevelChangeEvent extends BlockEvent implements Cancellable {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

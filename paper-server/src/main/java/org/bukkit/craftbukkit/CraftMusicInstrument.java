@@ -1,16 +1,14 @@
 package org.bukkit.craftbukkit;
 
 import com.google.common.base.Preconditions;
-import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.util.Holderable;
-import net.kyori.adventure.text.Component;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Instrument;
 import org.bukkit.MusicInstrument;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Sound;
+import org.bukkit.Registry;
 import org.jetbrains.annotations.NotNull;
 
 public class CraftMusicInstrument extends MusicInstrument implements io.papermc.paper.util.Holderable<Instrument> {
@@ -28,21 +26,22 @@ public class CraftMusicInstrument extends MusicInstrument implements io.papermc.
     }
 
     public static Holder<Instrument> bukkitToMinecraftHolder(MusicInstrument bukkit) {
-        return CraftRegistry.bukkitToMinecraftHolder(bukkit);
+        return CraftRegistry.bukkitToMinecraftHolder(bukkit, Registries.INSTRUMENT); // Paper - switch to Holder
     }
 
-    public static Object bukkitToString(MusicInstrument bukkit) {
+    public static Object bukkitToString(MusicInstrument bukkit) { // Paper - switch to Holder
         Preconditions.checkArgument(bukkit != null);
 
-        return ((CraftMusicInstrument) bukkit).toBukkitSerializationObject(Instrument.DIRECT_CODEC);
+        return ((CraftMusicInstrument) bukkit).toBukkitSerializationObject(Instrument.DIRECT_CODEC); // Paper - switch to Holder
     }
 
-    public static MusicInstrument stringToBukkit(Object string) {
+    public static MusicInstrument stringToBukkit(Object string) { // Paper - switch to Holder
         Preconditions.checkArgument(string != null);
 
-        return io.papermc.paper.util.Holderable.fromBukkitSerializationObject(string, Instrument.CODEC, RegistryKey.INSTRUMENT);
+        return io.papermc.paper.util.Holderable.fromBukkitSerializationObject(string, Instrument.CODEC, RegistryKey.INSTRUMENT); // Paper - switch to Holder
     }
 
+    // Paper start - switch to Holder
     @Override
     public boolean equals(final Object o) {
         return this.implEquals(o);
@@ -59,34 +58,14 @@ public class CraftMusicInstrument extends MusicInstrument implements io.papermc.
     }
 
     private final Holder<Instrument> holder;
-
     public CraftMusicInstrument(Holder<Instrument> holder) {
         this.holder = holder;
+        // Paper end - switch to Holder
     }
 
     @Override
-    public Holder<Instrument> getHolder() {
-        return this.holder;
-    }
-
-    @Override
-    public float getDuration() {
-        return this.getHandle().useDuration();
-    }
-
-    @Override
-    public float getRange() {
-        return this.getHandle().range();
-    }
-
-    @Override
-    public Component description() {
-        return PaperAdventure.asAdventure(this.getHandle().description());
-    }
-
-    @Override
-    public Sound getSound() {
-        return CraftSound.minecraftHolderToBukkit(this.getHandle().soundEvent());
+    public Holder<Instrument> getHolder() { // Paper - switch to Holder
+        return this.holder; // Paper - switch to Holder
     }
 
     @NotNull
@@ -95,11 +74,15 @@ public class CraftMusicInstrument extends MusicInstrument implements io.papermc.
         return Holderable.super.getKey();
     }
 
+    // Paper start - add translationKey methods
     @Override
     public @NotNull String translationKey() {
         if (!(this.getHandle().description().getContents() instanceof final net.minecraft.network.chat.contents.TranslatableContents translatableContents)) {
-            throw new UnsupportedOperationException("Description isn't translatable!");
+            throw new UnsupportedOperationException("Description isn't translatable!"); // Paper
         }
         return translatableContents.getKey();
     }
+    // Paper end - add translationKey methods
+
+    // Paper - switch to Holder
 }

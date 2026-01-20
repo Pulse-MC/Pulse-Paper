@@ -24,7 +24,7 @@ public class CraftPatternType extends OldEnumHolderable<PatternType, BannerPatte
     }
 
     public static Holder<BannerPattern> bukkitToMinecraftHolder(PatternType bukkit) {
-        return CraftRegistry.bukkitToMinecraftHolder(bukkit);
+        return CraftRegistry.bukkitToMinecraftHolder(bukkit, Registries.BANNER_PATTERN);
     }
 
     public CraftPatternType(Holder<BannerPattern> bannerPatternType) {

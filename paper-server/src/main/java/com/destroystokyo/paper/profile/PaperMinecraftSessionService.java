@@ -30,7 +30,7 @@ public class PaperMinecraftSessionService extends YggdrasilMinecraftSessionServi
         return result;
     }
 
-    @Override @Deprecated
+    @Override @io.papermc.paper.annotation.DoNotUse @Deprecated
     public @Nullable ProfileResult fetchProfile(final UUID profileId, final boolean requireSecure) {
         return super.fetchProfile(profileId, requireSecure);
     }

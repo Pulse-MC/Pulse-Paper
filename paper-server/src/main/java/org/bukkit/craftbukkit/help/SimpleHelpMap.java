@@ -38,13 +38,14 @@ public class SimpleHelpMap implements HelpMap {
     private final CraftServer server;
     private HelpYamlReader yaml;
 
+    @SuppressWarnings("unchecked")
     public SimpleHelpMap(CraftServer server) {
-        this.helpTopics = new TreeMap<>(HelpTopicComparator.topicNameComparatorInstance()); // Using a TreeMap for its explicit sorting on key
-        this.topicFactoryMap = new HashMap<>();
+        this.helpTopics = new TreeMap<String, HelpTopic>(HelpTopicComparator.topicNameComparatorInstance()); // Using a TreeMap for its explicit sorting on key
+        this.topicFactoryMap = new HashMap<Class, HelpTopicFactory<Command>>();
         this.server = server;
         this.yaml = new HelpYamlReader(server);
 
-        Predicate<? super HelpTopic> indexFilter = Predicates.not(Predicates.instanceOf(CommandAliasHelpTopic.class));
+        Predicate indexFilter = Predicates.not(Predicates.instanceOf(CommandAliasHelpTopic.class));
         if (!this.yaml.commandTopicsInMasterIndex()) {
             indexFilter = Predicates.and(indexFilter, Predicates.not(new IsCommandTopicPredicate()));
         }
@@ -56,7 +57,7 @@ public class SimpleHelpMap implements HelpMap {
 
     @Override
     public synchronized HelpTopic getHelpTopic(String topicName) {
-        if (topicName.isEmpty()) {
+        if (topicName.equals("")) {
             return this.defaultTopic;
         }
 
@@ -165,7 +166,7 @@ public class SimpleHelpMap implements HelpMap {
         }
 
         // Initialize plugin-level sub-topics
-        Map<String, Set<HelpTopic>> pluginIndexes = new HashMap<>();
+        Map<String, Set<HelpTopic>> pluginIndexes = new HashMap<String, Set<HelpTopic>>();
         this.fillPluginIndexes(pluginIndexes, this.server.getCommandMap().getCommands());
 
         for (Map.Entry<String, Set<HelpTopic>> entry : pluginIndexes.entrySet()) {
@@ -190,7 +191,7 @@ public class SimpleHelpMap implements HelpMap {
                 HelpTopic topic = this.getHelpTopic("/" + command.getLabel());
                 if (topic != null) {
                     if (!pluginIndexes.containsKey(pluginName)) {
-                        pluginIndexes.put(pluginName, new TreeSet<>(HelpTopicComparator.helpTopicComparatorInstance())); //keep things in topic order
+                        pluginIndexes.put(pluginName, new TreeSet<HelpTopic>(HelpTopicComparator.helpTopicComparatorInstance())); //keep things in topic order
                     }
                     pluginIndexes.get(pluginName).add(topic);
                 }
@@ -199,15 +200,18 @@ public class SimpleHelpMap implements HelpMap {
     }
 
     private String getCommandPluginName(Command command) {
+        // Paper start - Move up
         if (command instanceof PluginIdentifiableCommand) {
             return ((PluginIdentifiableCommand) command).getPlugin().getName();
         }
-        if (command instanceof VanillaCommandWrapper wrapper) {
-            return wrapper.helpCommandNamespace;
+        // Paper end
+        if (command instanceof VanillaCommandWrapper) {
+            return "Minecraft";
         }
         if (command instanceof BukkitCommand) {
             return "Bukkit";
         }
+        // Paper - Move PluginIdentifiableCommand instanceof check to allow brig commands
         return null;
     }
 

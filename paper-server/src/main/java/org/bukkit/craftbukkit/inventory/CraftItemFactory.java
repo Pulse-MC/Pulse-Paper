@@ -4,13 +4,13 @@ import com.google.common.base.Preconditions;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import java.util.Optional;
-import io.papermc.paper.registry.data.util.Conversions;
 import net.minecraft.commands.arguments.item.ItemParser;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
@@ -154,7 +154,7 @@ public final class CraftItemFactory implements ItemFactory {
     public ItemStack createItemStack(String input) throws IllegalArgumentException {
         try {
             StringReader reader = new StringReader(input);
-            ItemParser.ItemResult arg = new ItemParser(CraftRegistry.getMinecraftRegistry()).parse(reader);
+            ItemParser.ItemResult arg = new ItemParser(MinecraftServer.getDefaultRegistryAccess()).parse(reader);
             Preconditions.checkArgument(!reader.canRead(), "Trailing input found when parsing ItemStack: %s", input);
 
             Item item = arg.item().value();
@@ -215,9 +215,9 @@ public final class CraftItemFactory implements ItemFactory {
         return CraftItemStack.asCraftMirror(EnchantmentHelper.enchantItem(source, craft.handle, level, registry, optional));
     }
 
+    // Paper start - Adventure
     @Override
     public net.kyori.adventure.text.event.HoverEvent<net.kyori.adventure.text.event.HoverEvent.ShowItem> asHoverEvent(final ItemStack item, final java.util.function.UnaryOperator<net.kyori.adventure.text.event.HoverEvent.ShowItem> op) {
-        Preconditions.checkArgument(item.getAmount() > 0 && item.getAmount() <= Item.ABSOLUTE_MAX_STACK_SIZE, "ItemStack amount must be between 1 and %s but was %s", Item.ABSOLUTE_MAX_STACK_SIZE, item.getAmount());
         return net.kyori.adventure.text.event.HoverEvent.showItem(op.apply(
             net.kyori.adventure.text.event.HoverEvent.ShowItem.showItem(
                 item.getType().getKey(),
@@ -230,6 +230,7 @@ public final class CraftItemFactory implements ItemFactory {
     public net.kyori.adventure.text.@org.jetbrains.annotations.NotNull Component displayName(@org.jetbrains.annotations.NotNull ItemStack itemStack) {
         return io.papermc.paper.adventure.PaperAdventure.asAdventure(CraftItemStack.asNMSCopy(itemStack).getDisplayName());
     }
+    // Paper end - Adventure
 
     // Paper start - ensure server conversions API
     // TODO: DO WE NEED THIS?
@@ -333,7 +334,7 @@ public final class CraftItemFactory implements ItemFactory {
             Optional.of(
                 io.papermc.paper.registry.set.PaperRegistrySets.convertToNms(
                     Registries.ENCHANTMENT,
-                    Conversions.global().lookup(),
+                    net.minecraft.server.MinecraftServer.getServer().registryAccess().createSerializationContext(net.minecraft.nbt.NbtOps.INSTANCE).lookupProvider,
                     keySet
                 )
             ),

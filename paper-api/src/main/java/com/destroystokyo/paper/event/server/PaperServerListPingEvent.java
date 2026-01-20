@@ -477,7 +477,7 @@ public class PaperServerListPingEvent extends ServerListPingEvent implements Can
         }
 
         @Override
-        public @NotNull PlayerProfile clone() {
+        public org.bukkit.profile.@NotNull PlayerProfile clone() {
             throw new UnsupportedOperationException();
         }
 

@@ -15,6 +15,11 @@ public class CraftSpectralArrow extends CraftAbstractArrow implements SpectralAr
     }
 
     @Override
+    public String toString() {
+        return "CraftSpectralArrow";
+    }
+
+    @Override
     public int getGlowingTicks() {
         return this.getHandle().duration;
     }

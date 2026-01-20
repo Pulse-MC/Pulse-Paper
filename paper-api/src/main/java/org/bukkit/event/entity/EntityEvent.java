@@ -9,11 +9,10 @@ import org.jetbrains.annotations.NotNull;
  * Represents an Entity-related event
  */
 public abstract class EntityEvent extends Event {
-
     protected Entity entity;
 
-    protected EntityEvent(@NotNull final Entity entity) {
-        this.entity = entity;
+    public EntityEvent(@NotNull final Entity what) {
+        entity = what;
     }
 
     /**
@@ -23,7 +22,7 @@ public abstract class EntityEvent extends Event {
      */
     @NotNull
     public Entity getEntity() {
-        return this.entity;
+        return entity;
     }
 
     /**
@@ -33,6 +32,6 @@ public abstract class EntityEvent extends Event {
      */
     @NotNull
     public EntityType getEntityType() {
-        return this.entity.getType();
+        return entity.getType();
     }
 }

@@ -24,7 +24,7 @@ import org.jspecify.annotations.Nullable;
 @ApiStatus.Internal
 interface ItemComponentTypesBridge {
 
-    Optional<ItemComponentTypesBridge> BRIDGE = ServiceLoader.load(ItemComponentTypesBridge.class, ItemComponentTypesBridge.class.getClassLoader()).findFirst();
+    Optional<ItemComponentTypesBridge> BRIDGE = ServiceLoader.load(ItemComponentTypesBridge.class).findFirst();
 
     static ItemComponentTypesBridge bridge() {
         return BRIDGE.orElseThrow();
@@ -33,6 +33,8 @@ interface ItemComponentTypesBridge {
     ChargedProjectiles.Builder chargedProjectiles();
 
     PotDecorations.Builder potDecorations();
+
+    Unbreakable.Builder unbreakable();
 
     ItemLore.Builder lore();
 
@@ -90,7 +92,7 @@ interface ItemComponentTypesBridge {
 
     MapId mapId(int id);
 
-    UseRemainder useRemainder(ItemStack stack);
+    UseRemainder useRemainder(ItemStack itemStack);
 
     Consumable.Builder consumable();
 
@@ -107,10 +109,4 @@ interface ItemComponentTypesBridge {
     DeathProtection.Builder deathProtection();
 
     OminousBottleAmplifier ominousBottleAmplifier(int amplifier);
-
-    BlocksAttacks.Builder blocksAttacks();
-
-    TooltipDisplay.Builder tooltipDisplay();
-
-    Weapon.Builder weapon();
 }

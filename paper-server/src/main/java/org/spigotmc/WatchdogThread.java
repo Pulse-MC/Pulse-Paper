@@ -18,8 +18,8 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
     private long timeoutTime;
     private boolean restart;
     private final long earlyWarningEvery; // Paper - Timeout time for just printing a dump but not restarting
-    private final long earlyWarningDelay;
-    public static volatile boolean hasStarted;
+    private final long earlyWarningDelay; // Paper
+    public static volatile boolean hasStarted; // Paper
     private long lastEarlyWarning; // Paper - Keep track of short dump times to avoid spamming console with short dumps
     private volatile long lastTick;
     private volatile boolean stopping;
@@ -28,8 +28,8 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
         super("Paper Watchdog Thread");
         this.timeoutTime = timeoutTime;
         this.restart = restart;
-        this.earlyWarningEvery = Math.min(GlobalConfiguration.get().watchdog.earlyWarningEvery, timeoutTime);
-        this.earlyWarningDelay = Math.min(GlobalConfiguration.get().watchdog.earlyWarningDelay, timeoutTime);
+        this.earlyWarningEvery = Math.min(GlobalConfiguration.get().watchdog.earlyWarningEvery, timeoutTime); // Paper
+        this.earlyWarningDelay = Math.min(GlobalConfiguration.get().watchdog.earlyWarningDelay, timeoutTime); // Paper
     }
 
     private static long monotonicMillis() {
@@ -38,7 +38,7 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
 
     public static void doStart(int timeoutTime, boolean restart) {
         if (WatchdogThread.instance == null) {
-            if (timeoutTime <= 0) timeoutTime = 300;
+            if (timeoutTime <= 0) timeoutTime = 300; // Paper
             WatchdogThread.instance = new WatchdogThread(timeoutTime * 1000L, restart);
             WatchdogThread.instance.start();
         } else {
@@ -60,6 +60,7 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
     @Override
     public void run() {
         while (!this.stopping) {
+            // Paper start
             Logger logger = Bukkit.getServer().getLogger();
             long currentTime = WatchdogThread.monotonicMillis();
             MinecraftServer server = MinecraftServer.getServer();
@@ -74,6 +75,7 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
                     continue; // Don't spam early watchdog warnings during shutdown, we'll come back to this...
                 this.lastEarlyWarning = currentTime;
                 if (isLongTimeout) {
+                    // Paper end
                     logger.log(Level.SEVERE, "------------------------------");
                     logger.log(Level.SEVERE, "The server has stopped responding! This is (probably) not a Paper bug."); // Paper
                     logger.log(Level.SEVERE, "If you see a plugin in the Server thread dump below, then please report it to that author");
@@ -109,7 +111,7 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
                 logger.log(Level.SEVERE, "------------------------------");
                 logger.log(Level.SEVERE, "Server thread dump (Look for plugins here before reporting to Paper!):"); // Paper
                 FeatureHooks.dumpAllChunkLoadInfo(MinecraftServer.getServer(), isLongTimeout); // Paper - log detailed tick information
-                WatchdogThread.dumpThread(ManagementFactory.getThreadMXBean().getThreadInfo(MinecraftServer.getServer().serverThread.threadId(), Integer.MAX_VALUE), logger);
+                WatchdogThread.dumpThread(ManagementFactory.getThreadMXBean().getThreadInfo(MinecraftServer.getServer().serverThread.getId(), Integer.MAX_VALUE), logger);
                 logger.log(Level.SEVERE, "------------------------------");
 
                 // Paper start - Only print full dump on long timeouts
@@ -127,11 +129,12 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
 
                 if (isLongTimeout) {
                     if (!server.hasStopped()) {
+                        AsyncCatcher.enabled = false; // Disable async catcher incase it interferes with us
                         server.forceTicks = true;
                         if (this.restart) {
                             RestartCommand.addShutdownHook(SpigotConfig.restartScript);
                         }
-                        // try one last chance to safe shutdown on main in case it 'comes back'
+                        // try one last chance to safe shutdown on main incase it 'comes back'
                         server.abnormalExit = true;
                         server.safeShutdown(false, this.restart);
                         try {
@@ -156,24 +159,24 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
         }
     }
 
-    private static void dumpThread(ThreadInfo thread, Logger logger) {
-        logger.log(Level.SEVERE, "------------------------------");
+    private static void dumpThread(ThreadInfo thread, Logger log) {
+        log.log(Level.SEVERE, "------------------------------");
 
-        logger.log(Level.SEVERE, "Current Thread: " + thread.getThreadName());
-        logger.log(Level.SEVERE, "\tPID: " + thread.getThreadId()
+        log.log(Level.SEVERE, "Current Thread: " + thread.getThreadName());
+        log.log(Level.SEVERE, "\tPID: " + thread.getThreadId()
             + " | Suspended: " + thread.isSuspended()
             + " | Native: " + thread.isInNative()
             + " | State: " + thread.getThreadState());
         if (thread.getLockedMonitors().length != 0) {
-            logger.log(Level.SEVERE, "\tThread is waiting on monitor(s):");
+            log.log(Level.SEVERE, "\tThread is waiting on monitor(s):");
             for (MonitorInfo monitor : thread.getLockedMonitors()) {
-                logger.log(Level.SEVERE, "\t\tLocked on:" + monitor.getLockedStackFrame());
+                log.log(Level.SEVERE, "\t\tLocked on:" + monitor.getLockedStackFrame());
             }
         }
-        logger.log(Level.SEVERE, "\tStack:");
+        log.log(Level.SEVERE, "\tStack:");
 
         for (StackTraceElement stack : io.papermc.paper.util.StacktraceDeobfuscator.INSTANCE.deobfuscateStacktrace(thread.getStackTrace())) { // Paper
-            logger.log(Level.SEVERE, "\t\t" + stack);
+            log.log(Level.SEVERE, "\t\t" + stack);
         }
     }
 }

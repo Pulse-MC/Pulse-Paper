@@ -3,7 +3,6 @@ package io.papermc.paper.registry.data;
 import io.papermc.paper.registry.RegistryBuilder;
 import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.TypedKey;
-import io.papermc.paper.registry.event.RegistryComposeEvent;
 import io.papermc.paper.registry.set.RegistryKeySet;
 import io.papermc.paper.registry.set.RegistrySet;
 import io.papermc.paper.registry.tag.TagKey;
@@ -154,7 +153,7 @@ public interface EnchantmentRegistryEntry {
         /**
          * Configures the set of supported items this enchantment can be applied on. This
          * can be a {@link RegistryKeySet} created via {@link RegistrySet#keySet(io.papermc.paper.registry.RegistryKey, Iterable)} or
-         * a tag obtained via {@link RegistryComposeEvent#getOrCreateTag(TagKey)} with
+         * a tag obtained via {@link io.papermc.paper.registry.event.RegistryFreezeEvent#getOrCreateTag(TagKey)} with
          * tag keys found in {@link io.papermc.paper.registry.keys.tags.ItemTypeTagKeys} such as
          * {@link io.papermc.paper.registry.keys.tags.ItemTypeTagKeys#ENCHANTABLE_ARMOR} and
          * {@link io.papermc.paper.registry.keys.tags.ItemTypeTagKeys#ENCHANTABLE_SWORD}.
@@ -162,7 +161,7 @@ public interface EnchantmentRegistryEntry {
          * @param supportedItems the registry key set representing the supported items.
          * @return this builder instance.
          * @see RegistrySet#keySet(RegistryKey, TypedKey[])
-         * @see RegistryComposeEvent#getOrCreateTag(TagKey)
+         * @see io.papermc.paper.registry.event.RegistryFreezeEvent#getOrCreateTag(TagKey)
          */
         @Contract(value = "_ -> this", mutates = "this")
         Builder supportedItems(RegistryKeySet<ItemType> supportedItems);
@@ -171,7 +170,7 @@ public interface EnchantmentRegistryEntry {
          * Configures a set of item types this enchantment can naturally be applied to, when enchanting in an
          * enchantment table.This can be a {@link RegistryKeySet} created via
          * {@link RegistrySet#keySet(io.papermc.paper.registry.RegistryKey, Iterable)} or a tag obtained via
-         * {@link RegistryComposeEvent#getOrCreateTag(TagKey)} with
+         * {@link io.papermc.paper.registry.event.RegistryFreezeEvent#getOrCreateTag(TagKey)} with
          * tag keys found in {@link io.papermc.paper.registry.keys.tags.ItemTypeTagKeys} such as
          * {@link io.papermc.paper.registry.keys.tags.ItemTypeTagKeys#ENCHANTABLE_ARMOR} and
          * {@link io.papermc.paper.registry.keys.tags.ItemTypeTagKeys#ENCHANTABLE_SWORD}.
@@ -183,7 +182,7 @@ public interface EnchantmentRegistryEntry {
          * @param primaryItems the registry key set representing the primary items.
          * @return this builder instance.
          * @see RegistrySet#keySet(RegistryKey, TypedKey[])
-         * @see RegistryComposeEvent#getOrCreateTag(TagKey)
+         * @see io.papermc.paper.registry.event.RegistryFreezeEvent#getOrCreateTag(TagKey)
          */
         @Contract(value = "_ -> this", mutates = "this")
         Builder primaryItems(@Nullable RegistryKeySet<ItemType> primaryItems);
@@ -286,7 +285,7 @@ public interface EnchantmentRegistryEntry {
          * @param exclusiveWith a registry set of enchantments exclusive to this one.
          * @return this builder instance.
          * @see RegistrySet#keySet(RegistryKey, TypedKey[])
-         * @see RegistryComposeEvent#getOrCreateTag(TagKey)
+         * @see io.papermc.paper.registry.event.RegistryFreezeEvent#getOrCreateTag(TagKey)
          */
         @Contract(value = "_ -> this", mutates = "this")
         Builder exclusiveWith(RegistryKeySet<Enchantment> exclusiveWith);

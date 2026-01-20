@@ -8,12 +8,12 @@ import org.bukkit.inventory.LecternInventory;
 
 public class CraftInventoryLectern extends CraftInventory implements LecternInventory {
 
-    public MenuProvider provider;
+    public MenuProvider tile;
 
     public CraftInventoryLectern(Container inventory) {
         super(inventory);
         if (inventory instanceof LecternBlockEntity.LecternInventory) {
-            this.provider = ((LecternBlockEntity.LecternInventory) inventory).getLectern();
+            this.tile = ((LecternBlockEntity.LecternInventory) inventory).getLectern();
         }
     }
 

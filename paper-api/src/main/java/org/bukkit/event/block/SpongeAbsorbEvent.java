@@ -6,7 +6,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -20,33 +19,31 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SpongeAbsorbEvent extends BlockEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    private final List<BlockState> blocks;
+    private static final HandlerList handlers = new HandlerList();
     private boolean cancelled;
+    private final List<BlockState> blocks;
 
-    @ApiStatus.Internal
     public SpongeAbsorbEvent(@NotNull Block block, @NotNull List<BlockState> waterblocks) {
         super(block);
         this.blocks = waterblocks;
     }
 
     /**
-     * Get a list of all blocks to be cleared by the sponge.
+     * Get a list of all blocks to be removed by the sponge.
      * <br>
      * This list is mutable and contains the blocks in their removed state, i.e.
-     * having a type of {@link Material#AIR} or not waterlogged.
+     * having a type of {@link Material#AIR}.
      *
-     * @return list of the cleared blocks.
+     * @return list of the to be removed blocks.
      */
     @NotNull
     public List<BlockState> getBlocks() {
-        return this.blocks;
+        return blocks;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
@@ -57,11 +54,11 @@ public class SpongeAbsorbEvent extends BlockEvent implements Cancellable {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

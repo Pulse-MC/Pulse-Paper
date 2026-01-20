@@ -1,12 +1,12 @@
 package org.bukkit.craftbukkit;
 
-import io.papermc.paper.util.Holderable;
-import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import org.bukkit.GameEvent;
 import org.bukkit.NamespacedKey;
+import org.bukkit.craftbukkit.util.Handleable;
+import org.jetbrains.annotations.NotNull;
 
-public class CraftGameEvent extends GameEvent implements Holderable<net.minecraft.world.level.gameevent.GameEvent> {
+public class CraftGameEvent extends GameEvent implements Handleable<net.minecraft.world.level.gameevent.GameEvent> {
 
     public static GameEvent minecraftToBukkit(net.minecraft.world.level.gameevent.GameEvent minecraft) {
         return CraftRegistry.minecraftToBukkit(minecraft, Registries.GAME_EVENT);
@@ -16,44 +16,59 @@ public class CraftGameEvent extends GameEvent implements Holderable<net.minecraf
         return CraftRegistry.bukkitToMinecraft(bukkit);
     }
 
-    private final Holder<net.minecraft.world.level.gameevent.GameEvent> holder;
+    private final NamespacedKey key;
+    private final net.minecraft.resources.ResourceKey<net.minecraft.world.level.gameevent.GameEvent> handleKey; // Paper
+    private final net.minecraft.world.level.gameevent.GameEvent handle;
 
-    public CraftGameEvent(final Holder<net.minecraft.world.level.gameevent.GameEvent> holder) {
-        this.holder = holder;
+    public CraftGameEvent(NamespacedKey key, net.minecraft.world.level.gameevent.GameEvent handle) {
+        this.key = key;
+        this.handleKey = net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.GAME_EVENT, org.bukkit.craftbukkit.util.CraftNamespacedKey.toMinecraft(key)); // Paper
+        this.handle = handle;
     }
 
     @Override
-    public Holder<net.minecraft.world.level.gameevent.GameEvent> getHolder() {
-        return this.holder;
+    public net.minecraft.world.level.gameevent.GameEvent getHandle() {
+        return this.handle;
     }
 
+    // Paper start
     @Override
     public int getRange() {
-        return this.getHandle().notificationRadius();
+        return this.handle.notificationRadius();
     }
 
     @Override
     public int getVibrationLevel() {
-        return net.minecraft.world.level.gameevent.vibrations.VibrationSystem.getGameEventFrequency(this.getHolder().unwrapKey().orElseThrow());
+        return net.minecraft.world.level.gameevent.vibrations.VibrationSystem.getGameEventFrequency(this.handleKey);
     }
+    // Paper end
 
+    @NotNull
     @Override
     public NamespacedKey getKey() {
-        return Holderable.super.getKey();
+        return this.key;
     }
 
     @Override
     public boolean equals(Object other) {
-        return Holderable.super.implEquals(other);
+        if (this == other) {
+            return true;
+        }
+
+        if (!(other instanceof CraftGameEvent)) {
+            return false;
+        }
+
+        return this.getKey().equals(((GameEvent) other).getKey());
     }
 
     @Override
     public int hashCode() {
-        return Holderable.super.implHashCode();
+        return this.getKey().hashCode();
     }
 
     @Override
     public String toString() {
-        return Holderable.super.implToString();
+        return "CraftGameEvent{key=" + this.key + "}";
     }
 }

@@ -1,33 +1,30 @@
 package org.bukkit.event.player;
 
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.Entity; // Paper
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import org.jetbrains.annotations.Nullable; // Paper
 
 /**
  * Called when a players experience changes naturally
  */
 public class PlayerExpChangeEvent extends PlayerEvent {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    // Paper start
     @Nullable
     private final Entity source;
     private int exp;
 
-    @ApiStatus.Internal
     public PlayerExpChangeEvent(@NotNull final Player player, final int expAmount) {
-        this(player, null, expAmount);
+          this(player, null, expAmount);
     }
 
-    @ApiStatus.Internal
     public PlayerExpChangeEvent(@NotNull final Player player, @Nullable final Entity sourceEntity, final int expAmount) {
-        super(player);
-        this.source = sourceEntity;
-        this.exp = expAmount;
+         super(player);
+         source = sourceEntity;
+         exp = expAmount;
     }
 
     /**
@@ -37,8 +34,9 @@ public class PlayerExpChangeEvent extends PlayerEvent {
      */
     @Nullable
     public Entity getSource() {
-        return this.source;
+        return source;
     }
+    // Paper end
 
     /**
      * Get the amount of experience the player will receive
@@ -46,7 +44,7 @@ public class PlayerExpChangeEvent extends PlayerEvent {
      * @return The amount of experience
      */
     public int getAmount() {
-        return this.exp;
+        return exp;
     }
 
     /**
@@ -55,17 +53,17 @@ public class PlayerExpChangeEvent extends PlayerEvent {
      * @param amount The amount of experience to set
      */
     public void setAmount(int amount) {
-        this.exp = amount;
+        exp = amount;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

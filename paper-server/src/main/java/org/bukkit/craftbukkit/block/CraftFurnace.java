@@ -16,8 +16,8 @@ import org.bukkit.inventory.Recipe;
 
 public abstract class CraftFurnace<T extends AbstractFurnaceBlockEntity> extends CraftContainer<T> implements Furnace {
 
-    public CraftFurnace(World world, T blockEntity) {
-        super(world, blockEntity);
+    public CraftFurnace(World world, T tileEntity) {
+        super(world, tileEntity);
     }
 
     protected CraftFurnace(CraftFurnace<T> state, Location location) {
@@ -35,7 +35,7 @@ public abstract class CraftFurnace<T extends AbstractFurnaceBlockEntity> extends
             return this.getSnapshotInventory();
         }
 
-        return new CraftInventoryFurnace(this.getBlockEntity());
+        return new CraftInventoryFurnace(this.getTileEntity());
     }
 
     @Override
@@ -46,8 +46,8 @@ public abstract class CraftFurnace<T extends AbstractFurnaceBlockEntity> extends
     @Override
     public void setBurnTime(short burnTime) {
         this.getSnapshot().litTimeRemaining = burnTime;
-        this.data = this.data.trySetValue(AbstractFurnaceBlock.LIT, burnTime > 0);
-        // only try, block data might have changed to something different that would not allow this property
+        // SPIGOT-844: Allow lighting and relighting using this API
+        this.data = this.data.setValue(AbstractFurnaceBlock.LIT, burnTime > 0);
     }
 
     @Override

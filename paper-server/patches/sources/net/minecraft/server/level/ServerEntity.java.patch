@@ -1,6 +1,6 @@
 --- a/net/minecraft/server/level/ServerEntity.java
 +++ b/net/minecraft/server/level/ServerEntity.java
-@@ -69,11 +_,12 @@
+@@ -65,13 +_,17 @@
      private Vec3 lastSentMovement;
      private int tickCount;
      private int teleportDelay;
@@ -10,33 +10,26 @@
      private boolean wasOnGround;
      @Nullable
      private List<SynchedEntityData.DataValue<?>> trackedDataValues;
-+    private final Set<net.minecraft.server.network.ServerPlayerConnection> trackedPlayers; // Paper
  
-     public ServerEntity(
-         ServerLevel level,
-@@ -81,8 +_,12 @@
-         int updateInterval,
-         boolean trackDelta,
-         Consumer<Packet<?>> broadcast,
--        BiConsumer<Packet<?>, List<UUID>> broadcastWithIgnore
-+        // Paper start
-+        BiConsumer<Packet<?>, List<UUID>> broadcastWithIgnore,
-+        final Set<net.minecraft.server.network.ServerPlayerConnection> trackedPlayers
-+        // Paper end
-     ) {
-+        this.trackedPlayers = trackedPlayers; // Paper
+-    public ServerEntity(ServerLevel level, Entity entity, int updateInterval, boolean trackDelta, Consumer<Packet<?>> broadcast) {
++    // CraftBukkit start
++    private final Set<net.minecraft.server.network.ServerPlayerConnection> trackedPlayers;
++    public ServerEntity(ServerLevel level, Entity entity, int updateInterval, boolean trackDelta, Consumer<Packet<?>> broadcast, final Set<net.minecraft.server.network.ServerPlayerConnection> trackedPlayers) {
++        this.trackedPlayers = trackedPlayers;
++    // CraftBukkit end
          this.level = level;
          this.broadcast = broadcast;
          this.entity = entity;
-@@ -103,16 +_,22 @@
+@@ -89,7 +_,7 @@
+     public void sendChanges() {
+         List<Entity> passengers = this.entity.getPassengers();
          if (!passengers.equals(this.lastPassengers)) {
-             List<UUID> list = this.mountedOrDismounted(passengers).map(Entity::getUUID).toList();
-             this.broadcastWithIgnore.accept(new ClientboundSetPassengersPacket(this.entity), list);
-+            // Paper start - Allow riding players
-+            if (this.entity instanceof ServerPlayer player) {
-+                player.connection.send(new ClientboundSetPassengersPacket(this.entity));
-+            }
-+            // Paper end - Allow riding players
+-            this.broadcast.accept(new ClientboundSetPassengersPacket(this.entity));
++            this.broadcastAndSend(new ClientboundSetPassengersPacket(this.entity)); // CraftBukkit
+             removedPassengers(passengers, this.lastPassengers)
+                 .forEach(
+                     removedPassenger -> {
+@@ -102,13 +_,14 @@
              this.lastPassengers = passengers;
          }
  
@@ -55,7 +48,7 @@
                          savedData.tickCarriedBy(serverPlayer, item);
                          Packet<?> updatePacket = savedData.getUpdatePacket(mapId, serverPlayer);
                          if (updatePacket != null) {
-@@ -145,7 +_,13 @@
+@@ -141,7 +_,13 @@
              } else {
                  this.teleportDelay++;
                  Vec3 vec3 = this.entity.trackingPosition();
@@ -70,7 +63,7 @@
                  Packet<?> packet = null;
                  boolean flag2 = flag1 || this.tickCount % 60 == 0;
                  boolean flag3 = false;
-@@ -227,6 +_,25 @@
+@@ -219,6 +_,25 @@
  
          this.tickCount++;
          if (this.entity.hurtMarked) {
@@ -96,7 +89,7 @@
              this.entity.hurtMarked = false;
              this.broadcastAndSend(new ClientboundSetEntityMotionPacket(this.entity));
          }
-@@ -284,7 +_,10 @@
+@@ -273,7 +_,10 @@
  
      public void sendPairingData(ServerPlayer player, Consumer<Packet<ClientGamePacketListener>> consumer) {
          if (this.entity.isRemoved()) {
@@ -108,10 +101,11 @@
          }
  
          Packet<ClientGamePacketListener> addEntityPacket = this.entity.getAddEntityPacket(this);
-@@ -295,6 +_,11 @@
- 
-         if (this.entity instanceof LivingEntity livingEntity) {
-             Collection<AttributeInstance> syncableAttributes = livingEntity.getAttributes().getSyncableAttributes();
+@@ -285,6 +_,12 @@
+         boolean flag = this.trackDelta;
+         if (this.entity instanceof LivingEntity) {
+             Collection<AttributeInstance> syncableAttributes = ((LivingEntity)this.entity).getAttributes().getSyncableAttributes();
++
 +            // CraftBukkit start - If sending own attributes send scaled health instead of current maximum health
 +            if (this.entity.getId() == player.getId()) {
 +                ((ServerPlayer) this.entity).getBukkitEntity().injectScaledMaxHealth(syncableAttributes, false);
@@ -120,18 +114,18 @@
              if (!syncableAttributes.isEmpty()) {
                  consumer.accept(new ClientboundUpdateAttributesPacket(this.entity.getId(), syncableAttributes));
              }
-@@ -311,8 +_,9 @@
+@@ -309,8 +_,9 @@
              }
  
              if (!list.isEmpty()) {
 -                consumer.accept(new ClientboundSetEquipmentPacket(this.entity.getId(), list));
 +                consumer.accept(new ClientboundSetEquipmentPacket(this.entity.getId(), list, true)); // Paper - data sanitization
              }
-+            ((LivingEntity) this.entity).detectEquipmentUpdates(); // CraftBukkit - SPIGOT-3789: sync again immediately after sending
++            ((LivingEntity) this.entity).detectEquipmentUpdatesPublic(); // CraftBukkit - SPIGOT-3789: sync again immediately after sending
          }
  
          if (!this.entity.getPassengers().isEmpty()) {
-@@ -359,6 +_,11 @@
+@@ -357,6 +_,11 @@
          if (this.entity instanceof LivingEntity) {
              Set<AttributeInstance> attributesToSync = ((LivingEntity)this.entity).getAttributes().getAttributesToSync();
              if (!attributesToSync.isEmpty()) {

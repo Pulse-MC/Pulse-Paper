@@ -3,7 +3,6 @@ package org.bukkit.event.world;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -11,12 +10,9 @@ import org.jetbrains.annotations.NotNull;
  * spawn location is included.
  */
 public class SpawnChangeEvent extends WorldEvent {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final Location previousLocation;
 
-    @ApiStatus.Internal
     public SpawnChangeEvent(@NotNull final World world, @NotNull final Location previousLocation) {
         super(world);
         this.previousLocation = previousLocation;
@@ -29,17 +25,17 @@ public class SpawnChangeEvent extends WorldEvent {
      */
     @NotNull
     public Location getPreviousLocation() {
-        return this.previousLocation.clone();
+        return previousLocation.clone(); // Paper - clone to avoid changes
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

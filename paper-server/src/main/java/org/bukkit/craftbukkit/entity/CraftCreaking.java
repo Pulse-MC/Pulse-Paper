@@ -43,4 +43,9 @@ public class CraftCreaking extends CraftMonster implements org.bukkit.entity.Cre
     public boolean isActive() {
         return this.getHandle().isActive();
     }
+
+    @Override
+    public String toString() {
+        return "CraftCreaking";
+    }
 }

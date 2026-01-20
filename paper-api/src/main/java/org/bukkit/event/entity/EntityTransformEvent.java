@@ -5,29 +5,37 @@ import java.util.List;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
-import org.jspecify.annotations.NullMarked;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Called when an entity is about to be replaced by another entity.
  */
-@NullMarked
 public class EntityTransformEvent extends EntityEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    private final List<Entity> convertedList;
+    private static final HandlerList handlers = new HandlerList();
+    private boolean cancelled;
     private final Entity converted;
+    private final List<Entity> convertedList;
     private final TransformReason transformReason;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
-    public EntityTransformEvent(Entity original, List<Entity> convertedList, TransformReason transformReason) {
+    public EntityTransformEvent(@NotNull Entity original, @NotNull List<Entity> convertedList, @NotNull TransformReason transformReason) {
         super(original);
         this.convertedList = Collections.unmodifiableList(convertedList);
-        this.converted = convertedList.getFirst();
+        this.converted = convertedList.get(0);
         this.transformReason = transformReason;
+    }
+
+    /**
+     * Gets the entity that the original entity was transformed to.
+     *
+     * This returns the first entity in the transformed entity list.
+     *
+     * @return The transformed entity.
+     * @see #getTransformedEntities()
+     */
+    @NotNull
+    public Entity getTransformedEntity() {
+        return converted;
     }
 
     /**
@@ -35,20 +43,9 @@ public class EntityTransformEvent extends EntityEvent implements Cancellable {
      *
      * @return The transformed entities.
      */
+    @NotNull
     public List<Entity> getTransformedEntities() {
-        return this.convertedList;
-    }
-
-    /**
-     * Gets the entity that the original entity was transformed to.
-     * <br>
-     * This returns the first entity in the transformed entity list.
-     *
-     * @return The transformed entity.
-     * @see #getTransformedEntities()
-     */
-    public Entity getTransformedEntity() {
-        return this.converted;
+        return convertedList;
     }
 
     /**
@@ -56,27 +53,30 @@ public class EntityTransformEvent extends EntityEvent implements Cancellable {
      *
      * @return The reason for conversion that has occurred.
      */
+    @NotNull
     public TransformReason getTransformReason() {
-        return this.transformReason;
+        return transformReason;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
     public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        cancelled = cancel;
     }
 
+    @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
+    @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     public enum TransformReason {

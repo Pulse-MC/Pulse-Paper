@@ -5,31 +5,56 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * This event is fired when the spawn point of the player is changed.
- *
  * @deprecated use {@link com.destroystokyo.paper.event.player.PlayerSetSpawnEvent}
  */
-@Deprecated(forRemoval = true)
+@Deprecated(forRemoval = true) // Paper
 public class PlayerSpawnChangeEvent extends PlayerEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final Cause cause;
     private Location newSpawn;
     private boolean forced;
-
     private boolean cancelled;
 
-    @ApiStatus.Internal
     public PlayerSpawnChangeEvent(@NotNull final Player player, @Nullable Location newSpawn, boolean forced, @NotNull final Cause cause) {
         super(player);
         this.newSpawn = newSpawn;
         this.cause = cause;
+        this.forced = forced;
+    }
+
+    /**
+     * Gets the cause of spawn change.
+     *
+     * @return change cause
+     */
+    @NotNull
+    public Cause getCause() {
+        return this.cause;
+    }
+
+    /**
+     * Gets if the spawn position will be used regardless of bed obstruction
+     * rules.
+     *
+     * @return true if is forced
+     */
+    public boolean isForced() {
+        return this.forced;
+    }
+
+    /**
+     * Sets if the spawn position will be used regardless of bed obstruction
+     * rules.
+     *
+     * @param forced true if forced
+     */
+    public void setForced(boolean forced) {
         this.forced = forced;
     }
 
@@ -57,36 +82,6 @@ public class PlayerSpawnChangeEvent extends PlayerEvent implements Cancellable {
         }
     }
 
-    /**
-     * Gets the cause of spawn change.
-     *
-     * @return change cause
-     */
-    @NotNull
-    public Cause getCause() {
-        return this.cause;
-    }
-
-    /**
-     * Gets if the spawn position will be used regardless of bed obstruction
-     * rules.
-     *
-     * @return {@code true} if is forced
-     */
-    public boolean isForced() {
-        return this.forced;
-    }
-
-    /**
-     * Sets if the spawn position will be used regardless of bed obstruction
-     * rules.
-     *
-     * @param forced {@code true} if forced
-     */
-    public void setForced(boolean forced) {
-        this.forced = forced;
-    }
-
     @Override
     public boolean isCancelled() {
         return this.cancelled;
@@ -100,12 +95,12 @@ public class PlayerSpawnChangeEvent extends PlayerEvent implements Cancellable {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     public enum Cause {
@@ -135,6 +130,6 @@ public class PlayerSpawnChangeEvent extends PlayerEvent implements Cancellable {
         /**
          * Indicate the spawn was caused by an unknown reason.
          */
-        UNKNOWN
+        UNKNOWN;
     }
 }

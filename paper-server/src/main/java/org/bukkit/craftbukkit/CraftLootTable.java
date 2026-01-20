@@ -39,7 +39,7 @@ public class CraftLootTable implements org.bukkit.loot.LootTable {
     }
 
     public static org.bukkit.loot.LootTable minecraftToBukkit(ResourceKey<LootTable> minecraft) {
-        return (minecraft == null) ? null : Bukkit.getLootTable(CraftLootTable.minecraftToBukkitKey(minecraft));
+        return (minecraft == null || minecraft.location().getPath().isEmpty()) ? null : Bukkit.getLootTable(CraftLootTable.minecraftToBukkitKey(minecraft)); // Paper - fix some NamespacedKey parsing
     }
 
     public static NamespacedKey minecraftToBukkitKey(ResourceKey<LootTable> minecraft) {
@@ -107,7 +107,7 @@ public class CraftLootTable implements org.bukkit.loot.LootTable {
         ServerLevel handle = ((CraftWorld) loc.getWorld()).getHandle();
 
         LootParams.Builder builder = new LootParams.Builder(handle);
-        this.setMaybe(builder, LootContextParams.ORIGIN, CraftLocation.toVec3(loc));
+        this.setMaybe(builder, LootContextParams.ORIGIN, CraftLocation.toVec3D(loc));
         if (this.getHandle() != LootTable.EMPTY) {
             builder.withLuck(context.getLuck());
 
@@ -128,7 +128,7 @@ public class CraftLootTable implements org.bukkit.loot.LootTable {
             }
         }
 
-        // SPIGOT-5603 - Avoid IllegalArgumentException in ContextKeySet.Builder#create
+        // SPIGOT-5603 - Avoid IllegalArgumentException in LootTableInfo#build()
         ContextKeySet.Builder nmsBuilder = new ContextKeySet.Builder();
         for (ContextKey<?> param : this.getHandle().getParamSet().required()) {
             nmsBuilder.required(param);
@@ -151,7 +151,7 @@ public class CraftLootTable implements org.bukkit.loot.LootTable {
     public static LootContext convertContext(net.minecraft.world.level.storage.loot.LootContext info) {
         Vec3 position = info.getOptionalParameter(LootContextParams.ORIGIN);
         if (position == null) {
-            position = info.getOptionalParameter(LootContextParams.THIS_ENTITY).position(); // Every vanilla context has origin or this_entity, see LootContextParamSets
+            position = info.getOptionalParameter(LootContextParams.THIS_ENTITY).position(); // Every vanilla context has origin or this_entity, see LootContextParameterSets
         }
         Location location = CraftLocation.toBukkit(position, info.getLevel().getWorld());
         LootContext.Builder contextBuilder = new LootContext.Builder(location);
@@ -173,7 +173,7 @@ public class CraftLootTable implements org.bukkit.loot.LootTable {
 
     @Override
     public String toString() {
-        return this.key.toString();
+        return this.getKey().toString();
     }
 
     @Override
@@ -183,11 +183,13 @@ public class CraftLootTable implements org.bukkit.loot.LootTable {
         }
 
         org.bukkit.loot.LootTable table = (org.bukkit.loot.LootTable) obj;
-        return table.getKey().equals(this.key);
+        return table.getKey().equals(this.getKey());
     }
 
+    // Paper start - satisfy equals/hashCode contract
     @Override
     public int hashCode() {
-        return this.key.hashCode();
+        return java.util.Objects.hash(key);
     }
+    // Paper end
 }

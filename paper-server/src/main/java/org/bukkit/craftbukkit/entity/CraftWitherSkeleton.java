@@ -11,6 +11,11 @@ public class CraftWitherSkeleton extends CraftAbstractSkeleton implements Wither
     }
 
     @Override
+    public String toString() {
+        return "CraftWitherSkeleton";
+    }
+
+    @Override
     public SkeletonType getSkeletonType() {
         return SkeletonType.WITHER;
     }

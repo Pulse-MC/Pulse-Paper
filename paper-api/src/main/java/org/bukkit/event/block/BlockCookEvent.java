@@ -3,38 +3,34 @@ package org.bukkit.event.block;
 import org.bukkit.block.Block;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.bukkit.inventory.CookingRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Called when an ItemStack is successfully cooked in a block.
  */
 public class BlockCookEvent extends BlockEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final ItemStack source;
     private ItemStack result;
-    private final CookingRecipe<?> recipe;
-
     private boolean cancelled;
+    private final org.bukkit.inventory.CookingRecipe<?> recipe; // Paper
 
     @Deprecated(forRemoval = true)
-    @ApiStatus.Internal
     public BlockCookEvent(@NotNull final Block block, @NotNull final ItemStack source, @NotNull final ItemStack result) {
+        // Paper start
         this(block, source, result, null);
     }
 
     @ApiStatus.Internal
-    public BlockCookEvent(@NotNull final Block block, @NotNull final ItemStack source, @NotNull final ItemStack result, @Nullable CookingRecipe<?> recipe) {
+    public BlockCookEvent(@NotNull final Block block, @NotNull final ItemStack source, @NotNull final ItemStack result, @org.jetbrains.annotations.Nullable org.bukkit.inventory.CookingRecipe<?> recipe) {
+        // Paper end
         super(block);
         this.source = source;
         this.result = result;
         this.cancelled = false;
-        this.recipe = recipe;
+        this.recipe = recipe; // Paper
     }
 
     /**
@@ -44,7 +40,7 @@ public class BlockCookEvent extends BlockEvent implements Cancellable {
      */
     @NotNull
     public ItemStack getSource() {
-        return this.source;
+        return source;
     }
 
     /**
@@ -54,7 +50,7 @@ public class BlockCookEvent extends BlockEvent implements Cancellable {
      */
     @NotNull
     public ItemStack getResult() {
-        return this.result;
+        return result;
     }
 
     /**
@@ -66,19 +62,9 @@ public class BlockCookEvent extends BlockEvent implements Cancellable {
         this.result = result;
     }
 
-    /**
-     * Gets the cooking recipe associated with this event.
-     *
-     * @return the recipe
-     */
-    @Nullable
-    public org.bukkit.inventory.CookingRecipe<?> getRecipe() {
-        return this.recipe;
-    }
-
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
@@ -86,14 +72,26 @@ public class BlockCookEvent extends BlockEvent implements Cancellable {
         this.cancelled = cancel;
     }
 
+    // Paper start
+    /**
+     * Gets the cooking recipe associated with this event.
+     *
+     * @return the recipe
+     */
+    @org.jetbrains.annotations.Nullable
+    public org.bukkit.inventory.CookingRecipe<?> getRecipe() {
+        return recipe;
+    }
+    // Paper end
+
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

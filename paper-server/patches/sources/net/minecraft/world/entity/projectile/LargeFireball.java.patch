@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/entity/projectile/LargeFireball.java
 +++ b/net/minecraft/world/entity/projectile/LargeFireball.java
-@@ -20,11 +_,13 @@
+@@ -18,11 +_,13 @@
  
      public LargeFireball(EntityType<? extends LargeFireball> entityType, Level level) {
          super(entityType, level);
@@ -14,7 +14,7 @@
      }
  
      @Override
-@@ -32,8 +_,13 @@
+@@ -30,8 +_,16 @@
          super.onHit(result);
          if (this.level() instanceof ServerLevel serverLevel) {
              boolean _boolean = serverLevel.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING);
@@ -22,19 +22,24 @@
 -            this.discard();
 +            // CraftBukkit start - fire ExplosionPrimeEvent
 +            org.bukkit.event.entity.ExplosionPrimeEvent event = new org.bukkit.event.entity.ExplosionPrimeEvent((org.bukkit.entity.Explosive) this.getBukkitEntity());
-+            if (event.callEvent()) {
++            this.level().getCraftServer().getPluginManager().callEvent(event);
++
++            if (!event.isCancelled()) {
++                // give 'this' instead of (Entity) null so we know what causes the damage
 +                this.level().explode(this, this.getX(), this.getY(), this.getZ(), event.getRadius(), event.getFire(), Level.ExplosionInteraction.MOB);
 +            }
-+            // CraftBukkit end - fire ExplosionPrimeEvent
++            // CraftBukkit end
 +            this.discard(org.bukkit.event.entity.EntityRemoveEvent.Cause.HIT); // CraftBukkit - add Bukkit remove cause
          }
      }
  
-@@ -58,6 +_,6 @@
-     @Override
-     protected void readAdditionalSaveData(ValueInput input) {
-         super.readAdditionalSaveData(input);
--        this.explosionPower = input.getByteOr("ExplosionPower", (byte)1);
-+        this.bukkitYield = this.explosionPower = input.getByteOr("ExplosionPower", (byte)1); // CraftBukkit - set bukkitYield when setting explosionPower
+@@ -57,7 +_,8 @@
+     public void readAdditionalSaveData(CompoundTag compound) {
+         super.readAdditionalSaveData(compound);
+         if (compound.contains("ExplosionPower", 99)) {
+-            this.explosionPower = compound.getByte("ExplosionPower");
++            // CraftBukkit - set bukkitYield when setting explosionpower
++            this.bukkitYield = this.explosionPower = compound.getByte("ExplosionPower");
+         }
      }
  }

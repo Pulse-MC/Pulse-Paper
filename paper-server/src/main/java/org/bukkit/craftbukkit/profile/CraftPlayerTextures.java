@@ -6,16 +6,14 @@ import com.google.gson.JsonPrimitive;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.properties.Property;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.Locale;
 import java.util.Objects;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.bukkit.craftbukkit.util.JsonHelper;
 import org.bukkit.profile.PlayerTextures;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 
-@NullMarked
 public final class CraftPlayerTextures implements PlayerTextures {
 
     static final String PROPERTY_NAME = "textures";
@@ -30,16 +28,18 @@ public final class CraftPlayerTextures implements PlayerTextures {
         Preconditions.checkArgument(url.getPath().startsWith(CraftPlayerTextures.MINECRAFT_PATH), "Expected path starting with '%s' but got '%s", CraftPlayerTextures.MINECRAFT_PATH, url.getPath());
     }
 
-    private static @Nullable URL parseUrl(@Nullable String urlString) {
+    @Nullable
+    private static URL parseUrl(@Nullable String urlString) {
         if (urlString == null) return null;
         try {
-            return URI.create(urlString).toURL();
-        } catch (IllegalArgumentException | MalformedURLException e) {
+            return new URL(urlString);
+        } catch (MalformedURLException e) {
             return null;
         }
     }
 
-    private static @Nullable SkinModel parseSkinModel(@Nullable String skinModelName) {
+    @Nullable
+    private static SkinModel parseSkinModel(@Nullable String skinModelName) {
         if (skinModelName == null) return null;
         try {
             return SkinModel.valueOf(skinModelName.toUpperCase(Locale.ROOT));
@@ -52,13 +52,13 @@ public final class CraftPlayerTextures implements PlayerTextures {
 
     // The textures data is loaded lazily:
     private boolean loaded = false;
-    private @Nullable JsonObject data; // Immutable contents (only read)
+    private JsonObject data; // Immutable contents (only read)
     private long timestamp;
 
     // Lazily decoded textures data that can subsequently be overwritten:
-    private @Nullable URL skin;
+    private URL skin;
     private SkinModel skinModel = SkinModel.CLASSIC;
-    private @Nullable URL cape;
+    private URL cape;
 
     // Dirty: Indicates a change that requires a rebuild of the property.
     // This also indicates an invalidation of any previously present textures data that is specific to official
@@ -67,11 +67,11 @@ public final class CraftPlayerTextures implements PlayerTextures {
     // GameProfiles (even if these modifications are later reverted).
     private boolean dirty = false;
 
-    public CraftPlayerTextures(com.destroystokyo.paper.profile.SharedPlayerProfile profile) { // Paper
+    public CraftPlayerTextures(@Nonnull com.destroystokyo.paper.profile.SharedPlayerProfile profile) { // Paper
         this.profile = profile;
     }
 
-    public void copyFrom(PlayerTextures other) {
+    public void copyFrom(@Nonnull PlayerTextures other) {
         if (other == this) return;
         Preconditions.checkArgument(other instanceof CraftPlayerTextures, "Expecting CraftPlayerTextures, got %s", other.getClass().getName());
         CraftPlayerTextures otherTextures = (CraftPlayerTextures) other;
@@ -120,7 +120,8 @@ public final class CraftPlayerTextures implements PlayerTextures {
         }
     }
 
-    private static @Nullable SkinModel loadSkinModel(@Nullable JsonObject texture) {
+    @Nullable
+    private static SkinModel loadSkinModel(@Nullable JsonObject texture) {
         if (texture == null) return null;
         JsonObject metadata = JsonHelper.getObjectOrNull(texture, "metadata");
         if (metadata == null) return null;
@@ -145,7 +146,7 @@ public final class CraftPlayerTextures implements PlayerTextures {
 
         try {
             this.timestamp = timestamp.getAsLong();
-        } catch (NumberFormatException ignored) {
+        } catch (NumberFormatException e) {
         }
     }
 
@@ -176,18 +177,18 @@ public final class CraftPlayerTextures implements PlayerTextures {
     }
 
     @Override
-    public @Nullable URL getSkin() {
+    public URL getSkin() {
         this.ensureLoaded();
         return this.skin;
     }
 
     @Override
-    public void setSkin(@Nullable URL skinUrl) {
+    public void setSkin(URL skinUrl) {
         this.setSkin(skinUrl, SkinModel.CLASSIC);
     }
 
     @Override
-    public void setSkin(@Nullable URL skinUrl, @Nullable SkinModel skinModel) {
+    public void setSkin(URL skinUrl, SkinModel skinModel) {
         CraftPlayerTextures.validateTextureUrl(skinUrl);
         if (skinModel == null) skinModel = SkinModel.CLASSIC;
         // This also loads the textures if necessary:
@@ -204,13 +205,13 @@ public final class CraftPlayerTextures implements PlayerTextures {
     }
 
     @Override
-    public @Nullable URL getCape() {
+    public URL getCape() {
         this.ensureLoaded();
         return this.cape;
     }
 
     @Override
-    public void setCape(@Nullable URL capeUrl) {
+    public void setCape(URL capeUrl) {
         CraftPlayerTextures.validateTextureUrl(capeUrl);
         // This also loads the textures if necessary:
         if (Objects.equals(this.getCape(), capeUrl)) return;
@@ -251,7 +252,7 @@ public final class CraftPlayerTextures implements PlayerTextures {
         // GameProfiles (such as the property signature, timestamp, profileId, playerName, etc.).
         // Information on the format of the textures property:
         // * https://minecraft.wiki/w/Head#Item_data
-        // * https://minecraft.wiki/w/Mojang_API#Query_player's_skin_and_cape
+        // * https://wiki.vg/Mojang_API#UUID_to_Profile_and_Skin.2FCape
         // The order of Json object elements is important.
         JsonObject propertyData = new JsonObject();
 
@@ -283,7 +284,7 @@ public final class CraftPlayerTextures implements PlayerTextures {
         this.profile.setProperty(CraftPlayerTextures.PROPERTY_NAME, property);
     }
 
-    private @Nullable JsonObject getData() {
+    private JsonObject getData() {
         this.ensureLoaded();
         this.rebuildPropertyIfDirty();
         return this.data;

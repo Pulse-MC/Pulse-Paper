@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/level/biome/Biome.java
 +++ b/net/minecraft/world/level/biome/Biome.java
-@@ -177,7 +_,7 @@
+@@ -176,7 +_,7 @@
      }
  
      public boolean shouldSnow(LevelReader level, BlockPos pos) {

@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -92,20 +91,13 @@ public final class PluginClassLoader extends URLClassLoader implements io.paperm
         try {
             pluginConstructor = pluginClass.getDeclaredConstructor();
         } catch (NoSuchMethodException ex) {
-            throw new InvalidPluginException("main class `" + description.getMain() + "' must have a no-args constructor", ex);
-        }
-
-        try {
-            // Support non-public constructors
-            pluginConstructor.setAccessible(true);
-        } catch (InaccessibleObjectException | SecurityException ex) {
-            throw new InvalidPluginException("main class `" + description.getMain() + "' constructor inaccessible", ex);
+            throw new InvalidPluginException("main class `" + description.getMain() + "' must have a public no-args constructor", ex);
         }
 
         try {
             plugin = pluginConstructor.newInstance();
         } catch (IllegalAccessException ex) {
-            throw new InvalidPluginException("main class `" + description.getMain() + "' constructor inaccessible", ex);
+            throw new InvalidPluginException("main class `" + description.getMain() + "' constructor must be public", ex);
         } catch (InstantiationException ex) {
             throw new InvalidPluginException("main class `" + description.getMain() + "' must not be abstract", ex);
         } catch (IllegalArgumentException ex) {
@@ -214,16 +206,7 @@ public final class PluginClassLoader extends URLClassLoader implements io.paperm
 
         if (result == null) {
             String path = name.replace('.', '/').concat(".class");
-            // Add details to zip file errors - help debug classloading
-            JarEntry entry;
-            try {
-                entry = jar.getJarEntry(path);
-            } catch (IllegalStateException zipFileClosed) {
-                if (plugin == null) {
-                    throw zipFileClosed;
-                }
-                throw new IllegalStateException("The plugin classloader for " + plugin.getName() + " has thrown a zip file error.", zipFileClosed);
-            }
+            JarEntry entry = jar.getJarEntry(path);
 
             if (entry != null) {
                 byte[] classBytes;

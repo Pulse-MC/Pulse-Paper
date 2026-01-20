@@ -10,8 +10,8 @@ import org.bukkit.inventory.Inventory;
 
 public class CraftCrafter extends CraftLootable<CrafterBlockEntity> implements Crafter {
 
-    public CraftCrafter(World world, CrafterBlockEntity blockEntity) {
-        super(world, blockEntity);
+    public CraftCrafter(World world, CrafterBlockEntity tileEntity) {
+        super(world, tileEntity);
     }
 
     protected CraftCrafter(CraftCrafter state, Location location) {
@@ -29,7 +29,7 @@ public class CraftCrafter extends CraftLootable<CrafterBlockEntity> implements C
             return this.getSnapshotInventory();
         }
 
-        return new CraftInventory(this.getBlockEntity());
+        return new CraftInventory(this.getTileEntity());
     }
 
     @Override

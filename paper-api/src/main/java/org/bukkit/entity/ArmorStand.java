@@ -14,7 +14,7 @@ public interface ArmorStand extends LivingEntity {
      *
      * @return the held item
      * @see #getEquipment()
-     * @deprecated prefer {@link ArmorStand#getItem(EquipmentSlot)}
+     * @deprecated prefer {@link ArmorStand#getItem(EquipmentSlot)} // Paper
      */
     @NotNull
     @Deprecated(since = "1.15.2")
@@ -26,7 +26,7 @@ public interface ArmorStand extends LivingEntity {
      * @param item the item to hold
      * @see #getEquipment()
      * @deprecated prefer
-     * {@link ArmorStand#setItem(EquipmentSlot, ItemStack)}
+     * {@link ArmorStand#setItem(EquipmentSlot, ItemStack)} // Paper
      */
     @Deprecated(since = "1.15.2")
     void setItemInHand(@Nullable ItemStack item);

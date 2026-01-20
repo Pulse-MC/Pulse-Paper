@@ -3,6 +3,7 @@ package org.bukkit.craftbukkit.inventory.components;
 import com.google.common.base.Preconditions;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.component.UseCooldown;
@@ -72,7 +73,7 @@ public final class CraftUseCooldownComponent implements UseCooldownComponent {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 73 * hash + this.handle.hashCode();
+        hash = 73 * hash + Objects.hashCode(this.handle);
         return hash;
     }
 
@@ -81,15 +82,18 @@ public final class CraftUseCooldownComponent implements UseCooldownComponent {
         if (this == obj) {
             return true;
         }
-        if (obj == null || this.getClass() != obj.getClass()) {
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() != obj.getClass()) {
             return false;
         }
         final CraftUseCooldownComponent other = (CraftUseCooldownComponent) obj;
-        return this.handle.equals(other.handle);
+        return Objects.equals(this.handle, other.handle);
     }
 
     @Override
     public String toString() {
-        return "CraftUseCooldownComponent{component=" + this.handle + '}';
+        return "CraftUseCooldownComponent{" + "handle=" + this.handle + '}';
     }
 }

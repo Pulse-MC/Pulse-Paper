@@ -3,8 +3,6 @@ package org.bukkit.entity;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import java.util.Locale;
-import io.papermc.paper.registry.RegistryAccess;
-import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
@@ -52,18 +50,22 @@ public interface Frog extends Animals {
      */
     interface Variant extends OldEnum<Variant>, Keyed {
 
-        // Start generate - FrogVariant
-        // @GeneratedFrom 1.21.8
-        Variant COLD = getVariant("cold");
-
+        /**
+         * Temperate (brown-orange) frog.
+         */
         Variant TEMPERATE = getVariant("temperate");
-
+        /**
+         * Warm (gray) frog.
+         */
         Variant WARM = getVariant("warm");
-        // End generate - FrogVariant
+        /**
+         * Cold (green) frog.
+         */
+        Variant COLD = getVariant("cold");
 
         @NotNull
         private static Variant getVariant(@NotNull String key) {
-            return RegistryAccess.registryAccess().getRegistry(RegistryKey.FROG_VARIANT).getOrThrow(NamespacedKey.minecraft(key));
+            return Registry.FROG_VARIANT.getOrThrow(NamespacedKey.minecraft(key));
         }
 
         /**
@@ -74,7 +76,7 @@ public interface Frog extends Animals {
         @NotNull
         @Deprecated(since = "1.21", forRemoval = true) @org.jetbrains.annotations.ApiStatus.ScheduledForRemoval(inVersion = "1.22") // Paper - will be removed via asm-utils
         static Variant valueOf(@NotNull String name) {
-            Variant variant = RegistryAccess.registryAccess().getRegistry(RegistryKey.FROG_VARIANT).get(NamespacedKey.fromString(name.toLowerCase(Locale.ROOT)));
+            Variant variant = Registry.FROG_VARIANT.get(NamespacedKey.fromString(name.toLowerCase(Locale.ROOT)));
             Preconditions.checkArgument(variant != null, "No frog variant found with the name %s", name);
             return variant;
         }
@@ -86,7 +88,7 @@ public interface Frog extends Animals {
         @NotNull
         @Deprecated(since = "1.21", forRemoval = true) @org.jetbrains.annotations.ApiStatus.ScheduledForRemoval(inVersion = "1.22") // Paper - will be removed via asm-utils
         static Variant[] values() {
-            return Lists.newArrayList(RegistryAccess.registryAccess().getRegistry(RegistryKey.FROG_VARIANT)).toArray(new Variant[0]);
+            return Lists.newArrayList(Registry.FROG_VARIANT).toArray(new Variant[0]);
         }
     }
 }

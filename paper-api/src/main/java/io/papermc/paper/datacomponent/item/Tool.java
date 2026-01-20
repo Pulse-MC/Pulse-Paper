@@ -1,7 +1,6 @@
 package io.papermc.paper.datacomponent.item;
 
 import io.papermc.paper.datacomponent.DataComponentBuilder;
-import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.registry.set.RegistryKeySet;
 import java.util.Collection;
 import java.util.List;
@@ -16,7 +15,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Controls the behavior of the item as a tool.
- * @see DataComponentTypes#TOOL
+ * @see io.papermc.paper.datacomponent.DataComponentTypes#TOOL
  */
 @NullMarked
 @ApiStatus.Experimental
@@ -72,14 +71,6 @@ public interface Tool {
     @Contract(pure = true)
     @Unmodifiable List<Tool.Rule> rules();
 
-    /**
-     * Whether this tool can destroy blocks in creative mode.
-     *
-     * @return whether this tool can destroy blocks in creative mode
-     */
-    @Contract(pure = true)
-    boolean canDestroyBlocksInCreative();
-
     @ApiStatus.Experimental
     @ApiStatus.NonExtendable
     interface Rule {
@@ -93,6 +84,8 @@ public interface Tool {
 
         /**
          * Overrides the mining speed if present and matched.
+         * <p>
+         * {@code true} will cause the block to mine at its most efficient speed, and drop items if the targeted block requires that.
          *
          * @return speed override
          */
@@ -100,8 +93,6 @@ public interface Tool {
 
         /**
          * Overrides whether this tool is considered 'correct' if present and matched.
-         * <p>
-         * {@code true} will cause the block to mine at its most efficient speed, and drop items if the targeted block requires that.
          *
          * @return a tri-state
          */
@@ -144,16 +135,6 @@ public interface Tool {
          */
         @Contract(value = "_ -> this", mutates = "this")
         Builder addRule(Rule rule);
-
-        /**
-         * Controls whether this tool can destroy blocks in creative mode.
-         *
-         * @param canDestroyBlocksInCreative whether this tool can destroy blocks in creative mode
-         * @return the builder for chaining
-         * @see #canDestroyBlocksInCreative()
-         */
-        @Contract(value = "_ -> this", mutates = "this")
-        Builder canDestroyBlocksInCreative(boolean canDestroyBlocksInCreative);
 
         /**
          * Adds rules to the tool that control the breaking speed / damage per block if matched.

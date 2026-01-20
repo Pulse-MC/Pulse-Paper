@@ -3,10 +3,9 @@ package io.papermc.paper.configuration;
 import com.mojang.logging.LogUtils;
 import io.papermc.paper.FeatureHooks;
 import io.papermc.paper.configuration.constraint.Constraints;
-import io.papermc.paper.configuration.serializer.collection.map.WriteKeyBack;
 import io.papermc.paper.configuration.type.number.DoubleOr;
 import io.papermc.paper.configuration.type.number.IntOr;
-import io.papermc.paper.util.sanitizer.ItemObfuscationBinding;
+import io.papermc.paper.util.ItemObfuscationBinding;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.core.component.DataComponents;
@@ -29,7 +28,7 @@ import java.util.Set;
 @SuppressWarnings({"CanBeFinal", "FieldCanBeLocal", "FieldMayBeFinal", "NotNullFieldNotInitialized", "InnerClassMayBeStatic"})
 public class GlobalConfiguration extends ConfigurationPart {
     private static final Logger LOGGER = LogUtils.getLogger();
-    static final int CURRENT_VERSION = 30; // (when you change the version, change the comment, so it conflicts on rebases): upgrade packet to use ids
+    static final int CURRENT_VERSION = 29; // (when you change the version, change the comment, so it conflicts on rebases): <insert changes here>
     private static GlobalConfiguration instance;
     public static boolean isFirstStart = false;
     public static GlobalConfiguration get() {
@@ -275,7 +274,7 @@ public class GlobalConfiguration extends ConfigurationPart {
     public class PacketLimiter extends ConfigurationPart {
         public Component kickMessage = Component.translatable("disconnect.exceeded_packet_rate", NamedTextColor.RED);
         public PacketLimit allPackets = new PacketLimit(7.0, 500.0, PacketLimit.ViolateAction.KICK);
-        public Map<@WriteKeyBack Class<? extends Packet<?>>, PacketLimit> overrides = Map.of(ServerboundPlaceRecipePacket.class, new PacketLimit(4.0, 5.0, PacketLimit.ViolateAction.DROP));
+        public Map<Class<? extends Packet<?>>, PacketLimit> overrides = Map.of(ServerboundPlaceRecipePacket.class, new PacketLimit(4.0, 5.0, PacketLimit.ViolateAction.DROP));
 
         @ConfigSerializable
         public record PacketLimit(@Required double interval, @Required double maxPacketRate, ViolateAction action) {
@@ -344,7 +343,7 @@ public class GlobalConfiguration extends ConfigurationPart {
             }
         }
         public int maxJoinsPerTick = 5;
-        public boolean sendFullPosForItemEntities = false;
+        public boolean fixEntityPositionDesync = true;
         public boolean loadPermissionsYmlBeforePlugins = true;
         @Constraints.Min(4)
         public int regionFileCacheSize = 256;
@@ -355,11 +354,6 @@ public class GlobalConfiguration extends ConfigurationPart {
         public IntOr.Default compressionLevel = IntOr.Default.USE_DEFAULT;
         @Comment("Defines the leniency distance added on the server to the interaction range of a player when validating interact packets.")
         public DoubleOr.Default clientInteractionLeniencyDistance = DoubleOr.Default.USE_DEFAULT;
-        @Comment("Defines how many orbs groups can exist in an area.")
-        @Constraints.Min(1)
-        public IntOr.Default xpOrbGroupsPerArea = IntOr.Default.USE_DEFAULT;
-        @Comment("See Fix MC-163962; prevent villager demand from going negative.")
-        public boolean preventNegativeVillagerDemand = false;
     }
 
     public BlockUpdates blockUpdates;

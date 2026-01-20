@@ -103,18 +103,6 @@ public final class MCUtil {
         run.run();
     }
 
-    public static double sanitizeNanInf(final double value, final double defaultValue) {
-        return Double.isNaN(value) || Double.isInfinite(value) ? defaultValue : value;
-    }
-
-    public static Vec3 sanitizeNanInf(final Vec3 vec3, final double defaultValue) {
-        return new Vec3(
-            sanitizeNanInf(vec3.x, defaultValue),
-            sanitizeNanInf(vec3.y, defaultValue),
-            sanitizeNanInf(vec3.z, defaultValue)
-        );
-    }
-
     public static <T> T ensureMain(Supplier<T> run) {
         return ensureMain(null, run);
     }
@@ -152,18 +140,16 @@ public final class MCUtil {
         return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) + (z1 - z2) * (z1 - z2);
     }
 
-    /**
-     * Converts a NMS World/Vector to Bukkit Location
-     */
-    public static Location toLocation(Level world, Vec3 pos) {
-        return new Location(world.getWorld(), pos.x(), pos.y(), pos.z());
+    public static Location toLocation(Level world, double x, double y, double z) {
+        return new Location(world.getWorld(), x, y, z);
     }
 
-    /**
-     * Converts a NMS World/Vector to Bukkit Location
-     */
-    public static Location toLocation(Level world, Vec3 pos, float yaw, float pitch) {
-        return new Location(world.getWorld(), pos.x(), pos.y(), pos.z(), yaw, pitch);
+    public static Location toLocation(Level world, BlockPos pos) {
+        return new Location(world.getWorld(), pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    public static BlockPos toBlockPosition(Location loc) {
+        return new BlockPos(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
     }
 
     public static BlockPos toBlockPos(Position pos) {

@@ -3,30 +3,39 @@ package org.bukkit.event.entity;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Called when a horse jumps.
  */
 public class HorseJumpEvent extends EntityEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    private boolean cancelled;
     private float power;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
     public HorseJumpEvent(@NotNull final AbstractHorse horse, final float power) {
         super(horse);
         this.power = power;
     }
 
+    @Override
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    /**
+     * @deprecated horse jumping was moved client side.
+     */
+    @Override
+    @Deprecated(since = "1.9")
+    public void setCancelled(boolean cancel) {
+        cancelled = cancel;
+    }
+
     @NotNull
     @Override
     public AbstractHorse getEntity() {
-        return (AbstractHorse) this.entity;
+        return (AbstractHorse) entity;
     }
 
     /**
@@ -47,7 +56,7 @@ public class HorseJumpEvent extends EntityEvent implements Cancellable {
      * @return jump strength
      */
     public float getPower() {
-        return this.power;
+        return power;
     }
 
     /**
@@ -68,28 +77,14 @@ public class HorseJumpEvent extends EntityEvent implements Cancellable {
         this.power = power;
     }
 
-    @Override
-    public boolean isCancelled() {
-        return this.cancelled;
-    }
-
-    /**
-     * @deprecated horse jumping was moved client side.
-     */
-    @Override
-    @Deprecated(since = "1.9")
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
-    }
-
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

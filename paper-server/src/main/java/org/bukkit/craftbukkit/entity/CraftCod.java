@@ -11,6 +11,11 @@ public class CraftCod extends io.papermc.paper.entity.PaperSchoolableFish implem
 
     @Override
     public net.minecraft.world.entity.animal.Cod getHandle() {
-        return (net.minecraft.world.entity.animal.Cod) this.entity;
+        return (net.minecraft.world.entity.animal.Cod) super.getHandle();
+    }
+
+    @Override
+    public String toString() {
+        return "CraftCod";
     }
 }

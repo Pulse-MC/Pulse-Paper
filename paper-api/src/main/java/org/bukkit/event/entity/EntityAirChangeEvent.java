@@ -3,7 +3,6 @@ package org.bukkit.event.entity;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -11,14 +10,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public class EntityAirChangeEvent extends EntityEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    //
     private int amount;
+    //
     private boolean cancelled;
 
-    @ApiStatus.Internal
-    public EntityAirChangeEvent(@NotNull Entity entity, int amount) {
-        super(entity);
+    public EntityAirChangeEvent(@NotNull Entity what, int amount) {
+        super(what);
         this.amount = amount;
     }
 
@@ -28,7 +27,7 @@ public class EntityAirChangeEvent extends EntityEvent implements Cancellable {
      * @return amount of air remaining
      */
     public int getAmount() {
-        return this.amount;
+        return amount;
     }
 
     /**
@@ -42,7 +41,7 @@ public class EntityAirChangeEvent extends EntityEvent implements Cancellable {
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
@@ -53,11 +52,11 @@ public class EntityAirChangeEvent extends EntityEvent implements Cancellable {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

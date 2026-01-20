@@ -1,0 +1,167 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: tizis0 <hexgames84@gmail.com>
+Date: Tue, 20 Jan 2026 21:26:14 +0600
+Subject: [PATCH] Porting Pulse on 1.21.4
+
+
+diff --git a/net/minecraft/commands/Commands.java b/net/minecraft/commands/Commands.java
+index f8969a68cd352ce4fe5109205e78f5e19ab6e020..ccae78e31d326d5d02b78191ed81557f1f81ee0c 100644
+--- a/net/minecraft/commands/Commands.java
++++ b/net/minecraft/commands/Commands.java
+@@ -138,6 +138,7 @@ import net.minecraft.world.flag.FeatureFlagSet;
+ import net.minecraft.world.flag.FeatureFlags;
+ import net.minecraft.world.level.GameRules;
+ import org.slf4j.Logger;
++import dev.pulsemc.command.PulseCommands;
+ 
+ public class Commands {
+     private static final ThreadLocal<ExecutionContext<CommandSourceStack>> CURRENT_EXECUTION_CONTEXT = new ThreadLocal<>();
+@@ -217,6 +218,11 @@ public class Commands {
+         TriggerCommand.register(this.dispatcher);
+         WeatherCommand.register(this.dispatcher);
+         WorldBorderCommand.register(this.dispatcher);
++
++        // Pulse start - Register new vanilla command
++        PulseCommands.register(this.dispatcher);
++        // Pulse end - Register new vanilla command
++
+         if (JvmProfiler.INSTANCE.isAvailable()) {
+             JfrCommand.register(this.dispatcher);
+         }
+diff --git a/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java b/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java
+index 10b46c59d83d1274cf491f217df2355d13b594c1..34d05debaa58b5a9d4bcb141516dee9afd23d904 100644
+--- a/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java
++++ b/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java
+@@ -17,8 +17,8 @@ public class ClientboundSectionBlocksUpdatePacket implements Packet<ClientGamePa
+         ClientboundSectionBlocksUpdatePacket::write, ClientboundSectionBlocksUpdatePacket::new
+     );
+     private static final int POS_IN_SECTION_BITS = 12;
+-    private final SectionPos sectionPos;
+-    private final short[] positions;
++    public final SectionPos sectionPos;
++    public final short[] positions;
+     private final BlockState[] states;
+ 
+     public ClientboundSectionBlocksUpdatePacket(SectionPos sectionPos, ShortSet positions, LevelChunkSection section) {
+diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
+index d2db6e3a4af13984b0a790fb38e83c253914a973..d630bca755b221e1f9ee66914b428059216c9d5b 100644
+--- a/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -58,7 +58,7 @@ import net.minecraft.world.level.Level;
+ import net.minecraft.world.level.block.entity.SkullBlockEntity;
+ import net.minecraft.world.level.storage.LevelStorageSource;
+ import org.slf4j.Logger;
+-
++// PULSE_MODIFIED
+ public class DedicatedServer extends MinecraftServer implements ServerInterface {
+     static final Logger LOGGER = LogUtils.getLogger();
+     private static final int CONVERSION_RETRY_DELAY_MS = 5000;
+@@ -272,6 +272,12 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+             return false;
+         }
+ 
++        // Pulse start - Init Config and Commands
++        dev.pulsemc.config.ConfigManager.load();
++        dev.pulsemc.network.PulseMetrics.start();
++        dev.pulsemc.network.PulseBar.start();
++        // Pulse end
++
+         // CraftBukkit start
+         // this.setPlayerList(new DedicatedPlayerList(this, this.registries(), this.playerDataStorage)); // Spigot - moved up
+         this.server.loadPlugins();
+diff --git a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
+index af75f1ca60dc01045f27cb550ac9e3deacf1a1cf..0ae42e0b228993bec151e2d52785ab7c9def8bf6 100644
+--- a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
++++ b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
+@@ -26,7 +26,8 @@ import net.minecraft.server.level.ClientInformation;
+ import net.minecraft.util.VisibleForDebug;
+ import net.minecraft.util.profiling.Profiler;
+ import org.slf4j.Logger;
+-
++import dev.pulsemc.network.PulseBuffer;
++// PULSE_MODIFIED
+ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPacketListener, org.bukkit.craftbukkit.entity.CraftPlayer.TransferCookieConnection { // CraftBukkit
+     private static final Logger LOGGER = LogUtils.getLogger();
+     public static final int LATENCY_CHECK_INTERVAL = 15000;
+@@ -52,6 +53,8 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+     private static final long KEEPALIVE_LIMIT = Long.getLong("paper.playerconnection.keepalive", 30) * 1000; // Paper - provide property to set keepalive limit
+     protected static final net.minecraft.resources.ResourceLocation MINECRAFT_BRAND = net.minecraft.resources.ResourceLocation.withDefaultNamespace("brand"); // Paper - Brand support
+ 
++    public PulseBuffer pulseBuffer; // Pulse
++
+     public ServerCommonPacketListenerImpl(MinecraftServer server, Connection connection, CommonListenerCookie cookie, net.minecraft.server.level.ServerPlayer player) { // CraftBukkit
+         this.server = server;
+         this.connection = connection;
+@@ -62,6 +65,8 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+         this.player = player;
+         this.player.transferCookieConnection = this;
+         this.cserver = server.server;
++
++        this.pulseBuffer = new PulseBuffer(this); // Pulse
+     }
+ 
+     public org.bukkit.craftbukkit.entity.CraftPlayer getCraftPlayer() {
+@@ -284,27 +289,32 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+         this.send(packet, null);
+     }
+ 
+-    public void send(Packet<?> packet, @Nullable PacketSendListener listener) {
+-        // CraftBukkit start
+-        if (packet == null || this.processedDisconnect) { // Spigot
++    public void send(net.minecraft.network.protocol.Packet<?> packet, @Nullable net.minecraft.network.PacketSendListener sendListener) {
++        if (packet == null || this.processedDisconnect) return;
++
++        // PulseMC start - Smart Batching V3 (1.21.4 Fix)
++        if (this.pulseBuffer != null) {
++            // Передаем пакет в буфер. Тип слушателя теперь PacketSendListener
++            this.pulseBuffer.add(packet, sendListener);
++
++            if (packet.isTerminal()) {
++                this.pulseBuffer.flush();
++                this.close();
++            }
+             return;
+-        } else if (packet instanceof net.minecraft.network.protocol.game.ClientboundSetDefaultSpawnPositionPacket defaultSpawnPositionPacket) {
+-            this.player.compassTarget = org.bukkit.craftbukkit.util.CraftLocation.toBukkit(defaultSpawnPositionPacket.getPos(), this.getCraftPlayer().getWorld());
+         }
+-        // CraftBukkit end
+-        if (packet.isTerminal()) {
+-            this.close();
++        // PulseMC end
++
++        if (packet instanceof net.minecraft.network.protocol.game.ClientboundSetDefaultSpawnPositionPacket p && this instanceof ServerGamePacketListenerImpl s) {
++            s.player.compassTarget = org.bukkit.craftbukkit.util.CraftLocation.toBukkit(p.getPos(), s.getPlayer().level());
+         }
+ 
+-        boolean flag = !this.suspendFlushingOnServerThread || !this.server.isSameThread();
++        if (packet.isTerminal()) this.close();
+ 
+         try {
+-            this.connection.send(packet, listener, flag);
++            this.connection.send(packet, sendListener, true);
+         } catch (Throwable var7) {
+-            CrashReport crashReport = CrashReport.forThrowable(var7, "Sending packet");
+-            CrashReportCategory crashReportCategory = crashReport.addCategory("Packet being sent");
+-            crashReportCategory.setDetail("Packet class", () -> packet.getClass().getCanonicalName());
+-            throw new ReportedException(crashReport);
++            throw new net.minecraft.ReportedException(net.minecraft.CrashReport.forThrowable(var7, "Sending packet"));
+         }
+     }
+ 
+diff --git a/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+index a2c70d36f79b7f8560923e098e52fa7f82ca7416..ab302470b5f0521907601b8fa65e10e94be3c40d 100644
+--- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
++++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+@@ -395,6 +395,12 @@ public class ServerGamePacketListenerImpl
+             this.hasLoggedExpiry = true;
+         }
+         // Paper end - Prevent causing expired keys from impacting new joins
++
++        // Pulse start
++        if (this.pulseBuffer != null) {
++            this.pulseBuffer.flush();
++        }
++        // Pulse end
+     }
+ 
+     private int getMaximumFlyingTicks(Entity entity) {

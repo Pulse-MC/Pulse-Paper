@@ -11,6 +11,7 @@ import net.minecraft.util.InclusiveRange;
 import org.bukkit.Bukkit;
 import org.bukkit.FeatureFlag;
 import org.bukkit.NamespacedKey;
+// import org.bukkit.craftbukkit.CraftFeatureFlag; // Paper - replace feature flag API
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.bukkit.packs.DataPack;
@@ -22,8 +23,8 @@ public class CraftDataPack implements DataPack {
 
     public CraftDataPack(Pack handler) {
         this.handle = handler;
-        try (PackResources packResources = this.handle.resources.openPrimary(this.handle.location())) {
-            this.resourcePackInfo = packResources.getMetadataSection(PackMetadataSection.TYPE);
+        try (PackResources iresourcepack = this.handle.resources.openPrimary(this.handle.location())) {
+            this.resourcePackInfo = iresourcepack.getMetadataSection(PackMetadataSection.TYPE);
         } catch (IOException e) { // This is already called in NMS then if in NMS not happen is secure this not throw here
             throw new RuntimeException(e);
         }
@@ -54,12 +55,12 @@ public class CraftDataPack implements DataPack {
 
     @Override
     public int getMinSupportedPackFormat() {
-        return this.resourcePackInfo.supportedFormats().map(InclusiveRange::minInclusive).orElse(this.getPackFormat());
+        return this.resourcePackInfo.supportedFormats().orElse(new InclusiveRange<>(this.getPackFormat())).minInclusive();
     }
 
     @Override
     public int getMaxSupportedPackFormat() {
-        return this.resourcePackInfo.supportedFormats().map(InclusiveRange::maxInclusive).orElse(this.getPackFormat());
+        return this.resourcePackInfo.supportedFormats().orElse(new InclusiveRange<>(this.getPackFormat())).maxInclusive();
     }
 
     @Override
@@ -97,7 +98,7 @@ public class CraftDataPack implements DataPack {
 
     @Override
     public Set<FeatureFlag> getRequestedFeatures() {
-        return io.papermc.paper.world.flag.PaperFeatureFlagProviderImpl.fromNms(this.getHandle().getRequestedFeatures());
+        return io.papermc.paper.world.flag.PaperFeatureFlagProviderImpl.fromNms(this.getHandle().getRequestedFeatures()); // Paper - replace feature flag API
     }
 
     @Override

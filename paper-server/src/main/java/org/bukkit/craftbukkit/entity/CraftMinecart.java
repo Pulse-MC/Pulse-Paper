@@ -1,10 +1,10 @@
 package org.bukkit.craftbukkit.entity;
 
-import com.google.common.base.Preconditions;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import org.bukkit.Material;
+import org.bukkit.Material; // Paper
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.block.data.CraftBlockData;
@@ -12,17 +12,10 @@ import org.bukkit.craftbukkit.util.CraftMagicNumbers;
 import org.bukkit.entity.Minecart;
 import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
-import java.util.Optional;
 
 public abstract class CraftMinecart extends CraftVehicle implements Minecart {
-
     public CraftMinecart(CraftServer server, AbstractMinecart entity) {
         super(server, entity);
-    }
-
-    @Override
-    public AbstractMinecart getHandle() {
-        return (AbstractMinecart) this.entity;
     }
 
     @Override
@@ -80,30 +73,49 @@ public abstract class CraftMinecart extends CraftVehicle implements Minecart {
     // Paper start
     @Override
     public Material getMinecartMaterial() {
-        return CraftMagicNumbers.getMaterial(this.getHandle().getDropItem());
+        return CraftMagicNumbers.getMaterial(this.getHandle().publicGetDropItem());
     }
     // Paper end
 
     @Override
+    public AbstractMinecart getHandle() {
+        return (AbstractMinecart) this.entity;
+    }
+
+    @Override
     public void setDisplayBlock(MaterialData material) {
-        this.getHandle().setCustomDisplayBlockState(Optional.ofNullable(material).map(CraftMagicNumbers::getBlock));
+        if (material != null) {
+            BlockState block = CraftMagicNumbers.getBlock(material);
+            this.getHandle().setDisplayBlockState(block);
+        } else {
+            // Set block to air (default) and set the flag to not have a display block.
+            this.getHandle().setDisplayBlockState(Blocks.AIR.defaultBlockState());
+            this.getHandle().setCustomDisplay(false);
+        }
     }
 
     @Override
     public void setDisplayBlockData(BlockData blockData) {
-        this.getHandle().setCustomDisplayBlockState(Optional.ofNullable(blockData).map(data -> ((CraftBlockData) data).getState()));
+        if (blockData != null) {
+            BlockState block = ((CraftBlockData) blockData).getState();
+            this.getHandle().setDisplayBlockState(block);
+        } else {
+            // Set block to air (default) and set the flag to not have a display block.
+            this.getHandle().setDisplayBlockState(Blocks.AIR.defaultBlockState());
+            this.getHandle().setCustomDisplay(false);
+        }
     }
 
     @Override
     public MaterialData getDisplayBlock() {
-        BlockState state = this.getHandle().getDisplayBlockState();
-        return CraftMagicNumbers.getMaterial(state);
+        BlockState blockData = this.getHandle().getDisplayBlockState();
+        return CraftMagicNumbers.getMaterial(blockData);
     }
 
     @Override
     public BlockData getDisplayBlockData() {
-        BlockState state = this.getHandle().getDisplayBlockState();
-        return CraftBlockData.fromData(state);
+        BlockState blockData = this.getHandle().getDisplayBlockState();
+        return CraftBlockData.fromData(blockData);
     }
 
     @Override
@@ -116,6 +128,7 @@ public abstract class CraftMinecart extends CraftVehicle implements Minecart {
         return this.getHandle().getDisplayOffset();
     }
 
+    // Paper start - Friction API
     @org.jetbrains.annotations.NotNull
     @Override
     public net.kyori.adventure.util.TriState getFrictionState() {
@@ -124,7 +137,8 @@ public abstract class CraftMinecart extends CraftVehicle implements Minecart {
 
     @Override
     public void setFrictionState(@org.jetbrains.annotations.NotNull net.kyori.adventure.util.TriState state) {
-        Preconditions.checkArgument(state != null, "state may not be null");
+        java.util.Objects.requireNonNull(state, "state may not be null");
         this.getHandle().frictionState = state;
     }
+    // Paper end - Friction API
 }

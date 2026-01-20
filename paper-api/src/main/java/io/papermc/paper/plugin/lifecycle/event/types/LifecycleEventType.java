@@ -9,6 +9,7 @@ import io.papermc.paper.plugin.lifecycle.event.handler.configuration.MonitorLife
 import io.papermc.paper.plugin.lifecycle.event.handler.configuration.PrioritizedLifecycleEventHandlerConfiguration;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Base type for all types of lifecycle events. Differs from
@@ -21,6 +22,8 @@ import org.jetbrains.annotations.Contract;
  * @param <E> the event object type
  * @param <C> the configuration type
  */
+@ApiStatus.Experimental
+@NullMarked
 @ApiStatus.NonExtendable
 public interface LifecycleEventType<O extends LifecycleEventOwner, E extends LifecycleEvent, C extends LifecycleEventHandlerConfiguration<O>> {
 
@@ -52,6 +55,7 @@ public interface LifecycleEventType<O extends LifecycleEventOwner, E extends Lif
      * @param <O> the required owner type
      * @param <E> the event object type
      */
+    @ApiStatus.Experimental
     @ApiStatus.NonExtendable
     interface Monitorable<O extends LifecycleEventOwner, E extends LifecycleEvent> extends LifecycleEventType<O, E, MonitorLifecycleEventHandlerConfiguration<O>> {
     }
@@ -63,6 +67,7 @@ public interface LifecycleEventType<O extends LifecycleEventOwner, E extends Lif
      * @param <O> the required owner type
      * @param <E> the event object type
      */
+    @ApiStatus.Experimental
     @ApiStatus.NonExtendable
     interface Prioritizable<O extends LifecycleEventOwner, E extends LifecycleEvent> extends LifecycleEventType<O, E, PrioritizedLifecycleEventHandlerConfiguration<O>> {
     }

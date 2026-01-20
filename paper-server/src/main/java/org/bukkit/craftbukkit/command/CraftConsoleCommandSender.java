@@ -46,10 +46,12 @@ public class CraftConsoleCommandSender extends ServerCommandSender implements Co
         return "CONSOLE";
     }
 
+    // Paper start
     @Override
     public net.kyori.adventure.text.Component name() {
         return net.kyori.adventure.text.Component.text(this.getName());
     }
+    // Paper end
 
     @Override
     public boolean isOp() {
@@ -86,6 +88,7 @@ public class CraftConsoleCommandSender extends ServerCommandSender implements Co
         return this.conversationTracker.isConversing();
     }
 
+    // Paper start
     @Override
     public void sendMessage(final net.kyori.adventure.identity.Identity identity, final net.kyori.adventure.text.Component message, final net.kyori.adventure.audience.MessageType type) {
         this.sendRawMessage(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(message));
@@ -100,4 +103,5 @@ public class CraftConsoleCommandSender extends ServerCommandSender implements Co
     public boolean hasPermission(org.bukkit.permissions.Permission perm) {
         return io.papermc.paper.configuration.GlobalConfiguration.get().console.hasAllPermissions || super.hasPermission(perm);
     }
+    // Paper end
 }

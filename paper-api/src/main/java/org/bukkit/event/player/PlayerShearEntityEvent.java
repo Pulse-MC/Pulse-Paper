@@ -9,36 +9,40 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
-import java.util.List;
 
 /**
  * Called when a player shears an entity
  */
 public class PlayerShearEntityEvent extends PlayerEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    private final Entity entity;
+    private static final HandlerList handlers = new HandlerList();
+    private boolean cancel;
+    private final Entity what;
     private final ItemStack item;
     private final EquipmentSlot hand;
-    private List<ItemStack> drops;
-
-    private boolean cancelled;
+    private java.util.List<ItemStack> drops; // Paper - custom shear drops
 
     @ApiStatus.Internal
-    public PlayerShearEntityEvent(@NotNull Player player, @NotNull Entity entity, @NotNull ItemStack item, @NotNull EquipmentSlot hand, final @NotNull List<ItemStack> drops) {
-        super(player);
-        this.entity = entity;
+    public PlayerShearEntityEvent(@NotNull Player who, @NotNull Entity what, @NotNull ItemStack item, @NotNull EquipmentSlot hand, final java.util.@NotNull List<ItemStack> drops) { // Paper - custom shear drops
+        super(who);
+        this.what = what;
         this.item = item;
         this.hand = hand;
-        this.drops = drops;
+        this.drops = drops; // Paper - custom shear drops
     }
 
-    @ApiStatus.Internal
     @Deprecated(since = "1.15.2", forRemoval = true)
-    public PlayerShearEntityEvent(@NotNull final Player player, @NotNull final Entity entity) {
-        this(player, entity, new ItemStack(Material.SHEARS), EquipmentSlot.HAND, java.util.Collections.emptyList());
+    public PlayerShearEntityEvent(@NotNull final Player who, @NotNull final Entity what) {
+        this(who, what, new ItemStack(Material.SHEARS), EquipmentSlot.HAND, java.util.Collections.emptyList()); // Paper - custom shear drops
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return cancel;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.cancel = cancel;
     }
 
     /**
@@ -48,7 +52,7 @@ public class PlayerShearEntityEvent extends PlayerEvent implements Cancellable {
      */
     @NotNull
     public Entity getEntity() {
-        return this.entity;
+        return what;
     }
 
     /**
@@ -58,7 +62,7 @@ public class PlayerShearEntityEvent extends PlayerEvent implements Cancellable {
      */
     @NotNull
     public ItemStack getItem() {
-        return this.item.clone();
+        return item.clone();
     }
 
     /**
@@ -68,16 +72,28 @@ public class PlayerShearEntityEvent extends PlayerEvent implements Cancellable {
      */
     @NotNull
     public EquipmentSlot getHand() {
-        return this.hand;
+        return hand;
     }
 
+    @NotNull
+    @Override
+    public HandlerList getHandlers() {
+        return handlers;
+    }
+
+    @NotNull
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
+
+    // Paper start - custom shear drops
     /**
      * Get an immutable list of drops for this shearing.
      *
      * @return the shearing drops
      * @see #setDrops(java.util.List)
      */
-    public @NotNull @Unmodifiable List<ItemStack> getDrops() {
+    public java.util.@NotNull @org.jetbrains.annotations.Unmodifiable List<ItemStack> getDrops() {
         return this.drops;
     }
 
@@ -86,28 +102,8 @@ public class PlayerShearEntityEvent extends PlayerEvent implements Cancellable {
      *
      * @param drops the shear drops
      */
-    public void setDrops(final @NotNull List<ItemStack> drops) {
-        this.drops = List.copyOf(drops);
+    public void setDrops(final java.util.@NotNull List<org.bukkit.inventory.ItemStack> drops) {
+        this.drops = java.util.List.copyOf(drops);
     }
-
-    @Override
-    public boolean isCancelled() {
-        return this.cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
-    }
-
-    @NotNull
-    @Override
-    public HandlerList getHandlers() {
-        return HANDLER_LIST;
-    }
-
-    @NotNull
-    public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
-    }
+    // Paper end - custom shear drops
 }

@@ -2,7 +2,7 @@ name: PulseMC Pipeline
 
 on:
   push:
-    branches: [ "version/1.21.8" ]
+    branches: [ "version/1.21.4" ]
 
 jobs:
   build:
@@ -22,7 +22,7 @@ jobs:
           MSG="${{ github.event.head_commit.message }}"
           
           MODE="none"
-          VERSION="1.21.8"
+          VERSION="1.21.4"
 
           if [[ "$MSG" == *"[pulse:devbuild"* ]]; then
             MODE="devbuild"

@@ -7,10 +7,11 @@ import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.tag.TagKey;
 import net.kyori.adventure.key.Key;
 import org.bukkit.inventory.ItemType;
+import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * Vanilla tag keys for {@link RegistryKey#ITEM}.
+ * Vanilla keys for {@link RegistryKey#ITEM}.
  *
  * @apiNote The fields provided here are a direct representation of
  * what is available from the vanilla game source. They may be
@@ -22,8 +23,9 @@ import org.jspecify.annotations.NullMarked;
         "unused",
         "SpellCheckingInspection"
 })
+@GeneratedFrom("1.21.4")
 @NullMarked
-@GeneratedFrom("1.21.8")
+@ApiStatus.Experimental
 public final class ItemTypeTagKeys {
     /**
      * {@code #minecraft:acacia_logs}
@@ -115,13 +117,6 @@ public final class ItemTypeTagKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TagKey<ItemType> BOATS = create(key("boats"));
-
-    /**
-     * {@code #minecraft:book_cloning_target}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<ItemType> BOOK_CLONING_TARGET = create(key("book_cloning_target"));
 
     /**
      * {@code #minecraft:bookshelf_books}
@@ -355,13 +350,6 @@ public final class ItemTypeTagKeys {
     public static final TagKey<ItemType> DYEABLE = create(key("dyeable"));
 
     /**
-     * {@code #minecraft:eggs}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<ItemType> EGGS = create(key("eggs"));
-
-    /**
      * {@code #minecraft:emerald_ores}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -523,13 +511,6 @@ public final class ItemTypeTagKeys {
     public static final TagKey<ItemType> FISHES = create(key("fishes"));
 
     /**
-     * {@code #minecraft:flowers}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<ItemType> FLOWERS = create(key("flowers"));
-
-    /**
      * {@code #minecraft:foot_armor}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -598,27 +579,6 @@ public final class ItemTypeTagKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TagKey<ItemType> HANGING_SIGNS = create(key("hanging_signs"));
-
-    /**
-     * {@code #minecraft:happy_ghast_food}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<ItemType> HAPPY_GHAST_FOOD = create(key("happy_ghast_food"));
-
-    /**
-     * {@code #minecraft:happy_ghast_tempt_items}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<ItemType> HAPPY_GHAST_TEMPT_ITEMS = create(key("happy_ghast_tempt_items"));
-
-    /**
-     * {@code #minecraft:harnesses}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<ItemType> HARNESSES = create(key("harnesses"));
 
     /**
      * {@code #minecraft:head_armor}
@@ -1287,6 +1247,7 @@ public final class ItemTypeTagKeys {
      * @param key the tag key's key
      * @return a new tag key
      */
+    @ApiStatus.Experimental
     public static TagKey<ItemType> create(final Key key) {
         return TagKey.create(RegistryKey.ITEM, key);
     }

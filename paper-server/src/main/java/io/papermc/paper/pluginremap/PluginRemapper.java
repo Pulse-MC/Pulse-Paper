@@ -75,11 +75,7 @@ public final class PluginRemapper {
             return null;
         }
 
-        try {
-            return new PluginRemapper(pluginsDir);
-        } catch (final Exception e) {
-            throw new RuntimeException("Failed to create PluginRemapper, try deleting the '" + pluginsDir.resolve(PAPER_REMAPPED) + "' directory", e);
-        }
+        return new PluginRemapper(pluginsDir);
     }
 
     public void shutdown() {

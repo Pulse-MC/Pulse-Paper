@@ -157,7 +157,7 @@ public interface PermissionManager {
     void addPermissions(List<Permission> perm);
 
     /**
-     * Clears all the current registered permissions.
+     * Clears the current registered permissinos.
      * <p>
      * This is used for reloading.
      */

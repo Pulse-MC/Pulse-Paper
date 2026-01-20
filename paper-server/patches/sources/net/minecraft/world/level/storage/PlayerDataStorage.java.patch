@@ -1,19 +1,30 @@
 --- a/net/minecraft/world/level/storage/PlayerDataStorage.java
 +++ b/net/minecraft/world/level/storage/PlayerDataStorage.java
-@@ -32,6 +_,7 @@
+@@ -14,8 +_,10 @@
+ import net.minecraft.nbt.NbtAccounter;
+ import net.minecraft.nbt.NbtIo;
+ import net.minecraft.nbt.NbtUtils;
++import net.minecraft.server.level.ServerPlayer;
+ import net.minecraft.util.datafix.DataFixTypes;
+ import net.minecraft.world.entity.player.Player;
++import org.bukkit.craftbukkit.entity.CraftPlayer;
+ import org.slf4j.Logger;
+ 
+ public class PlayerDataStorage {
+@@ -31,6 +_,7 @@
      }
  
      public void save(Player player) {
 +        if (org.spigotmc.SpigotConfig.disablePlayerDataSaving) return; // Spigot
-         try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(player.problemPath(), LOGGER)) {
-             TagValueOutput tagValueOutput = TagValueOutput.createWithContext(scopedCollector, player.registryAccess());
-             player.saveWithoutId(tagValueOutput);
-@@ -43,30 +_,46 @@
+         try {
+             CompoundTag compoundTag = player.saveWithoutId(new CompoundTag());
+             Path path = this.playerDir.toPath();
+@@ -40,30 +_,46 @@
              Path path3 = path.resolve(player.getStringUUID() + ".dat_old");
              Util.safeReplaceFile(path2, path1, path3);
-         } catch (Exception var11) {
+         } catch (Exception var7) {
 -            LOGGER.warn("Failed to save player data for {}", player.getName().getString());
-+            LOGGER.warn("Failed to save player data for {}", player.getScoreboardName(), var11); // Paper - Print exception
++            LOGGER.warn("Failed to save player data for {}", player.getScoreboardName(), var7); // Paper - Print exception
          }
      }
  
@@ -64,15 +75,15 @@
              }
          }
  
-@@ -74,17 +_,40 @@
+@@ -71,16 +_,40 @@
      }
  
-     public Optional<ValueInput> load(Player player, ProblemReporter problemReporter) {
+     public Optional<CompoundTag> load(Player player) {
 -        Optional<CompoundTag> optional = this.load(player, ".dat");
 +        // CraftBukkit start
-+        return this.load(player.getName().getString(), player.getStringUUID(), problemReporter).map((tag) -> {
-+            if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
-+                org.bukkit.craftbukkit.entity.CraftPlayer craftPlayer = serverPlayer.getBukkitEntity();
++        return this.load(player.getName().getString(), player.getStringUUID()).map((tag) -> {
++            if (player instanceof ServerPlayer serverPlayer) {
++                CraftPlayer craftPlayer = serverPlayer.getBukkitEntity();
 +                // Only update first played if it is older than the one we have
 +                long modified = new File(this.playerDir, player.getStringUUID() + ".dat").lastModified();
 +                if (modified < craftPlayer.getFirstPlayed()) {
@@ -80,13 +91,12 @@
 +                }
 +            }
 +
-+            ValueInput valueInput = TagValueInput.create(problemReporter, player.registryAccess(), tag);
-+            player.load(valueInput); // From below
-+            return valueInput;
++            player.load(tag); // From below
++            return tag;
 +        });
 +    }
 +
-+    public Optional<CompoundTag> load(String name, String uuid, ProblemReporter problemReporter) {
++    public Optional<CompoundTag> load(String name, String uuid) {
 +        // CraftBukkit end
 +        Optional<CompoundTag> optional = this.load(name, uuid, ".dat"); // CraftBukkit
          if (optional.isEmpty()) {
@@ -98,10 +108,9 @@
 +        return optional.or(() -> this.load(name, uuid, ".dat_old")).map(compoundTag -> { // CraftBukkit
              int dataVersion = NbtUtils.getDataVersion(compoundTag, -1);
              compoundTag = DataFixTypes.PLAYER.updateToCurrentVersion(this.fixerUpper, compoundTag, dataVersion);
--            ValueInput valueInput = TagValueInput.create(problemReporter, player.registryAccess(), compoundTag);
--            player.load(valueInput);
--            return valueInput;
-+            return compoundTag; // CraftBukkit - handled above
+-            player.load(compoundTag);
++            // player.load(compoundTag); // CraftBukkit - handled above
+             return compoundTag;
          });
      }
 +

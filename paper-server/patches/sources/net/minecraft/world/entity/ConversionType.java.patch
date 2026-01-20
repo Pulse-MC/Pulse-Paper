@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/entity/ConversionType.java
 +++ b/net/minecraft/world/entity/ConversionType.java
-@@ -24,7 +_,7 @@
+@@ -21,7 +_,7 @@
  
                  for (Entity entity : newMob.getPassengers()) {
                      entity.stopRiding();
@@ -9,11 +9,3 @@
                  }
  
                  firstPassenger.startRiding(newMob);
-@@ -73,6 +_,7 @@
-             if (leashHolder != null) {
-                 oldMob.dropLeash();
-             }
-+            newMob.aware = oldMob.aware; // Paper - Fix nerfed slime when splitting
- 
-             this.convertCommon(oldMob, newMob, conversionParams);
-         }

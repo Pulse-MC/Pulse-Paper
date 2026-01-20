@@ -7,10 +7,11 @@ import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.tag.TagKey;
 import net.kyori.adventure.key.Key;
 import org.bukkit.block.banner.PatternType;
+import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * Vanilla tag keys for {@link RegistryKey#BANNER_PATTERN}.
+ * Vanilla keys for {@link RegistryKey#BANNER_PATTERN}.
  *
  * @apiNote The fields provided here are a direct representation of
  * what is available from the vanilla game source. They may be
@@ -22,8 +23,9 @@ import org.jspecify.annotations.NullMarked;
         "unused",
         "SpellCheckingInspection"
 })
+@GeneratedFrom("1.21.4")
 @NullMarked
-@GeneratedFrom("1.21.8")
+@ApiStatus.Experimental
 public final class BannerPatternTagKeys {
     /**
      * {@code #minecraft:no_item_required}
@@ -111,6 +113,7 @@ public final class BannerPatternTagKeys {
      * @param key the tag key's key
      * @return a new tag key
      */
+    @ApiStatus.Experimental
     public static TagKey<PatternType> create(final Key key) {
         return TagKey.create(RegistryKey.BANNER_PATTERN, key);
     }

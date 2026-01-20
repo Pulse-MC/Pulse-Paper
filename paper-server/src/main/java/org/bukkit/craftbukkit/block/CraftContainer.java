@@ -2,10 +2,9 @@ package org.bukkit.craftbukkit.block;
 
 import java.util.Collections;
 import java.util.Optional;
-import net.minecraft.advancements.critereon.DataComponentMatchers;
 import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.advancements.critereon.MinMaxBounds;
-import net.minecraft.core.component.DataComponentExactPredicate;
+import net.minecraft.core.component.DataComponentPredicate;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.LockCode;
@@ -19,8 +18,8 @@ import org.bukkit.inventory.ItemStack;
 
 public abstract class CraftContainer<T extends BaseContainerBlockEntity> extends CraftBlockEntityState<T> implements Container {
 
-    public CraftContainer(World world, T blockEntity) {
-        super(world, blockEntity);
+    public CraftContainer(World world, T tileEntity) {
+        super(world, tileEntity);
     }
 
     protected CraftContainer(CraftContainer<T> state, Location location) {
@@ -34,7 +33,7 @@ public abstract class CraftContainer<T extends BaseContainerBlockEntity> extends
 
     @Override
     public String getLock() {
-        Optional<? extends Component> customName = this.getSnapshot().lockKey.predicate().components().exact().asPatch().get(DataComponents.CUSTOM_NAME);
+        Optional<? extends Component> customName = this.getSnapshot().lockKey.predicate().components().asPatch().get(DataComponents.CUSTOM_NAME);
 
         return (customName != null) ? customName.map(CraftChatMessage::fromComponent).orElse("") : "";
     }
@@ -44,8 +43,8 @@ public abstract class CraftContainer<T extends BaseContainerBlockEntity> extends
         if (key == null) {
             this.getSnapshot().lockKey = LockCode.NO_LOCK;
         } else {
-            DataComponentExactPredicate predicate = DataComponentExactPredicate.builder().expect(DataComponents.CUSTOM_NAME, CraftChatMessage.fromStringOrNull(key)).build();
-            this.getSnapshot().lockKey = new LockCode(new ItemPredicate(Optional.empty(), MinMaxBounds.Ints.ANY, new DataComponentMatchers(predicate, Collections.emptyMap())));
+            DataComponentPredicate predicate = DataComponentPredicate.builder().expect(DataComponents.CUSTOM_NAME, CraftChatMessage.fromStringOrNull(key)).build();
+            this.getSnapshot().lockKey = new LockCode(new ItemPredicate(Optional.empty(), MinMaxBounds.Ints.ANY, predicate, Collections.emptyMap()));
         }
     }
 
@@ -58,16 +57,18 @@ public abstract class CraftContainer<T extends BaseContainerBlockEntity> extends
         }
     }
 
+    // Paper start
     @Override
     public net.kyori.adventure.text.Component customName() {
-        final T blockEntity = this.getSnapshot();
-        return blockEntity.hasCustomName() ? io.papermc.paper.adventure.PaperAdventure.asAdventure(blockEntity.getCustomName()) : null;
+        final T be = this.getSnapshot();
+        return be.hasCustomName() ? io.papermc.paper.adventure.PaperAdventure.asAdventure(be.getCustomName()) : null;
     }
 
     @Override
     public void customName(final net.kyori.adventure.text.Component customName) {
-        this.getSnapshot().name = customName != null ? io.papermc.paper.adventure.PaperAdventure.asVanilla(customName) : null;
+        this.getSnapshot().name = (customName != null ? io.papermc.paper.adventure.PaperAdventure.asVanilla(customName) : null);
     }
+    // Paper end
 
     @Override
     public String getCustomName() {
@@ -81,11 +82,11 @@ public abstract class CraftContainer<T extends BaseContainerBlockEntity> extends
     }
 
     @Override
-    public void applyTo(T blockEntity) {
-        super.applyTo(blockEntity);
+    public void applyTo(T container) {
+        super.applyTo(container);
 
         if (this.getSnapshot().name == null) {
-            blockEntity.name = null;
+            container.name = null;
         }
     }
 

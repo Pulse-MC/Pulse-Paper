@@ -32,7 +32,6 @@ import org.slf4j.Logger;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.TextColor.color;
 import static io.papermc.paper.ServerBuildInfo.StringRepresentation.VERSION_SIMPLE;
-// PULSE_MIDIFIED
 
 @DefaultQualifier(NonNull.class)
 public class PaperVersionFetcher implements VersionFetcher {
@@ -56,8 +55,10 @@ public class PaperVersionFetcher implements VersionFetcher {
         return 720000;
     }
 
+    // --- ИСПРАВЛЕНИЕ ДЛЯ 1.21.4 ---
+    // Добавлен аргумент String serverVersion, чтобы метод соответствовал интерфейсу версии 1.21.4
     @Override
-    public Component getVersionMessage() {
+    public Component getVersionMessage(String serverVersion) {
         final Component updateMessage;
         if (BUILD_INFO.buildNumber().isEmpty()) {
             updateMessage = text("You are running a custom version without access to version information", color(0xFF5300));

@@ -1,5 +1,6 @@
 package org.bukkit.craftbukkit;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
@@ -12,8 +13,6 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.Lifecycle;
-import io.papermc.paper.configuration.PaperServerConfiguration;
-import io.papermc.paper.configuration.ServerConfiguration;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -23,7 +22,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -42,8 +40,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+// import jline.console.ConsoleReader;
 import net.minecraft.Optionull;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.commands.CommandSourceStack;
@@ -91,7 +88,6 @@ import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.MapItem;
-import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -116,12 +112,13 @@ import net.minecraft.world.level.storage.PlayerDataStorage;
 import net.minecraft.world.level.storage.PrimaryLevelData;
 import net.minecraft.world.level.validation.ContentValidationException;
 import net.minecraft.world.phys.Vec3;
-import org.apache.commons.lang3.StringUtils;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Keyed;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Registry;
@@ -199,7 +196,6 @@ import org.bukkit.craftbukkit.tag.CraftBlockTag;
 import org.bukkit.craftbukkit.tag.CraftDamageTag;
 import org.bukkit.craftbukkit.tag.CraftEntityTag;
 import org.bukkit.craftbukkit.tag.CraftFluidTag;
-import org.bukkit.craftbukkit.tag.CraftGameEventTag;
 import org.bukkit.craftbukkit.tag.CraftItemTag;
 import org.bukkit.craftbukkit.util.ApiVersion;
 import org.bukkit.craftbukkit.util.CraftChatMessage;
@@ -208,6 +204,7 @@ import org.bukkit.craftbukkit.util.CraftLocation;
 import org.bukkit.craftbukkit.util.CraftMagicNumbers;
 import org.bukkit.craftbukkit.util.CraftNamespacedKey;
 import org.bukkit.craftbukkit.util.CraftSpawnCategory;
+import org.bukkit.craftbukkit.util.DatFileFilter;
 import org.bukkit.craftbukkit.util.Versioning;
 import org.bukkit.craftbukkit.util.permissions.CraftDefaultPermissions;
 import org.bukkit.entity.Entity;
@@ -264,7 +261,6 @@ import org.bukkit.structure.StructureManager;
 import org.bukkit.util.StringUtil;
 import org.bukkit.util.permissions.DefaultPermissions;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
@@ -272,8 +268,11 @@ import org.yaml.snakeyaml.error.MarkedYAMLException;
 
 import net.md_5.bungee.api.chat.BaseComponent; // Spigot
 
+import javax.annotation.Nullable; // Paper
+import javax.annotation.Nonnull; // Paper
+
 public final class CraftServer implements Server {
-    private final String serverName = io.papermc.paper.ServerBuildInfo.buildInfo().brandName();
+    private final String serverName = io.papermc.paper.ServerBuildInfo.buildInfo().brandName(); // Paper
     private final String serverVersion;
     private final String bukkitVersion = Versioning.getBukkitVersion();
     private final Logger logger = Logger.getLogger("Minecraft");
@@ -283,11 +282,12 @@ public final class CraftServer implements Server {
     private final SimpleHelpMap helpMap = new SimpleHelpMap(this);
     private final StandardMessenger messenger = new StandardMessenger();
     private final SimplePluginManager pluginManager; // Paper - Move down
-    public final io.papermc.paper.plugin.manager.PaperPluginManagerImpl paperPluginManager;
+    public final io.papermc.paper.plugin.manager.PaperPluginManagerImpl paperPluginManager; // Paper
     private final StructureManager structureManager;
-    final DedicatedServer console;
-    private final DedicatedPlayerList playerList;
-    private final Map<String, World> worlds = new LinkedHashMap<>();
+    protected final DedicatedServer console;
+    protected final DedicatedPlayerList playerList;
+    private final Map<String, World> worlds = new LinkedHashMap<String, World>();
+    // private final Map<Class<?>, Registry<?>> registries = new HashMap<>(); // Paper - replace with RegistryAccess
     private YamlConfiguration configuration;
     private YamlConfiguration commandsConfiguration;
     private final Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
@@ -301,8 +301,9 @@ public final class CraftServer implements Server {
     public ApiVersion minimumAPI;
     public CraftScoreboardManager scoreboardManager;
     public CraftDataPackManager dataPackManager;
-    private final CraftServerTickManager serverTickManager;
-    private final CraftServerLinks serverLinks;
+    private CraftServerTickManager serverTickManager;
+    private CraftServerLinks serverLinks;
+    public boolean playerCommandState;
     private boolean printSaveWarning;
     private CraftIconCache icon;
     private boolean overrideAllCommandBlockCommands = false;
@@ -310,12 +311,11 @@ public final class CraftServer implements Server {
     private final List<CraftPlayer> playerView;
     public int reloadCount;
     public Set<String> activeCompatibilities = Collections.emptySet();
-    private final io.papermc.paper.datapack.PaperDatapackManager datapackManager;
-    public static Exception excessiveVelEx;
-    private final io.papermc.paper.logging.SysoutCatcher sysoutCatcher = new io.papermc.paper.logging.SysoutCatcher();
-    private final io.papermc.paper.potion.PaperPotionBrewer potionBrewer;
-    public final io.papermc.paper.SparksFly spark;
-    private final ServerConfiguration serverConfig = new PaperServerConfiguration();
+    private final io.papermc.paper.datapack.PaperDatapackManager datapackManager; // Paper
+    public static Exception excessiveVelEx; // Paper - Velocity warnings
+    private final io.papermc.paper.logging.SysoutCatcher sysoutCatcher = new io.papermc.paper.logging.SysoutCatcher(); // Paper
+    private final io.papermc.paper.potion.PaperPotionBrewer potionBrewer; // Paper - Custom Potion Mixes
+    public final io.papermc.paper.SparksFly spark; // Paper - spark
 
     // Paper start - Folia region threading API
     private final io.papermc.paper.threadedregions.scheduler.FallbackRegionScheduler regionizedScheduler = new io.papermc.paper.threadedregions.scheduler.FallbackRegionScheduler();
@@ -438,9 +438,7 @@ public final class CraftServer implements Server {
 
         this.configuration = YamlConfiguration.loadConfiguration(this.getConfigFile());
         this.configuration.options().copyDefaults(true);
-        YamlConfiguration configurationDefaults = YamlConfiguration.loadConfiguration(new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream("configurations/bukkit.yml"), StandardCharsets.UTF_8));
-        this.configuration.setDefaults(configurationDefaults);
-        this.configuration.options().setHeader(configurationDefaults.options().getHeader());
+        this.configuration.setDefaults(YamlConfiguration.loadConfiguration(new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream("configurations/bukkit.yml"), Charsets.UTF_8)));
         ConfigurationSection legacyAlias = null;
         if (!this.configuration.isString("aliases")) {
             legacyAlias = this.configuration.getConfigurationSection("aliases");
@@ -453,18 +451,17 @@ public final class CraftServer implements Server {
         this.commandsConfiguration = YamlConfiguration.loadConfiguration(this.getCommandsConfigFile());
         this.commandsConfiguration.options().copyDefaults(true);
         // Paper start - don't enforce icanhasbukkit default if alias block exists
-        final YamlConfiguration commandsDefaults = YamlConfiguration.loadConfiguration(new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream("configurations/commands.yml"), StandardCharsets.UTF_8));
+        final YamlConfiguration commandsDefaults = YamlConfiguration.loadConfiguration(new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream("configurations/commands.yml"), Charsets.UTF_8));
         if (this.commandsConfiguration.contains("aliases")) commandsDefaults.set("aliases", null);
         this.commandsConfiguration.setDefaults(commandsDefaults);
         // Paper end - don't enforce icanhasbukkit default if alias block exists
-        this.commandsConfiguration.options().setHeader(commandsDefaults.options().getHeader());
         this.saveCommandsConfig();
 
         // Migrate aliases from old file and add previously implicit $1- to pass all arguments
         if (legacyAlias != null) {
             ConfigurationSection aliases = this.commandsConfiguration.createSection("aliases");
             for (String key : legacyAlias.getKeys(false)) {
-                List<String> commands = new ArrayList<>();
+                ArrayList<String> commands = new ArrayList<String>();
 
                 if (legacyAlias.isList(key)) {
                     for (String command : legacyAlias.getStringList(key)) {
@@ -484,7 +481,7 @@ public final class CraftServer implements Server {
         this.overrideSpawnLimits();
         console.autosavePeriod = this.configuration.getInt("ticks-per.autosave");
         this.warningState = WarningState.value(this.configuration.getString("settings.deprecated-verbose"));
-        TicketType.PLUGIN_TYPE_TIMEOUT = this.configuration.getInt("chunk-gc.period-in-ticks");
+        TicketType.PLUGIN.timeout = this.configuration.getInt("chunk-gc.period-in-ticks");
         this.minimumAPI = ApiVersion.getOrCreateVersion(this.configuration.getString("settings.minimum-api"));
         this.loadIcon();
         this.loadCompatibilities();
@@ -567,6 +564,7 @@ public final class CraftServer implements Server {
         io.papermc.paper.plugin.entrypoint.LaunchEntryPointHandler.INSTANCE.enter(io.papermc.paper.plugin.entrypoint.Entrypoint.PLUGIN); // Paper - replace implementation
     }
 
+    // Paper start
     @Override
     public File getPluginsFolder() {
         return this.console.getPluginsFolder();
@@ -593,6 +591,7 @@ public final class CraftServer implements Server {
         }
         return list;
     }
+    // Paper end
 
     public void enablePlugins(PluginLoadOrder type) {
         if (type == PluginLoadOrder.STARTUP) {
@@ -611,8 +610,11 @@ public final class CraftServer implements Server {
 
         if (type == PluginLoadOrder.POSTWORLD) {
             // Spigot start - Allow vanilla commands to be forced to be the main command
+            this.setVanillaCommands(true);
             this.commandMap.setFallbackCommands();
+            this.setVanillaCommands(false);
             // Spigot end
+            this.commandMap.registerServerAliases();
             DefaultPermissions.registerCorePermissions();
             CraftDefaultPermissions.registerCorePermissions();
             if (!io.papermc.paper.configuration.GlobalConfiguration.get().misc.loadPermissionsYmlBeforePlugins) this.loadCustomPermissions(); // Paper
@@ -623,6 +625,10 @@ public final class CraftServer implements Server {
 
     public void disablePlugins() {
         this.pluginManager.disablePlugins();
+    }
+
+    private void setVanillaCommands(boolean first) { // Spigot
+        // Paper - Replace implementation
     }
 
     public void syncCommands() {
@@ -670,10 +676,12 @@ public final class CraftServer implements Server {
         return this.bukkitVersion;
     }
 
+    // Paper start - expose game version
     @Override
     public String getMinecraftVersion() {
-        return this.console.getServerVersion();
+        return console.getServerVersion();
     }
+    // Paper end
 
     @Override
     public List<CraftPlayer> getOnlinePlayers() {
@@ -725,6 +733,13 @@ public final class CraftServer implements Server {
         }
 
         return null;
+    }
+
+    @Override
+    @Deprecated // Paper start
+    public int broadcastMessage(String message) {
+        return this.broadcast(message, BROADCAST_CHANNEL_USERS);
+        // Paper end
     }
 
     @Override
@@ -973,38 +988,64 @@ public final class CraftServer implements Server {
         return this.playerList;
     }
 
+    // NOTE: Should only be called from DedicatedServer.ah()
+    public boolean dispatchServerCommand(CommandSender sender, ConsoleInput serverCommand) {
+        if (sender instanceof Conversable) {
+            Conversable conversable = (Conversable) sender;
+
+            if (conversable.isConversing()) {
+                conversable.acceptConversationInput(serverCommand.msg);
+                return true;
+            }
+        }
+        try {
+            this.playerCommandState = true;
+            return this.dispatchCommand(sender, serverCommand.msg);
+        } catch (Exception ex) {
+            this.getLogger().log(Level.WARNING, "Unexpected exception while parsing console command \"" + serverCommand.msg + '"', ex);
+            return false;
+        } finally {
+            this.playerCommandState = false;
+        }
+    }
+
     @Override
-    public boolean dispatchCommand(CommandSender rawSender, String commandLine) {
-        Preconditions.checkArgument(rawSender != null, "sender cannot be null");
+    public boolean dispatchCommand(CommandSender sender, String commandLine) {
+        Preconditions.checkArgument(sender != null, "sender cannot be null");
         Preconditions.checkArgument(commandLine != null, "commandLine cannot be null");
         org.spigotmc.AsyncCatcher.catchOp("Command Dispatched Async: " + commandLine); // Spigot // Paper - Include command in error message
-        CommandSourceStack sourceStack = VanillaCommandWrapper.getListener(rawSender);
 
-        String command = StringUtils.normalizeSpace(commandLine.trim());
-        
+        if (this.commandMap.dispatch(sender, commandLine)) {
+            return true;
+        }
+
+        return this.dispatchCommand(VanillaCommandWrapper.getListener(sender), commandLine);
+    }
+
+    public boolean dispatchCommand(CommandSourceStack sourceStack, String commandLine) {
         net.minecraft.commands.Commands commands = this.getHandle().getServer().getCommands();
         com.mojang.brigadier.CommandDispatcher<CommandSourceStack> dispatcher = commands.getDispatcher();
-        com.mojang.brigadier.ParseResults<CommandSourceStack> results = dispatcher.parse(command, sourceStack);
+        com.mojang.brigadier.ParseResults<CommandSourceStack> results = dispatcher.parse(commandLine, sourceStack);
 
         CommandSender sender = sourceStack.getBukkitSender();
-        String[] args = org.apache.commons.lang3.StringUtils.split(command, ' '); // Paper - fix adjacent spaces (from console/plugins) causing empty array elements
+        String[] args = org.apache.commons.lang3.StringUtils.split(commandLine, ' '); // Paper - fix adjacent spaces (from console/plugins) causing empty array elements
         Command target = this.commandMap.getCommand(args[0].toLowerCase(java.util.Locale.ENGLISH));
 
         try {
-            if (results.getContext().getNodes().isEmpty()) {
-                return false;
-            }
-            Commands.validateParseResults(results);
-            commands.performCommand(results, command, true);
-            return true;
+            commands.performCommand(results, commandLine, commandLine, true);
         } catch (CommandException ex) {
-            new com.destroystokyo.paper.event.server.ServerExceptionEvent(new com.destroystokyo.paper.exception.ServerCommandException(ex, target, sender, args)).callEvent(); // Paper
+            this.pluginManager.callEvent(new com.destroystokyo.paper.event.server.ServerExceptionEvent(new com.destroystokyo.paper.exception.ServerCommandException(ex, target, sender, args))); // Paper
+            //target.timings.stopTiming(); // Spigot // Paper
             throw ex;
         } catch (Throwable ex) {
-            String msg = "Unhandled exception executing '" + command + "' in " + target;
-            new com.destroystokyo.paper.event.server.ServerExceptionEvent(new com.destroystokyo.paper.exception.ServerCommandException(ex, target, sender, args)).callEvent(); // Paper
+            //target.timings.stopTiming(); // Spigot // Paper
+            String msg = "Unhandled exception executing '" + commandLine + "' in " + target;
+            this.pluginManager.callEvent(new com.destroystokyo.paper.event.server.ServerExceptionEvent(new com.destroystokyo.paper.exception.ServerCommandException(ex, target, sender, args))); // Paper
             throw new CommandException(msg, ex);
         }
+        // Paper end
+
+        return false;
     }
 
     @Override
@@ -1027,7 +1068,7 @@ public final class CraftServer implements Server {
         this.console.setMotd(config.motd);
         this.overrideSpawnLimits();
         this.warningState = WarningState.value(this.configuration.getString("settings.deprecated-verbose"));
-        TicketType.PLUGIN_TYPE_TIMEOUT = this.configuration.getInt("chunk-gc.period-in-ticks");
+        TicketType.PLUGIN.timeout = this.configuration.getInt("chunk-gc.period-in-ticks");
         this.minimumAPI = ApiVersion.getOrCreateVersion(this.configuration.getString("settings.minimum-api"));
         this.printSaveWarning = false;
         this.console.autosavePeriod = this.configuration.getInt("ticks-per.autosave");
@@ -1116,7 +1157,7 @@ public final class CraftServer implements Server {
         this.helpMap.initializeCommands();
         this.syncCommands(); // Refresh commands after event
         // Paper end - brigadier command API
-        new ServerLoadEvent(ServerLoadEvent.LoadType.RELOAD).callEvent();
+        this.getPluginManager().callEvent(new ServerLoadEvent(ServerLoadEvent.LoadType.RELOAD));
         org.spigotmc.WatchdogThread.hasStarted = true; // Paper - Disable watchdog early timeout on reload
     }
 
@@ -1193,7 +1234,7 @@ public final class CraftServer implements Server {
         Map<String, Map<String, Object>> perms;
 
         try {
-            perms = this.yaml.load(stream);
+            perms = (Map<String, Map<String, Object>>) this.yaml.load(stream);
         } catch (MarkedYAMLException ex) {
             this.getLogger().log(Level.WARNING, "Server permissions file " + file + " is not valid YAML: " + ex.toString());
             return;
@@ -1225,6 +1266,22 @@ public final class CraftServer implements Server {
     @Override
     public String toString() {
         return "CraftServer{" + "serverName=" + this.serverName + ",serverVersion=" + this.serverVersion + ",minecraftVersion=" + this.console.getServerVersion() + '}';
+    }
+
+    public World createWorld(String name, World.Environment environment) {
+        return WorldCreator.name(name).environment(environment).createWorld();
+    }
+
+    public World createWorld(String name, World.Environment environment, long seed) {
+        return WorldCreator.name(name).environment(environment).seed(seed).createWorld();
+    }
+
+    public World createWorld(String name, Environment environment, ChunkGenerator generator) {
+        return WorldCreator.name(name).environment(environment).generator(generator).createWorld();
+    }
+
+    public World createWorld(String name, Environment environment, long seed, ChunkGenerator generator) {
+        return WorldCreator.name(name).environment(environment).seed(seed).generator(generator).createWorld();
     }
 
     @Override
@@ -1329,7 +1386,7 @@ public final class CraftServer implements Server {
             registryAccess = levelDataAndDimensions.dimensions().dimensionsRegistryAccess();
         } else {
             LevelSettings levelSettings;
-            WorldOptions worldOptions = new WorldOptions(creator.seed(), creator.generateStructures(), creator.bonusChest());
+            WorldOptions worldOptions = new WorldOptions(creator.seed(), creator.generateStructures(), false);
             WorldDimensions worldDimensions;
 
             DedicatedServerProperties.WorldDimensionData properties = new DedicatedServerProperties.WorldDimensionData(GsonHelper.parse((creator.generatorSettings().isEmpty()) ? "{}" : creator.generatorSettings()), creator.type().name().toLowerCase(Locale.ROOT));
@@ -1356,7 +1413,7 @@ public final class CraftServer implements Server {
         primaryLevelData.setModdedInfo(this.console.getServerModName(), this.console.getModdedStatus().shouldReportAsModified());
 
         if (this.console.options.has("forceUpgrade")) {
-            net.minecraft.server.Main.forceUpgrade(levelStorageAccess, primaryLevelData, DataFixers.getDataFixer(), this.console.options.has("eraseCache"), () -> true, registryAccess, this.console.options.has("recreateRegionFiles"));
+            net.minecraft.server.Main.forceUpgrade(levelStorageAccess, DataFixers.getDataFixer(), this.console.options.has("eraseCache"), () -> true, registryAccess, this.console.options.has("recreateRegionFiles"));
         }
 
         long i = BiomeManager.obfuscateSeed(primaryLevelData.worldGenOptions().seed());
@@ -1415,7 +1472,7 @@ public final class CraftServer implements Server {
         this.getServer().prepareLevels(serverLevel.getChunkSource().chunkMap.progressListener, serverLevel);
         io.papermc.paper.FeatureHooks.tickEntityManager(serverLevel); // SPIGOT-6526: Load pending entities so they are available to the API // Paper - chunk system
 
-        new WorldLoadEvent(serverLevel.getWorld()).callEvent();
+        this.pluginManager.callEvent(new WorldLoadEvent(serverLevel.getWorld()));
         return serverLevel.getWorld();
     }
 
@@ -1441,12 +1498,14 @@ public final class CraftServer implements Server {
             return false;
         }
 
-        if (!handle.players().isEmpty()) {
+        if (handle.players().size() > 0) {
             return false;
         }
 
-        WorldUnloadEvent event = new WorldUnloadEvent(handle.getWorld());
-        if (!event.callEvent()) {
+        WorldUnloadEvent e = new WorldUnloadEvent(handle.getWorld());
+        this.pluginManager.callEvent(e);
+
+        if (e.isCancelled()) {
             return false;
         }
 
@@ -1488,12 +1547,14 @@ public final class CraftServer implements Server {
         return null;
     }
 
+    // Paper start
     @Override
     public World getWorld(net.kyori.adventure.key.Key worldKey) {
-        ServerLevel level = console.getLevel(ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, io.papermc.paper.adventure.PaperAdventure.asVanilla(worldKey)));
-        if (level == null) return null;
-        return level.getWorld();
+        ServerLevel worldServer = console.getLevel(ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, io.papermc.paper.adventure.PaperAdventure.asVanilla(worldKey)));
+        if (worldServer == null) return null;
+        return worldServer.getWorld();
     }
+    // Paper end
 
     public void addWorld(World world) {
         // Check if a World already exists with the UID.
@@ -1513,6 +1574,14 @@ public final class CraftServer implements Server {
     public Logger getLogger() {
         return this.logger;
     }
+
+    // Paper start - JLine update
+    /*
+    public ConsoleReader getReader() {
+        return this.console.reader;
+    }
+    */
+    // Paper end
 
     @Override
     public PluginCommand getPluginCommand(String name) {
@@ -1583,7 +1652,7 @@ public final class CraftServer implements Server {
     public List<Recipe> getRecipesFor(ItemStack result) {
         Preconditions.checkArgument(result != null, "ItemStack cannot be null");
 
-        List<Recipe> results = new ArrayList<>();
+        List<Recipe> results = new ArrayList<Recipe>();
         Iterator<Recipe> iter = this.recipeIterator();
         while (iter.hasNext()) {
             Recipe recipe = iter.next();
@@ -1605,7 +1674,7 @@ public final class CraftServer implements Server {
         return this.getServer().getRecipeManager().byKey(CraftRecipe.toMinecraft(recipeKey)).map(RecipeHolder::toBukkitRecipe).orElse(null);
     }
 
-    private CraftingContainer createCraftingContainer() {
+    private CraftingContainer createInventoryCrafting() {
         // Create a players Crafting Inventory
         AbstractContainerMenu container = new AbstractContainerMenu(null, -1) {
             @Override
@@ -1623,13 +1692,13 @@ public final class CraftServer implements Server {
                 return net.minecraft.world.item.ItemStack.EMPTY;
             }
         };
-
-        return new TransientCraftingContainer(container, 3, 3);
+        CraftingContainer inventoryCrafting = new TransientCraftingContainer(container, 3, 3);
+        return inventoryCrafting;
     }
 
     @Override
     public Recipe getCraftingRecipe(ItemStack[] craftingMatrix, World world) {
-        return this.getNMSRecipe(craftingMatrix, this.createCraftingContainer(), (CraftWorld) world).map(RecipeHolder::toBukkitRecipe).orElse(null);
+        return this.getNMSRecipe(craftingMatrix, this.createInventoryCrafting(), (CraftWorld) world).map(RecipeHolder::toBukkitRecipe).orElse(null);
     }
 
     @Override
@@ -1647,26 +1716,26 @@ public final class CraftServer implements Server {
 
         // Create a players Crafting Inventory and get the recipe
         CraftingMenu container = new CraftingMenu(-1, craftPlayer.getHandle().getInventory());
-        CraftingContainer craftingContainer = container.craftSlots;
+        CraftingContainer inventoryCrafting = container.craftSlots;
         ResultContainer craftResult = container.resultSlots;
 
-        Optional<RecipeHolder<CraftingRecipe>> recipe = this.getNMSRecipe(craftingMatrix, craftingContainer, craftWorld);
+        Optional<RecipeHolder<CraftingRecipe>> recipe = this.getNMSRecipe(craftingMatrix, inventoryCrafting, craftWorld);
 
         // Generate the resulting ItemStack from the Crafting Matrix
         net.minecraft.world.item.ItemStack itemstack = net.minecraft.world.item.ItemStack.EMPTY;
 
         if (recipe.isPresent()) {
             RecipeHolder<CraftingRecipe> recipeCrafting = recipe.get();
-            craftingContainer.setCurrentRecipe(recipeCrafting);
+            inventoryCrafting.setCurrentRecipe(recipeCrafting);
             if (craftResult.setRecipeUsed(craftPlayer.getHandle(), recipeCrafting)) {
-                itemstack = recipeCrafting.value().assemble(craftingContainer.asCraftInput(), craftWorld.getHandle().registryAccess());
+                itemstack = recipeCrafting.value().assemble(inventoryCrafting.asCraftInput(), craftWorld.getHandle().registryAccess());
             }
         }
 
         // Call Bukkit event to check for matrix/result changes.
-        net.minecraft.world.item.ItemStack result = CraftEventFactory.callPreCraftEvent(craftingContainer, craftResult, itemstack, container.getBukkitView(), recipe.map(RecipeHolder::value).orElse(null) instanceof RepairItemRecipe);
+        net.minecraft.world.item.ItemStack result = CraftEventFactory.callPreCraftEvent(inventoryCrafting, craftResult, itemstack, container.getBukkitView(), recipe.map(RecipeHolder::value).orElse(null) instanceof RepairItemRecipe);
 
-        return this.createItemCraftResult(recipe, CraftItemStack.asBukkitCopy(result), craftingContainer);
+        return this.createItemCraftResult(recipe, CraftItemStack.asBukkitCopy(result), inventoryCrafting, craftWorld.getHandle());
     }
 
     @Override
@@ -1681,47 +1750,41 @@ public final class CraftServer implements Server {
         CraftWorld craftWorld = (CraftWorld) world;
 
         // Create a players Crafting Inventory and get the recipe
-        CraftingContainer craftingContainer = this.createCraftingContainer();
+        CraftingContainer inventoryCrafting = this.createInventoryCrafting();
 
-        Optional<RecipeHolder<CraftingRecipe>> recipe = this.getNMSRecipe(craftingMatrix, craftingContainer, craftWorld);
+        Optional<RecipeHolder<CraftingRecipe>> recipe = this.getNMSRecipe(craftingMatrix, inventoryCrafting, craftWorld);
 
         // Generate the resulting ItemStack from the Crafting Matrix
         net.minecraft.world.item.ItemStack itemStack = net.minecraft.world.item.ItemStack.EMPTY;
 
         if (recipe.isPresent()) {
-            itemStack = recipe.get().value().assemble(craftingContainer.asCraftInput(), craftWorld.getHandle().registryAccess());
+            itemStack = recipe.get().value().assemble(inventoryCrafting.asCraftInput(), craftWorld.getHandle().registryAccess());
         }
 
-        return this.createItemCraftResult(recipe, CraftItemStack.asBukkitCopy(itemStack), craftingContainer);
+        return this.createItemCraftResult(recipe, CraftItemStack.asBukkitCopy(itemStack), inventoryCrafting, craftWorld.getHandle());
     }
 
-    private CraftItemCraftResult createItemCraftResult(Optional<RecipeHolder<CraftingRecipe>> recipe, ItemStack itemStack, CraftingContainer inventoryCrafting) {
+    private CraftItemCraftResult createItemCraftResult(Optional<RecipeHolder<CraftingRecipe>> recipe, ItemStack itemStack, CraftingContainer inventoryCrafting, ServerLevel worldServer) {
         CraftItemCraftResult craftItemResult = new CraftItemCraftResult(itemStack);
-        // tl;dr: this is an API adopted implementation of ResultSlot#onTake
-        final CraftingInput.Positioned positionedCraftInput = inventoryCrafting.asPositionedCraftInput();
-        final CraftingInput craftingInput = positionedCraftInput.input();
-        recipe.map((holder) -> holder.value().getRemainingItems(craftingInput)).ifPresent((remainingItems) -> {
+        recipe.map((holder) -> holder.value().getRemainingItems(inventoryCrafting.asCraftInput())).ifPresent((remainingItems) -> {
             // Set the resulting matrix items and overflow items
-            for (int height = 0; height < craftingInput.height(); height++) {
-                for (int width = 0; width < craftingInput.width(); width++) {
-                    final int inventorySlot = width + positionedCraftInput.left() + (height + positionedCraftInput.top()) * inventoryCrafting.getWidth();
-                    net.minecraft.world.item.ItemStack itemInMenu = inventoryCrafting.getItem(inventorySlot);
-                    net.minecraft.world.item.ItemStack remainingItem = remainingItems.get(width + height * craftingInput.width());
+            for (int i = 0; i < remainingItems.size(); ++i) {
+                net.minecraft.world.item.ItemStack itemstack1 = inventoryCrafting.getItem(i);
+                net.minecraft.world.item.ItemStack itemstack2 = (net.minecraft.world.item.ItemStack) remainingItems.get(i);
 
-                    if (!itemInMenu.isEmpty()) {
-                        inventoryCrafting.removeItem(inventorySlot, 1);
-                        itemInMenu = inventoryCrafting.getItem(inventorySlot);
-                    }
+                if (!itemstack1.isEmpty()) {
+                    inventoryCrafting.removeItem(i, 1);
+                    itemstack1 = inventoryCrafting.getItem(i);
+                }
 
-                    if (!remainingItem.isEmpty()) {
-                        if (itemInMenu.isEmpty()) {
-                            inventoryCrafting.setItem(inventorySlot, remainingItem);
-                        } else if (net.minecraft.world.item.ItemStack.isSameItemSameComponents(itemInMenu, remainingItem)) {
-                            remainingItem.grow(itemInMenu.getCount());
-                            inventoryCrafting.setItem(inventorySlot, remainingItem);
-                        } else {
-                            craftItemResult.getOverflowItems().add(CraftItemStack.asBukkitCopy(remainingItem));
-                        }
+                if (!itemstack2.isEmpty()) {
+                    if (itemstack1.isEmpty()) {
+                        inventoryCrafting.setItem(i, itemstack2);
+                    } else if (net.minecraft.world.item.ItemStack.isSameItemSameComponents(itemstack1, itemstack2)) {
+                        itemstack2.grow(itemstack1.getCount());
+                        inventoryCrafting.setItem(i, itemstack2);
+                    } else {
+                        craftItemResult.getOverflowItems().add(CraftItemStack.asBukkitCopy(itemstack2));
                     }
                 }
             }
@@ -1785,7 +1848,7 @@ public final class CraftServer implements Server {
     @Override
     public Map<String, String[]> getCommandAliases() {
         ConfigurationSection section = this.commandsConfiguration.getConfigurationSection("aliases");
-        Map<String, String[]> result = new LinkedHashMap<>();
+        Map<String, String[]> result = new LinkedHashMap<String, String[]>();
 
         if (section != null) {
             for (String key : section.getKeys(false)) {
@@ -1848,11 +1911,6 @@ public final class CraftServer implements Server {
     }
 
     @Override
-    public @NotNull ServerConfiguration getServerConfig() {
-        return serverConfig;
-    }
-
-    @Override
     public boolean getAllowFlight() {
         return this.console.isFlightAllowed();
     }
@@ -1872,7 +1930,7 @@ public final class CraftServer implements Server {
             if (section != null) {
                 String name = section.getString("generator");
 
-                if (name != null && !name.isEmpty()) {
+                if ((name != null) && (!name.equals(""))) {
                     String[] split = name.split(":", 2);
                     String id = (split.length > 1) ? split[1] : null;
                     Plugin plugin = this.pluginManager.getPlugin(split[0]);
@@ -1908,7 +1966,7 @@ public final class CraftServer implements Server {
             if (section != null) {
                 String name = section.getString("biome-provider");
 
-                if (name != null && !name.isEmpty()) {
+                if ((name != null) && (!name.equals(""))) {
                     String[] split = name.split(":", 2);
                     String id = (split.length > 1) ? split[1] : null;
                     Plugin plugin = this.pluginManager.getPlugin(split[0]);
@@ -1935,25 +1993,24 @@ public final class CraftServer implements Server {
     }
 
     @Override
+    @Deprecated
     public CraftMapView getMap(int id) {
-        final net.minecraft.world.level.Level overworld = this.console.overworld();
-        if (overworld == null) return null;
-
-        final MapItemSavedData mapData = overworld.getMapData(new MapId(id));
-        if (mapData == null) return null;
-
-        return mapData.mapView;
+        MapItemSavedData worldmap = this.console.getLevel(net.minecraft.world.level.Level.OVERWORLD).getMapData(new MapId(id));
+        if (worldmap == null) {
+            return null;
+        }
+        return worldmap.mapView;
     }
 
     @Override
     public CraftMapView createMap(World world) {
         Preconditions.checkArgument(world != null, "World cannot be null");
 
-        ServerLevel level = ((CraftWorld) world).getHandle();
-        // creates a new map at world spawn with the scale of 3, without tracking position and unlimited tracking
-        BlockPos spawn = level.getLevelData().getSpawnPos();
-        MapId newId = MapItem.createNewSavedData(level, spawn.getX(), spawn.getZ(), 3, false, false, level.dimension());
-        return level.getMapData(newId).mapView;
+        net.minecraft.world.level.Level minecraftWorld = ((CraftWorld) world).getHandle();
+        // creates a new map at world spawn with the scale of 3, with out tracking position and unlimited tracking
+        BlockPos spawn = minecraftWorld.getLevelData().getSpawnPos();
+        MapId newId = MapItem.createNewSavedData(minecraftWorld, spawn.getX(), spawn.getZ(), 3, false, false, minecraftWorld.dimension());
+        return minecraftWorld.getMapData(newId).mapView;
     }
 
     @Override
@@ -1967,22 +2024,23 @@ public final class CraftServer implements Server {
         Preconditions.checkArgument(structureType != null, "StructureType cannot be null");
         Preconditions.checkArgument(structureType.getMapIcon() != null, "Cannot create explorer maps for StructureType %s", structureType.getName());
 
-        ServerLevel level = ((CraftWorld) world).getHandle();
+        ServerLevel worldServer = ((CraftWorld) world).getHandle();
         Location structureLocation = world.locateNearestStructure(location, structureType, radius, findUnexplored);
+        // Paper start - don't throw NPE
         if (structureLocation == null) {
             throw new IllegalStateException("Could not find a structure for " + structureType);
         }
-        BlockPos structurePos = CraftLocation.toBlockPosition(structureLocation);
+        // Paper end
+        BlockPos structurePosition = CraftLocation.toBlockPosition(structureLocation);
 
-        // Create map with trackingPosition = true, unlimitedTracking = true
-        net.minecraft.world.item.ItemStack stack = MapItem.create(level, structurePos.getX(), structurePos.getZ(), MapView.Scale.NORMAL.getValue(), true, true);
-        MapItem.renderBiomePreviewMap(level, stack);
-        // "+" map ID taken from VillagerTrades$TreasureMapForEmeralds
-        MapItemSavedData.addTargetDecoration(stack, structurePos, "+", CraftMapCursor.CraftType.bukkitToMinecraftHolder(structureType.getMapIcon()));
+        // Create map with trackPlayer = true, unlimitedTracking = true
+        net.minecraft.world.item.ItemStack stack = MapItem.create(worldServer, structurePosition.getX(), structurePosition.getZ(), MapView.Scale.NORMAL.getValue(), true, true);
+        MapItem.renderBiomePreviewMap(worldServer, stack);
+        // "+" map ID taken from EntityVillager
+        MapItem.getSavedData(stack, worldServer).addTargetDecoration(stack, structurePosition, "+", CraftMapCursor.CraftType.bukkitToMinecraftHolder(structureType.getMapIcon()));
 
         return CraftItemStack.asBukkitCopy(stack);
     }
-
     // Paper start - copied from above (uses un-deprecated StructureType type)
     @Override
     public ItemStack createExplorerMap(World world, Location location, org.bukkit.generator.structure.StructureType structureType, org.bukkit.map.MapCursor.Type mapIcon, int radius, boolean findUnexplored) {
@@ -1991,19 +2049,19 @@ public final class CraftServer implements Server {
         Preconditions.checkArgument(structureType != null, "StructureType cannot be null");
         Preconditions.checkArgument(mapIcon != null, "mapIcon cannot be null");
 
-        ServerLevel level = ((CraftWorld) world).getHandle();
+        ServerLevel worldServer = ((CraftWorld) world).getHandle();
         final org.bukkit.util.StructureSearchResult structureSearchResult = world.locateNearestStructure(location, structureType, radius, findUnexplored);
         if (structureSearchResult == null) {
             return null;
         }
         Location structureLocation = structureSearchResult.getLocation();
-        BlockPos structurePos = new BlockPos(structureLocation.getBlockX(), structureLocation.getBlockY(), structureLocation.getBlockZ());
+        BlockPos structurePosition = new BlockPos(structureLocation.getBlockX(), structureLocation.getBlockY(), structureLocation.getBlockZ());
 
-        // Create map with trackingPosition = true, unlimitedTracking = true
-        net.minecraft.world.item.ItemStack stack = MapItem.create(level, structurePos.getX(), structurePos.getZ(), MapView.Scale.NORMAL.getValue(), true, true);
-        MapItem.renderBiomePreviewMap(level, stack);
+        // Create map with showIcons = true, unlimitedTracking = true
+        net.minecraft.world.item.ItemStack stack = MapItem.create(worldServer, structurePosition.getX(), structurePosition.getZ(), MapView.Scale.NORMAL.getValue(), true, true);
+        MapItem.renderBiomePreviewMap(worldServer, stack);
         // "+" map ID taken from VillagerTrades$TreasureMapForEmeralds
-        MapItemSavedData.addTargetDecoration(stack, structurePos, "+", CraftMapCursor.CraftType.bukkitToMinecraftHolder(mapIcon));
+        MapItem.getSavedData(stack, worldServer).addTargetDecoration(stack, structurePosition, "+", CraftMapCursor.CraftType.bukkitToMinecraftHolder(mapIcon));
 
         return CraftItemStack.asBukkitCopy(stack);
     }
@@ -2015,7 +2073,20 @@ public final class CraftServer implements Server {
     }
 
     @Override
+    @Deprecated // Paper
+    public int broadcast(String message, String permission) {
+        // Paper start - Adventure
+        return this.broadcast(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(message), permission);
+    }
+
+    @Override
+    public int broadcast(net.kyori.adventure.text.Component message) {
+        return this.broadcast(message, BROADCAST_CHANNEL_USERS);
+    }
+
+    @Override
     public int broadcast(net.kyori.adventure.text.Component message, String permission) {
+        // Paper end
         Set<CommandSender> recipients = new HashSet<>();
         for (Permissible permissible : this.getPluginManager().getPermissionSubscriptions(permission)) {
             if (permissible instanceof CommandSender && !(permissible instanceof org.bukkit.command.BlockCommandSender) && permissible.hasPermission(permission)) { // Paper - Don't broadcast messages to command blocks
@@ -2024,7 +2095,9 @@ public final class CraftServer implements Server {
         }
 
         BroadcastMessageEvent broadcastMessageEvent = new BroadcastMessageEvent(!Bukkit.isPrimaryThread(), message, recipients); // Paper - Adventure
-        if (!broadcastMessageEvent.callEvent()) {
+        this.getPluginManager().callEvent(broadcastMessageEvent);
+
+        if (broadcastMessageEvent.isCancelled()) {
             return 0;
         }
 
@@ -2037,7 +2110,8 @@ public final class CraftServer implements Server {
         return recipients.size();
     }
 
-    @Override
+    // Paper start
+    @Nullable
     public UUID getPlayerUniqueId(String name) {
         Player player = Bukkit.getPlayerExact(name);
         if (player != null) {
@@ -2049,10 +2123,11 @@ public final class CraftServer implements Server {
             profile = console.getProfileCache().get(name).orElse(null);
         } else {
             // Make an OfflinePlayer using an offline mode UUID since the name has no profile
-            profile = new GameProfile(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(StandardCharsets.UTF_8)), name);
+            profile = new GameProfile(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(Charsets.UTF_8)), name);
         }
         return profile != null ? profile.getId() : null;
     }
+    // Paper end
 
     @Override
     @Deprecated
@@ -2071,7 +2146,7 @@ public final class CraftServer implements Server {
 
             if (profile == null) {
                 // Make an OfflinePlayer using an offline mode UUID since the name has no profile
-                result = this.getOfflinePlayer(new GameProfile(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(StandardCharsets.UTF_8)), name));
+                result = this.getOfflinePlayer(new GameProfile(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(Charsets.UTF_8)), name));
             } else {
                 // Use the GameProfile even when we get a UUID so we ensure we still have a name
                 result = this.getOfflinePlayer(profile);
@@ -2083,6 +2158,7 @@ public final class CraftServer implements Server {
         return result;
     }
 
+    // Paper start
     @Override
     @Nullable
     public OfflinePlayer getOfflinePlayerIfCached(String name) {
@@ -2091,17 +2167,18 @@ public final class CraftServer implements Server {
 
         OfflinePlayer result = getPlayerExact(name);
         if (result == null) {
-            GameProfile profile = this.console.getProfileCache().getProfileIfCached(name);
+            GameProfile profile = console.getProfileCache().getProfileIfCached(name);
 
             if (profile != null) {
                 result = getOfflinePlayer(profile);
             }
         } else {
-            this.offlinePlayers.remove(result.getUniqueId());
+            offlinePlayers.remove(result.getUniqueId());
         }
 
         return result;
     }
+    // Paper end
 
     @Override
     public OfflinePlayer getOfflinePlayer(UUID id) {
@@ -2143,6 +2220,7 @@ public final class CraftServer implements Server {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Set<String> getIPBans() {
         return this.playerList.getIpBans().getEntries().stream().map(IpBanListEntry::getUser).collect(Collectors.toSet());
     }
@@ -2177,7 +2255,7 @@ public final class CraftServer implements Server {
 
     @Override
     public Set<OfflinePlayer> getBannedPlayers() {
-        Set<OfflinePlayer> result = new HashSet<>();
+        Set<OfflinePlayer> result = new HashSet<OfflinePlayer>();
 
         for (UserBanListEntry entry : this.playerList.getBans().getEntries()) {
             result.add(this.getOfflinePlayer(entry.getUser()));
@@ -2196,6 +2274,7 @@ public final class CraftServer implements Server {
         };
     }
 
+    // Paper start - add BanListType (which has a generic)
     @SuppressWarnings("unchecked")
     @Override
     public <B extends BanList<E>, E> B getBanList(final io.papermc.paper.ban.BanListType<B> type) {
@@ -2208,6 +2287,7 @@ public final class CraftServer implements Server {
            throw new IllegalArgumentException("Unknown BanListType: " + type);
        }
     }
+    // Paper end - add BanListType (which has a generic)
 
     @Override
     public void setWhitelist(boolean value) {
@@ -2227,7 +2307,7 @@ public final class CraftServer implements Server {
 
     @Override
     public Set<OfflinePlayer> getWhitelistedPlayers() {
-        Set<OfflinePlayer> result = new LinkedHashSet<>();
+        Set<OfflinePlayer> result = new LinkedHashSet<OfflinePlayer>();
 
         for (UserWhiteListEntry entry : this.playerList.getWhiteList().getEntries()) {
             result.add(this.getOfflinePlayer(entry.getUser()));
@@ -2238,7 +2318,7 @@ public final class CraftServer implements Server {
 
     @Override
     public Set<OfflinePlayer> getOperators() {
-        Set<OfflinePlayer> result = new HashSet<>();
+        Set<OfflinePlayer> result = new HashSet<OfflinePlayer>();
 
         for (ServerOpListEntry entry : this.playerList.getOps().getEntries()) {
             result.add(this.getOfflinePlayer(entry.getUser()));
@@ -2271,19 +2351,16 @@ public final class CraftServer implements Server {
     }
 
     @Override
-    public boolean forcesDefaultGameMode() {
-        return this.console.getProperties().forceGameMode;
-    }
-
-    @Override
     public ConsoleCommandSender getConsoleSender() {
         return this.console.console;
     }
 
+    // Paper start
     @Override
     public CommandSender createCommandSender(final java.util.function.Consumer<? super net.kyori.adventure.text.Component> feedback) {
         return new io.papermc.paper.commands.FeedbackForwardingSender(feedback, this);
     }
+    // Paper end
 
     public EntityMetadataStore getEntityMetadata() {
         return this.entityMetadata;
@@ -2305,8 +2382,8 @@ public final class CraftServer implements Server {
     @Override
     public OfflinePlayer[] getOfflinePlayers() {
         PlayerDataStorage storage = this.console.playerDataStorage;
-        String[] files = storage.getPlayerDir().list((dir, name) -> name.endsWith(".dat"));
-        Set<OfflinePlayer> players = new HashSet<>();
+        String[] files = storage.getPlayerDir().list(new DatFileFilter());
+        Set<OfflinePlayer> players = new HashSet<OfflinePlayer>();
 
         for (String file : files) {
             try {
@@ -2337,7 +2414,7 @@ public final class CraftServer implements Server {
 
     @Override
     public Set<String> getListeningPluginChannels() {
-        Set<String> result = new HashSet<>();
+        Set<String> result = new HashSet<String>();
 
         for (Player player : this.getOnlinePlayers()) {
             result.addAll(player.getListeningPluginChannels());
@@ -2353,11 +2430,13 @@ public final class CraftServer implements Server {
         return CraftInventoryCreator.INSTANCE.createInventory(owner, type);
     }
 
+    // Paper start
     @Override
     public Inventory createInventory(InventoryHolder owner, InventoryType type, net.kyori.adventure.text.Component title) {
         Preconditions.checkArgument(type.isCreatable(), "Cannot open an inventory of type ", type);
         return CraftInventoryCreator.INSTANCE.createInventory(owner, type, title);
     }
+    // Paper end
 
     @Override
     public Inventory createInventory(InventoryHolder owner, InventoryType type, String title) {
@@ -2373,11 +2452,13 @@ public final class CraftServer implements Server {
         return CraftInventoryCreator.INSTANCE.createInventory(owner, size);
     }
 
+    // Paper start
     @Override
     public Inventory createInventory(InventoryHolder owner, int size, net.kyori.adventure.text.Component title) throws IllegalArgumentException {
         Preconditions.checkArgument(9 <= size && size <= 54 && size % 9 == 0, "Size for custom inventory must be a multiple of 9 between 9 and 54 slots (got " + size + ")");
         return CraftInventoryCreator.INSTANCE.createInventory(owner, size, title);
     }
+    // Paper end
 
     @Override
     public Inventory createInventory(InventoryHolder owner, int size, String title) throws IllegalArgumentException {
@@ -2385,11 +2466,12 @@ public final class CraftServer implements Server {
         return CraftInventoryCreator.INSTANCE.createInventory(owner, size, title);
     }
 
+    // Paper start
     @Override
     public Merchant createMerchant(net.kyori.adventure.text.Component title) {
         return new org.bukkit.craftbukkit.inventory.CraftMerchantCustom(title == null ? InventoryType.MERCHANT.defaultTitle() : title);
     }
-
+    // Paper end
     @Override
     @Deprecated // Paper
     public Merchant createMerchant(String title) {
@@ -2411,7 +2493,7 @@ public final class CraftServer implements Server {
         return this.helpMap;
     }
 
-    @Override
+    @Override // Paper - add override
     public SimpleCommandMap getCommandMap() {
         return this.commandMap;
     }
@@ -2454,12 +2536,13 @@ public final class CraftServer implements Server {
 
     @Override
     public int getSpawnLimit(SpawnCategory spawnCategory) {
+        // Paper start - Add mobcaps commands
         Preconditions.checkArgument(spawnCategory != null, "SpawnCategory cannot be null");
         Preconditions.checkArgument(CraftSpawnCategory.isValidForLimits(spawnCategory), "SpawnCategory." + spawnCategory + " does not have a spawn limit.");
         return this.getSpawnLimitUnsafe(spawnCategory);
     }
-
     public int getSpawnLimitUnsafe(final SpawnCategory spawnCategory) {
+        // Paper end - Add mobcaps commands
         return this.spawnCategoryLimit.getOrDefault(spawnCategory, -1);
     }
 
@@ -2468,15 +2551,16 @@ public final class CraftServer implements Server {
         return ca.spottedleaf.moonrise.common.util.TickThread.isTickThread(); // Paper - rewrite chunk system
     }
 
+    // Paper start - Adventure
     @Override
     public net.kyori.adventure.text.Component motd() {
         return this.console.motd();
     }
-
     @Override
     public void motd(final net.kyori.adventure.text.Component motd) {
         this.console.motd(motd);
     }
+    // Paper end
 
     @Override
     public String getMotd() {
@@ -2499,27 +2583,30 @@ public final class CraftServer implements Server {
     }
 
     public List<String> tabComplete(CommandSender sender, String message, ServerLevel world, Vec3 pos, boolean forceCommand) {
-        if (!(sender instanceof final Player player)) {
+        if (!(sender instanceof Player)) {
             return ImmutableList.of();
         }
 
         List<String> offers;
+        Player player = (Player) sender;
         if (message.startsWith("/") || forceCommand) {
             offers = this.tabCompleteCommand(player, message, world, pos);
         } else {
             offers = this.tabCompleteChat(player, message);
         }
 
-        TabCompleteEvent tabEvent = new TabCompleteEvent(player, message, offers, message.startsWith("/") || forceCommand, pos != null ? CraftLocation.toBukkit(BlockPos.containing(pos), ((CraftWorld) player.getWorld()).getHandle()) : null); // Paper - AsyncTabCompleteEvent
-        tabEvent.callEvent();
+        TabCompleteEvent tabEvent = new TabCompleteEvent(player, message, offers, message.startsWith("/") || forceCommand, pos != null ? io.papermc.paper.util.MCUtil.toLocation(((CraftWorld) player.getWorld()).getHandle(), BlockPos.containing(pos)) : null); // Paper - AsyncTabCompleteEvent
+        this.getPluginManager().callEvent(tabEvent);
 
-        return tabEvent.isCancelled() ? Collections.emptyList() : tabEvent.getCompletions();
+        return tabEvent.isCancelled() ? Collections.EMPTY_LIST : tabEvent.getCompletions();
     }
 
     public List<String> tabCompleteCommand(Player player, String message, ServerLevel world, Vec3 pos) {
+        // Spigot start
         if ((org.spigotmc.SpigotConfig.tabComplete < 0 || message.length() <= org.spigotmc.SpigotConfig.tabComplete) && !message.contains(" ")) {
             return ImmutableList.of();
         }
+        // Spigot end
 
         List<String> completions = null;
         try {
@@ -2533,7 +2620,7 @@ public final class CraftServer implements Server {
                 completions = this.getCommandMap().tabComplete(player, message, CraftLocation.toBukkit(pos, world.getWorld()));
             }
         } catch (CommandException ex) {
-            player.sendMessage(Component.text("An internal error occurred while attempting to tab-complete this command", NamedTextColor.RED));
+            player.sendMessage(ChatColor.RED + "An internal error occurred while attempting to tab-complete this command");
             this.getLogger().log(Level.SEVERE, "Exception when " + player.getName() + " attempted to tab complete " + message, ex);
         }
 
@@ -2541,7 +2628,7 @@ public final class CraftServer implements Server {
     }
 
     public List<String> tabCompleteChat(Player player, String message) {
-        List<String> completions = new ArrayList<>();
+        List<String> completions = new ArrayList<String>();
         PlayerChatTabCompleteEvent event = new PlayerChatTabCompleteEvent(player, message, completions);
         String token = event.getLastToken();
         for (Player p : this.getOnlinePlayers()) {
@@ -2549,7 +2636,7 @@ public final class CraftServer implements Server {
                 completions.add(p.getName());
             }
         }
-        event.callEvent();
+        this.pluginManager.callEvent(event);
 
         Iterator<?> it = completions.iterator();
         while (it.hasNext()) {
@@ -2559,7 +2646,7 @@ public final class CraftServer implements Server {
                 it.remove();
             }
         }
-        completions.sort(String.CASE_INSENSITIVE_ORDER);
+        Collections.sort(completions, String.CASE_INSENSITIVE_ORDER);
         return completions;
     }
 
@@ -2584,7 +2671,7 @@ public final class CraftServer implements Server {
     }
 
     public void checkSaveState() {
-        if (this.printSaveWarning || this.console.autosavePeriod <= 0) {
+        if (this.playerCommandState || this.printSaveWarning || this.console.autosavePeriod <= 0) {
             return;
         }
         this.printSaveWarning = true;
@@ -2617,10 +2704,10 @@ public final class CraftServer implements Server {
         Preconditions.checkArgument(image.getWidth() == 64, "BufferedImage must be 64 pixels wide (%s)", image.getWidth());
         Preconditions.checkArgument(image.getHeight() == 64, "BufferedImage must be 64 pixels high (%s)", image.getHeight());
 
-        ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
-        ImageIO.write(image, "PNG", arrayOutputStream);
+        ByteArrayOutputStream bytebuf = new ByteArrayOutputStream();
+        ImageIO.write(image, "PNG", bytebuf);
 
-        return new CraftIconCache(arrayOutputStream.toByteArray());
+        return new CraftIconCache(bytebuf.toByteArray());
     }
 
     @Override
@@ -2677,14 +2764,17 @@ public final class CraftServer implements Server {
 
     @Override
     public Iterator<KeyedBossBar> getBossBars() {
-        return Iterators.unmodifiableIterator(Iterators.transform(
-            this.getServer().getCustomBossEvents().getEvents().iterator(), CustomBossEvent::getBukkitEntity)
-        );
+        return Iterators.unmodifiableIterator(Iterators.transform(this.getServer().getCustomBossEvents().getEvents().iterator(), new Function<CustomBossEvent, org.bukkit.boss.KeyedBossBar>() {
+            @Override
+            public org.bukkit.boss.KeyedBossBar apply(CustomBossEvent bossBattleCustom) {
+                return bossBattleCustom.getBukkitEntity();
+            }
+        }));
     }
 
     @Override
     public KeyedBossBar getBossBar(NamespacedKey key) {
-        Preconditions.checkArgument(key != null, "key cannot be null");
+        Preconditions.checkArgument(key != null, "key");
         net.minecraft.server.bossevents.CustomBossEvent bossBattleCustom = this.getServer().getCustomBossEvents().get(CraftNamespacedKey.toMinecraft(key));
 
         return (bossBattleCustom == null) ? null : bossBattleCustom.getBukkitEntity();
@@ -2692,7 +2782,7 @@ public final class CraftServer implements Server {
 
     @Override
     public boolean removeBossBar(NamespacedKey key) {
-        Preconditions.checkArgument(key != null, "key cannot be null");
+        Preconditions.checkArgument(key != null, "key");
         net.minecraft.server.bossevents.CustomBossEvents bossBattleCustomData = this.getServer().getCustomBossEvents();
         net.minecraft.server.bossevents.CustomBossEvent bossBattleCustom = bossBattleCustomData.get(CraftNamespacedKey.toMinecraft(key));
 
@@ -2706,7 +2796,7 @@ public final class CraftServer implements Server {
 
     @Override
     public Entity getEntity(UUID uuid) {
-        Preconditions.checkArgument(uuid != null, "uuid cannot be null");
+        Preconditions.checkArgument(uuid != null, "UUID id cannot be null");
 
         for (ServerLevel world : this.getServer().getAllLevels()) {
             net.minecraft.world.entity.Entity entity = world.getEntity(uuid);
@@ -2720,7 +2810,7 @@ public final class CraftServer implements Server {
 
     @Override
     public org.bukkit.advancement.Advancement getAdvancement(NamespacedKey key) {
-        Preconditions.checkArgument(key != null, "key cannot be null");
+        Preconditions.checkArgument(key != null, "NamespacedKey key cannot be null");
 
         AdvancementHolder advancement = this.console.getAdvancements().get(CraftNamespacedKey.toMinecraft(key));
         return (advancement == null) ? null : advancement.toBukkit();
@@ -2728,9 +2818,12 @@ public final class CraftServer implements Server {
 
     @Override
     public Iterator<org.bukkit.advancement.Advancement> advancementIterator() {
-        return Iterators.unmodifiableIterator(Iterators.transform(
-            this.console.getAdvancements().getAllAdvancements().iterator(), AdvancementHolder::toBukkit)
-        );
+        return Iterators.unmodifiableIterator(Iterators.transform(this.console.getAdvancements().getAllAdvancements().iterator(), new Function<AdvancementHolder, org.bukkit.advancement.Advancement>() {
+            @Override
+            public org.bukkit.advancement.Advancement apply(AdvancementHolder advancement) {
+                return advancement.toBukkit();
+            }
+        }));
     }
 
     @Override
@@ -2755,7 +2848,7 @@ public final class CraftServer implements Server {
     public BlockData createBlockData(String data) throws IllegalArgumentException {
         Preconditions.checkArgument(data != null, "data cannot be null");
 
-        return this.createBlockData(null, data);
+        return this.createBlockData((Material) null, data);
     }
 
     @Override
@@ -2815,13 +2908,15 @@ public final class CraftServer implements Server {
                     return (org.bukkit.Tag<T>) new CraftDamageTag(damageRegistry, damageTagKey);
                 }
             }
+            // Paper start
             case org.bukkit.Tag.REGISTRY_GAME_EVENTS -> {
                 Preconditions.checkArgument(clazz == org.bukkit.GameEvent.class, "Game Event namespace must have GameEvent type");
                 TagKey<net.minecraft.world.level.gameevent.GameEvent> gameEventTagKey = TagKey.create(net.minecraft.core.registries.Registries.GAME_EVENT, key);
                 if (net.minecraft.core.registries.BuiltInRegistries.GAME_EVENT.get(gameEventTagKey).isPresent()) {
-                    return (org.bukkit.Tag<T>) new CraftGameEventTag(net.minecraft.core.registries.BuiltInRegistries.GAME_EVENT, gameEventTagKey);
+                    return (org.bukkit.Tag<T>) new io.papermc.paper.CraftGameEventTag(net.minecraft.core.registries.BuiltInRegistries.GAME_EVENT, gameEventTagKey);
                 }
             }
+            // Paper end
             default -> throw new IllegalArgumentException();
         }
 
@@ -2859,11 +2954,13 @@ public final class CraftServer implements Server {
                 net.minecraft.core.Registry<DamageType> damageTags = CraftRegistry.getMinecraftRegistry(Registries.DAMAGE_TYPE);
                 return damageTags.getTags().map(pair -> (org.bukkit.Tag<T>) new CraftDamageTag(damageTags, pair.key())).collect(ImmutableList.toImmutableList());
             }
+            // Paper start
             case org.bukkit.Tag.REGISTRY_GAME_EVENTS -> {
                 Preconditions.checkArgument(clazz == org.bukkit.GameEvent.class);
                 net.minecraft.core.Registry<net.minecraft.world.level.gameevent.GameEvent> gameEvents = net.minecraft.core.registries.BuiltInRegistries.GAME_EVENT;
-                return gameEvents.getTags().map(pair -> (org.bukkit.Tag<T>) new CraftGameEventTag(gameEvents, pair.key())).collect(ImmutableList.toImmutableList());
+                return gameEvents.getTags().map(pair -> (org.bukkit.Tag<T>) new io.papermc.paper.CraftGameEventTag(gameEvents, pair.key())).collect(ImmutableList.toImmutableList());
             }
+            // Paper end
             default -> throw new IllegalArgumentException();
         }
     }
@@ -2885,17 +2982,17 @@ public final class CraftServer implements Server {
         Preconditions.checkArgument(sender != null, "CommandSender sender cannot be null");
 
         EntityArgument arg = EntityArgument.entities();
-        List<? extends net.minecraft.world.entity.Entity> entities;
+        List<? extends net.minecraft.world.entity.Entity> nms;
 
         try {
             StringReader reader = new StringReader(selector);
-            entities = arg.parse(reader, true, true).findEntities(VanillaCommandWrapper.getListener(sender));
+            nms = arg.parse(reader, true, true).findEntities(VanillaCommandWrapper.getListener(sender));
             Preconditions.checkArgument(!reader.canRead(), "Spurious trailing data in selector: %s", selector);
         } catch (CommandSyntaxException ex) {
             throw new IllegalArgumentException("Could not parse selector: " + selector, ex);
         }
 
-        return new ArrayList<>(Lists.transform(entities, net.minecraft.world.entity.Entity::getBukkitEntity));
+        return new ArrayList<>(Lists.transform(nms, (entity) -> entity.getBukkitEntity()));
     }
 
     @Override
@@ -2905,7 +3002,7 @@ public final class CraftServer implements Server {
 
     @Override
     public <T extends Keyed> Registry<T> getRegistry(Class<T> aClass) {
-        return io.papermc.paper.registry.RegistryAccess.registryAccess().getRegistry(aClass);
+        return io.papermc.paper.registry.RegistryAccess.registryAccess().getRegistry(aClass); // Paper - replace with RegistryAccess
     }
 
     @Deprecated
@@ -2914,6 +3011,7 @@ public final class CraftServer implements Server {
         return CraftMagicNumbers.INSTANCE;
     }
 
+    // Paper start
     @Override
     public long[] getTickTimes() {
         return this.getServer().tickTimes5s.getTimes();
@@ -2923,27 +3021,34 @@ public final class CraftServer implements Server {
     public double getAverageTickTime() {
         return this.getServer().tickTimes5s.getAverage();
     }
+    // Paper end
 
-    private final org.bukkit.Server.Spigot spigot = new org.bukkit.Server.Spigot() {
+    // Spigot start
+    private final org.bukkit.Server.Spigot spigot = new org.bukkit.Server.Spigot()
+    {
 
         @Deprecated
         @Override
-        public YamlConfiguration getConfig() {
+        public YamlConfiguration getConfig()
+        {
             return org.spigotmc.SpigotConfig.config;
         }
 
         @Override
-        public YamlConfiguration getBukkitConfig() {
+        public YamlConfiguration getBukkitConfig()
+        {
             return configuration;
         }
 
         @Override
-        public YamlConfiguration getSpigotConfig() {
+        public YamlConfiguration getSpigotConfig()
+        {
             return org.spigotmc.SpigotConfig.config;
         }
 
         @Override
-        public YamlConfiguration getPaperConfig() {
+        public YamlConfiguration getPaperConfig()
+        {
             return CraftServer.this.console.paperConfigurations.createLegacyObject(CraftServer.this.console);
         }
 
@@ -2967,9 +3072,11 @@ public final class CraftServer implements Server {
         }
     };
 
-    public org.bukkit.Server.Spigot spigot() {
+    public org.bukkit.Server.Spigot spigot()
+    {
         return this.spigot;
     }
+    // Spigot end
 
     @Override
     public void restart() {
@@ -2985,9 +3092,10 @@ public final class CraftServer implements Server {
         };
     }
 
+    // Paper start - adventure sounds
     @Override
     public void playSound(final net.kyori.adventure.sound.Sound sound) {
-        if (sound.seed().isEmpty()) org.spigotmc.AsyncCatcher.catchOp("play sound; cannot generate seed with world random");
+        if (sound.seed().isEmpty()) org.spigotmc.AsyncCatcher.catchOp("play sound; cannot generate seed with world random"); // Paper
         final long seed = sound.seed().orElseGet(this.console.overworld().getRandom()::nextLong);
         for (ServerPlayer player : this.playerList.getPlayers()) {
             player.connection.send(io.papermc.paper.adventure.PaperAdventure.asSoundPacket(sound, player.getX(), player.getY(), player.getZ(), seed, null));
@@ -2996,20 +3104,20 @@ public final class CraftServer implements Server {
 
     @Override
     public void playSound(final net.kyori.adventure.sound.Sound sound, final double x, final double y, final double z) {
-        org.spigotmc.AsyncCatcher.catchOp("play sound");
+        org.spigotmc.AsyncCatcher.catchOp("play sound"); // Paper
         io.papermc.paper.adventure.PaperAdventure.asSoundPacket(sound, x, y, z, sound.seed().orElseGet(this.console.overworld().getRandom()::nextLong), this.playSound0(x, y, z, this.console.getAllLevels()));
     }
 
     @Override
     public void playSound(final net.kyori.adventure.sound.Sound sound, final net.kyori.adventure.sound.Sound.Emitter emitter) {
-        if (sound.seed().isEmpty()) org.spigotmc.AsyncCatcher.catchOp("play sound; cannot generate seed with world random");
+        if (sound.seed().isEmpty()) org.spigotmc.AsyncCatcher.catchOp("play sound; cannot generate seed with world random"); // Paper
         final long seed = sound.seed().orElseGet(this.console.overworld().getRandom()::nextLong);
         if (emitter == net.kyori.adventure.sound.Sound.Emitter.self()) {
             for (ServerPlayer player : this.playerList.getPlayers()) {
                 player.connection.send(io.papermc.paper.adventure.PaperAdventure.asSoundPacket(sound, player, seed, null));
             }
         } else if (emitter instanceof org.bukkit.craftbukkit.entity.CraftEntity craftEntity) {
-            org.spigotmc.AsyncCatcher.catchOp("play sound; cannot use entity emitter");
+            org.spigotmc.AsyncCatcher.catchOp("play sound; cannot use entity emitter"); // Paper
             final net.minecraft.world.entity.Entity entity = craftEntity.getHandle();
             io.papermc.paper.adventure.PaperAdventure.asSoundPacket(sound, entity, seed, this.playSound0(entity.getX(), entity.getY(), entity.getZ(), List.of((ServerLevel) entity.level())));
         } else {
@@ -3024,7 +3132,9 @@ public final class CraftServer implements Server {
             }
         };
     }
+    // Paper end
 
+    // Paper start
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static java.nio.file.Path dumpHeap(java.nio.file.Path dir, String name) {
         try {
@@ -3053,9 +3163,7 @@ public final class CraftServer implements Server {
             return null;
         }
     }
-
     private Iterable<? extends net.kyori.adventure.audience.Audience> adventure$audiences;
-
     @Override
     public Iterable<? extends net.kyori.adventure.audience.Audience> audiences() {
         if (this.adventure$audiences == null) {
@@ -3117,19 +3225,19 @@ public final class CraftServer implements Server {
     }
 
     @Override
-    public com.destroystokyo.paper.profile.PlayerProfile createProfile(@NotNull UUID uuid) {
+    public com.destroystokyo.paper.profile.PlayerProfile createProfile(@Nonnull UUID uuid) {
         return createProfile(uuid, null);
     }
 
     @Override
-    public com.destroystokyo.paper.profile.PlayerProfile createProfile(@NotNull String name) {
+    public com.destroystokyo.paper.profile.PlayerProfile createProfile(@Nonnull String name) {
         return createProfile(null, name);
     }
 
     @Override
     public com.destroystokyo.paper.profile.PlayerProfile createProfile(@Nullable UUID uuid, @Nullable String name) {
         Player player = uuid != null ? Bukkit.getPlayer(uuid) : (name != null ? Bukkit.getPlayerExact(name) : null);
-        if (player != null) return new com.destroystokyo.paper.profile.CraftPlayerProfile((CraftPlayer) player).clone();
+        if (player != null) return new com.destroystokyo.paper.profile.CraftPlayerProfile((CraftPlayer) player);
 
         return new com.destroystokyo.paper.profile.CraftPlayerProfile(uuid, name);
     }
@@ -3142,7 +3250,7 @@ public final class CraftServer implements Server {
         }
 
         if (java.util.Objects.equals(uuid, player.getUniqueId()) && java.util.Objects.equals(name, player.getName())) {
-            return new com.destroystokyo.paper.profile.CraftPlayerProfile((CraftPlayer) player).clone();
+            return new com.destroystokyo.paper.profile.CraftPlayerProfile((CraftPlayer) player);
         }
 
         final com.destroystokyo.paper.profile.CraftPlayerProfile profile = new com.destroystokyo.paper.profile.CraftPlayerProfile(uuid, name);
@@ -3161,7 +3269,6 @@ public final class CraftServer implements Server {
     }
 
     private com.destroystokyo.paper.entity.ai.MobGoals mobGoals = new com.destroystokyo.paper.entity.ai.PaperMobGoals();
-
     @Override
     public com.destroystokyo.paper.entity.ai.MobGoals getMobGoals() {
         return mobGoals;
@@ -3176,7 +3283,9 @@ public final class CraftServer implements Server {
     public io.papermc.paper.potion.PaperPotionBrewer getPotionBrewer() {
         return this.potionBrewer;
     }
+    // Paper end
 
+    // Paper start - API to check if the server is sleeping
     @Override
     public boolean isPaused() {
         return this.console.isTickPaused();
@@ -3186,4 +3295,5 @@ public final class CraftServer implements Server {
     public void allowPausing(final Plugin plugin, final boolean value) {
         this.console.addPluginAllowingSleep(plugin.getName(), value);
     }
+    // Paper end - API to check if the server is sleeping
 }

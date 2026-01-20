@@ -1,22 +1,20 @@
 package org.bukkit.event;
 
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents an event.
- * <br>
+ *
  * All events require a static method named getHandlerList() which returns the same {@link HandlerList} as {@link #getHandlers()}.
  *
  * @see PluginManager#callEvent(Event)
  * @see PluginManager#registerEvents(Listener,Plugin)
  */
 public abstract class Event {
-
     private String name;
-    private final boolean isAsync;
+    private final boolean async;
 
     /**
      * The default constructor is defined for cleaner code. This constructor
@@ -30,26 +28,28 @@ public abstract class Event {
      * This constructor is used to explicitly declare an event as synchronous
      * or asynchronous.
      *
-     * @param isAsync {@code true} indicates the event will fire asynchronously, {@code false}
+     * @param isAsync true indicates the event will fire asynchronously, false
      *     by default from default constructor
      */
     public Event(boolean isAsync) {
-        this.isAsync = isAsync;
+        this.async = isAsync;
     }
 
+    // Paper start
     /**
      * Calls the event and tests if cancelled.
      *
-     * @return {@code false} if event was cancelled, if cancellable. otherwise {@code true}.
+     * @return false if event was cancelled, if cancellable. otherwise true.
      */
     public boolean callEvent() {
-        Bukkit.getPluginManager().callEvent(this);
+        org.bukkit.Bukkit.getPluginManager().callEvent(this);
         if (this instanceof Cancellable) {
             return !((Cancellable) this).isCancelled();
         } else {
             return true;
         }
     }
+    // Paper end
 
     /**
      * Convenience method for providing a user-friendly identifier. By
@@ -60,23 +60,23 @@ public abstract class Event {
      */
     @NotNull
     public String getEventName() {
-        if (this.name == null) {
-            this.name = this.getClass().getSimpleName();
+        if (name == null) {
+            name = getClass().getSimpleName();
         }
-        return this.name;
+        return name;
     }
 
     @NotNull
     public abstract HandlerList getHandlers();
 
     /**
-     * Any custom event that should not be synchronized with other events must
+     * Any custom event that should not by synchronized with other events must
      * use the specific constructor. These are the caveats of using an
      * asynchronous event:
      * <ul>
      * <li>The event is never fired from inside code triggered by a
      *     synchronous event. Attempting to do so results in an {@link
-     *     IllegalStateException}.
+     *     java.lang.IllegalStateException}.
      * <li>However, asynchronous event handlers may fire synchronous or
      *     asynchronous events
      * <li>The event may be fired multiple times simultaneously and in any
@@ -89,10 +89,10 @@ public abstract class Event {
      * <li>Asynchronous calls are not calculated in the plugin timing system.
      * </ul>
      *
-     * @return {@code false} by default, {@code true} if the event fires asynchronously
+     * @return false by default, true if the event fires asynchronously
      */
     public final boolean isAsynchronous() {
-        return this.isAsync;
+        return async;
     }
 
     public enum Result {
@@ -113,6 +113,6 @@ public abstract class Event {
          * take place if possible, even if the server would not normally allow
          * the action. Some actions may not be allowed.
          */
-        ALLOW
+        ALLOW;
     }
 }

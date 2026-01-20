@@ -1,20 +1,13 @@
 package org.bukkit.craftbukkit.entity;
 
 import com.google.common.base.Preconditions;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.vehicle.MinecartTNT;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.entity.minecart.ExplosiveMinecart;
 
-public class CraftMinecartTNT extends CraftMinecart implements ExplosiveMinecart {
-
-    public CraftMinecartTNT(CraftServer server, MinecartTNT entity) {
+public final class CraftMinecartTNT extends CraftMinecart implements ExplosiveMinecart {
+    CraftMinecartTNT(CraftServer server, MinecartTNT entity) {
         super(server, entity);
-    }
-
-    @Override
-    public MinecartTNT getHandle() {
-        return (MinecartTNT) this.entity;
     }
 
     @Override
@@ -59,7 +52,7 @@ public class CraftMinecartTNT extends CraftMinecart implements ExplosiveMinecart
 
     @Override
     public void ignite() {
-        this.getHandle().primeFuse(null);
+        this.getHandle().primeFuse();
     }
 
     @Override
@@ -74,8 +67,18 @@ public class CraftMinecartTNT extends CraftMinecart implements ExplosiveMinecart
 
     @Override
     public void explode(double power) {
-        Preconditions.checkArgument(0 <= power && power <= Mth.square(5), "Power must be in range [0, 25] (got %s)", power);
+        Preconditions.checkArgument(0 <= power && power <= 5, "Power must be in range [0, 5] (got %s)", power);
 
         this.getHandle().explode(power);
+    }
+
+    @Override
+    public MinecartTNT getHandle() {
+        return (MinecartTNT) super.getHandle();
+    }
+
+    @Override
+    public String toString() {
+        return "CraftMinecartTNT";
     }
 }

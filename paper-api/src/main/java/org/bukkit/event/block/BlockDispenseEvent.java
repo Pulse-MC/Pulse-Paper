@@ -5,41 +5,36 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Called when an item is dispensed from a block.
  * <p>
- * If this event is cancelled, the block will not dispense the
+ * If a Block Dispense event is cancelled, the block will not dispense the
  * item.
  */
 public class BlockDispenseEvent extends BlockEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    private boolean cancelled = false;
     private ItemStack item;
     private Vector velocity;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
-    public BlockDispenseEvent(@NotNull final Block block, @NotNull final ItemStack item, @NotNull final Vector velocity) {
+    public BlockDispenseEvent(@NotNull final Block block, @NotNull final ItemStack dispensed, @NotNull final Vector velocity) {
         super(block);
-        this.item = item;
+        this.item = dispensed;
         this.velocity = velocity;
     }
 
     /**
      * Gets the item that is being dispensed. Modifying the returned item will
      * have no effect, you must use {@link
-     * #setItem(ItemStack)} instead.
+     * #setItem(org.bukkit.inventory.ItemStack)} instead.
      *
      * @return An ItemStack for the item being dispensed
      */
     @NotNull
     public ItemStack getItem() {
-        return this.item.clone();
+        return item.clone();
     }
 
     /**
@@ -55,42 +50,42 @@ public class BlockDispenseEvent extends BlockEvent implements Cancellable {
      * Gets the velocity in meters per tick.
      * <p>
      * Note: Modifying the returned Vector will not change the velocity, you
-     * must use {@link #setVelocity(Vector)} instead.
+     * must use {@link #setVelocity(org.bukkit.util.Vector)} instead.
      *
      * @return A Vector for the dispensed item's velocity
      */
     @NotNull
     public Vector getVelocity() {
-        return this.velocity.clone();
+        return velocity.clone();
     }
 
     /**
      * Sets the velocity of the item being dispensed in meters per tick.
      *
-     * @param velocity the velocity of the item being dispensed
+     * @param vel the velocity of the item being dispensed
      */
-    public void setVelocity(@NotNull Vector velocity) {
-        this.velocity = velocity.clone();
+    public void setVelocity(@NotNull Vector vel) {
+        velocity = vel.clone();
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
     public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        cancelled = cancel;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

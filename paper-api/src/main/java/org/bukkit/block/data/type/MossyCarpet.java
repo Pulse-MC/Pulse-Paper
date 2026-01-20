@@ -33,7 +33,7 @@ public interface MossyCarpet extends BlockData {
      * @return if face is enabled
      */
     @NotNull
-    Wall.Height getHeight(@NotNull BlockFace face);
+    Height getHeight(@NotNull BlockFace face);
 
     /**
      * Set the height of the specified face.
@@ -41,16 +41,11 @@ public interface MossyCarpet extends BlockData {
      * @param face to set
      * @param height the height
      */
-    void setHeight(@NotNull BlockFace face, @NotNull Wall.Height height);
+    void setHeight(@NotNull BlockFace face, @NotNull Height height);
 
     /**
      * The different heights a face may have.
-     *
-     * @deprecated this property is not specific to the MossyCarpet, use
-     * {@link org.bukkit.block.data.type.Wall.Height} instead. All references
-     * to this enum will be redirected to that enum at runtime.
      */
-    @Deprecated
     public enum Height {
         /**
          * Not present.

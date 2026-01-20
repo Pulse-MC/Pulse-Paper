@@ -5,7 +5,6 @@ import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.entity.Egg;
 
 public class CraftEgg extends CraftThrowableProjectile implements Egg {
-
     public CraftEgg(CraftServer server, ThrownEgg entity) {
         super(server, entity);
     }
@@ -13,5 +12,10 @@ public class CraftEgg extends CraftThrowableProjectile implements Egg {
     @Override
     public ThrownEgg getHandle() {
         return (ThrownEgg) this.entity;
+    }
+
+    @Override
+    public String toString() {
+        return "CraftEgg";
     }
 }

@@ -1,64 +1,60 @@
 package org.bukkit.event.server;
 
 import java.util.Set;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Event triggered for server broadcast messages such as from
- * {@link org.bukkit.Server#broadcast(Component)} (String, String)}.
- * <p>
- * This event behaves similarly to {@link io.papermc.paper.event.player.AsyncChatEvent} in that it
+ * {@link org.bukkit.Server#broadcast(net.kyori.adventure.text.Component)} (String, String)}.
+ *
+ * <b>This event behaves similarly to {@link io.papermc.paper.event.player.AsyncChatEvent} in that it
  * should be async if fired from an async thread. Please see that event for
- * further information.
+ * further information.</b>
  */
 public class BroadcastMessageEvent extends ServerEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    private net.kyori.adventure.text.Component message; // Paper
     private final Set<CommandSender> recipients;
-    private Component message;
+    private boolean cancelled = false;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
     @Deprecated(since = "1.14", forRemoval = true)
     public BroadcastMessageEvent(@NotNull String message, @NotNull Set<CommandSender> recipients) {
         this(false, message, recipients);
     }
 
-    @ApiStatus.Internal
     @Deprecated(forRemoval = true)
     public BroadcastMessageEvent(boolean isAsync, @NotNull String message, @NotNull Set<CommandSender> recipients) {
+        // Paper start
         super(isAsync);
-        this.message = LegacyComponentSerializer.legacySection().deserialize(message);
+        this.message = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(message);
         this.recipients = recipients;
     }
 
-    @ApiStatus.Internal
     @Deprecated(forRemoval = true)
-    public BroadcastMessageEvent(@NotNull Component message, @NotNull Set<CommandSender> recipients) {
+    public BroadcastMessageEvent(net.kyori.adventure.text.@NotNull Component message, @NotNull Set<CommandSender> recipients) {
         this(false, message, recipients);
     }
 
     @ApiStatus.Internal
-    public BroadcastMessageEvent(boolean isAsync, @NotNull Component message, @NotNull Set<CommandSender> recipients) {
+    public BroadcastMessageEvent(boolean isAsync, net.kyori.adventure.text.@NotNull Component message, @NotNull Set<CommandSender> recipients) {
+        // Paper end
         super(isAsync);
         this.message = message;
         this.recipients = recipients;
     }
-
+    // Paper start
     /**
      * Get the broadcast message.
      *
      * @return Message to broadcast
      */
-    public @NotNull Component message() {
+    public net.kyori.adventure.text.@NotNull Component message() {
         return this.message;
     }
 
@@ -67,9 +63,10 @@ public class BroadcastMessageEvent extends ServerEvent implements Cancellable {
      *
      * @param message New message to broadcast
      */
-    public void message(@NotNull Component message) {
+    public void message(net.kyori.adventure.text.@NotNull Component message) {
         this.message = message;
     }
+    // Paper end
 
     /**
      * Get the message to broadcast.
@@ -78,20 +75,20 @@ public class BroadcastMessageEvent extends ServerEvent implements Cancellable {
      * @deprecated in favour of {@link #message()}
      */
     @NotNull
-    @Deprecated
+    @Deprecated // Paper
     public String getMessage() {
-        return LegacyComponentSerializer.legacySection().serialize(this.message);
+        return net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(this.message); // Paper
     }
 
     /**
      * Set the message to broadcast.
      *
      * @param message New message to broadcast
-     * @deprecated in favour of {@link #message(Component)}
+     * @deprecated in favour of {@link #message(net.kyori.adventure.text.Component)}
      */
     @Deprecated // Paper
     public void setMessage(@NotNull String message) {
-        this.message = LegacyComponentSerializer.legacySection().deserialize(message);
+        this.message = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(message); // Paper
     }
 
     /**
@@ -109,12 +106,12 @@ public class BroadcastMessageEvent extends ServerEvent implements Cancellable {
      */
     @NotNull
     public Set<CommandSender> getRecipients() {
-        return this.recipients;
+        return recipients;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
@@ -125,11 +122,11 @@ public class BroadcastMessageEvent extends ServerEvent implements Cancellable {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

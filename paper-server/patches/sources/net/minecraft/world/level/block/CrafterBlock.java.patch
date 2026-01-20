@@ -1,11 +1,19 @@
 --- a/net/minecraft/world/level/block/CrafterBlock.java
 +++ b/net/minecraft/world/level/block/CrafterBlock.java
-@@ -152,6 +_,13 @@
+@@ -11,6 +_,7 @@
+ import net.minecraft.server.level.ServerLevel;
+ import net.minecraft.server.level.ServerPlayer;
+ import net.minecraft.util.RandomSource;
++import net.minecraft.world.CompoundContainer;
+ import net.minecraft.world.Container;
+ import net.minecraft.world.Containers;
+ import net.minecraft.world.InteractionResult;
+@@ -159,6 +_,13 @@
              } else {
                  RecipeHolder<CraftingRecipe> recipeHolder = potentialResults.get();
                  ItemStack itemStack = recipeHolder.value().assemble(var11, level.registryAccess());
 +                // CraftBukkit start
-+                org.bukkit.event.block.CrafterCraftEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callCrafterCraftEvent(pos, level, itemStack, recipeHolder);
++                org.bukkit.event.block.CrafterCraftEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callCrafterCraftEvent(pos, level, crafterBlockEntity, itemStack, recipeHolder);
 +                if (event.isCancelled()) {
 +                    return;
 +                }
@@ -14,7 +22,7 @@
                  if (itemStack.isEmpty()) {
                      level.levelEvent(1050, pos, 0);
                  } else {
-@@ -186,7 +_,25 @@
+@@ -193,7 +_,25 @@
          Container containerAt = HopperBlockEntity.getContainerAt(level, pos.relative(direction));
          ItemStack itemStack = stack.copy();
          if (containerAt != null && (containerAt instanceof CrafterBlockEntity || stack.getCount() > containerAt.getMaxStackSize(stack))) {
@@ -23,7 +31,7 @@
 +
 +            org.bukkit.inventory.Inventory destinationInventory;
 +            // Have to special case large chests as they work oddly
-+            if (containerAt instanceof net.minecraft.world.CompoundContainer compoundContainer) {
++            if (containerAt instanceof CompoundContainer compoundContainer) {
 +                destinationInventory = new org.bukkit.craftbukkit.inventory.CraftInventoryDoubleChest(compoundContainer);
 +            } else {
 +                destinationInventory = containerAt.getOwner().getInventory();
@@ -40,7 +48,7 @@
                  ItemStack itemStack1 = itemStack.copyWithCount(1);
                  ItemStack itemStack2 = HopperBlockEntity.addItem(crafter, containerAt, itemStack1, direction.getOpposite());
                  if (!itemStack2.isEmpty()) {
-@@ -196,7 +_,25 @@
+@@ -203,7 +_,25 @@
                  itemStack.shrink(1);
              }
          } else if (containerAt != null) {
@@ -49,7 +57,7 @@
 +
 +            org.bukkit.inventory.Inventory destinationInventory;
 +            // Have to special case large chests as they work oddly
-+            if (containerAt instanceof net.minecraft.world.CompoundContainer compoundContainer) {
++            if (containerAt instanceof CompoundContainer compoundContainer) {
 +                destinationInventory = new org.bukkit.craftbukkit.inventory.CraftInventoryDoubleChest(compoundContainer);
 +            } else {
 +                destinationInventory = containerAt.getOwner().getInventory();

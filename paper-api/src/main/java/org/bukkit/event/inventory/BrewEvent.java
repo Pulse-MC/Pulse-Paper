@@ -7,7 +7,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.block.BlockEvent;
 import org.bukkit.inventory.BrewerInventory;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -15,16 +14,12 @@ import org.jetbrains.annotations.NotNull;
  * complete.
  */
 public class BrewEvent extends BlockEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    private final BrewerInventory contents;
+    private static final HandlerList handlers = new HandlerList();
+    private BrewerInventory contents;
     private final List<ItemStack> results;
-    private final int fuelLevel;
-
+    private int fuelLevel;
     private boolean cancelled;
 
-    @ApiStatus.Internal
     public BrewEvent(@NotNull Block brewer, @NotNull BrewerInventory contents, @NotNull List<ItemStack> results, int fuelLevel) {
         super(brewer);
         this.contents = contents;
@@ -35,18 +30,28 @@ public class BrewEvent extends BlockEvent implements Cancellable {
     /**
      * Gets the contents of the Brewing Stand.
      *
-     * @return the contents
-     * @apiNote The brewer inventory still holds the items found prior to
+     * <b>Note:</b> The brewer inventory still holds the items found prior to
      * the finalization of the brewing process, e.g. the plain water bottles.
+     *
+     * @return the contents
      */
     @NotNull
     public BrewerInventory getContents() {
-        return this.contents;
+        return contents;
+    }
+
+    /**
+     * Gets the remaining fuel level.
+     *
+     * @return the remaining fuel
+     */
+    public int getFuelLevel() {
+        return fuelLevel;
     }
 
     /**
      * Gets the resulting items in the Brewing Stand.
-     * <p>
+     *
      * The returned list, in case of a server-created event instance, is
      * mutable. Any changes in the returned list will reflect in the brewing
      * result if the event is not cancelled. If the size of the list is reduced,
@@ -56,36 +61,27 @@ public class BrewEvent extends BlockEvent implements Cancellable {
      */
     @NotNull
     public List<ItemStack> getResults() {
-        return this.results;
-    }
-
-    /**
-     * Gets the remaining fuel level.
-     *
-     * @return the remaining fuel
-     */
-    public int getFuelLevel() {
-        return this.fuelLevel;
+        return results;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
     public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        cancelled = cancel;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

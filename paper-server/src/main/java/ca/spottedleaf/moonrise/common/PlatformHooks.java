@@ -102,8 +102,6 @@ public interface PlatformHooks extends ChunkSystemHooks {
 
     public int modifyEntityTrackingRange(final Entity entity, final int currentRange);
 
-    public boolean addTicketForEnderPearls(final ServerLevel world);
-
     public static final class Holder {
         private Holder() {
         }

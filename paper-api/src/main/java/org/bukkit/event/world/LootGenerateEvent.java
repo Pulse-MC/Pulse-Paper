@@ -11,14 +11,13 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootContext;
 import org.bukkit.loot.LootTable;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Called when a {@link LootTable} is generated in the world for an
  * {@link InventoryHolder}.
- * <p>
+ *
  * This event is NOT currently called when an entity's loot table has been
  * generated (use {@link EntityDeathEvent#getDrops()}, but WILL be called by
  * plugins invoking
@@ -26,8 +25,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class LootGenerateEvent extends WorldEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    private boolean cancelled;
     private final Entity entity;
     private final InventoryHolder inventoryHolder;
     private final LootTable lootTable;
@@ -35,9 +34,6 @@ public class LootGenerateEvent extends WorldEvent implements Cancellable {
     private final List<ItemStack> loot;
     private final boolean plugin;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
     public LootGenerateEvent(@NotNull World world, @Nullable Entity entity, @Nullable InventoryHolder inventoryHolder, @NotNull LootTable lootTable, @NotNull LootContext lootContext, @NotNull List<ItemStack> items, boolean plugin) {
         super(world);
         this.entity = entity;
@@ -50,10 +46,10 @@ public class LootGenerateEvent extends WorldEvent implements Cancellable {
 
     /**
      * Get the entity used as context for loot generation (if applicable).
-     * <p>
+     *
      * For inventories where entities are not required to generate loot, such as
-     * hoppers, {@code null} will be returned.
-     * <br>
+     * hoppers, null will be returned.
+     *
      * This is a convenience method for
      * {@code getLootContext().getLootedEntity()}.
      *
@@ -61,20 +57,20 @@ public class LootGenerateEvent extends WorldEvent implements Cancellable {
      */
     @Nullable
     public Entity getEntity() {
-        return this.entity;
+        return entity;
     }
 
     /**
      * Get the inventory holder in which the loot was generated.
-     * <p>
+     *
      * If the loot was generated as a result of the block being broken, the
-     * inventory holder will be {@code null} as this event is called post block break.
+     * inventory holder will be null as this event is called post block break.
      *
      * @return the inventory holder
      */
     @Nullable
     public InventoryHolder getInventoryHolder() {
-        return this.inventoryHolder;
+        return inventoryHolder;
     }
 
     /**
@@ -84,7 +80,7 @@ public class LootGenerateEvent extends WorldEvent implements Cancellable {
      */
     @NotNull
     public LootTable getLootTable() {
-        return this.lootTable;
+        return lootTable;
     }
 
     /**
@@ -95,16 +91,16 @@ public class LootGenerateEvent extends WorldEvent implements Cancellable {
      */
     @NotNull
     public LootContext getLootContext() {
-        return this.lootContext;
+        return lootContext;
     }
 
     /**
-     * Set the loot to be generated. {@code null} items will be treated as air.
-     * <br>
+     * Set the loot to be generated. Null items will be treated as air.
+     *
      * Note: the set collection is not the one which will be returned by
      * {@link #getLoot()}.
      *
-     * @param loot the loot to generate, {@code null} to clear all loot
+     * @param loot the loot to generate, null to clear all loot
      */
     public void setLoot(@Nullable Collection<ItemStack> loot) {
         this.loot.clear();
@@ -115,26 +111,26 @@ public class LootGenerateEvent extends WorldEvent implements Cancellable {
 
     /**
      * Get a mutable list of all loot to be generated.
-     * <p>
+     *
      * Any items added or removed from the returned list will be reflected in
-     * the loot generation. {@code null} items will be treated as air.
+     * the loot generation. Null items will be treated as air.
      *
      * @return the loot to generate
      */
     @NotNull
     public List<ItemStack> getLoot() {
-        return this.loot;
+        return loot;
     }
 
     /**
-     * Check whether this event was called as a result of a plugin
+     * Check whether or not this event was called as a result of a plugin
      * invoking
      * {@link LootTable#fillInventory(org.bukkit.inventory.Inventory, java.util.Random, LootContext)}.
      *
-     * @return {@code true} if plugin caused, {@code false} otherwise
+     * @return true if plugin caused, false otherwise
      */
     public boolean isPlugin() {
-        return this.plugin;
+        return plugin;
     }
 
     @Override
@@ -144,17 +140,17 @@ public class LootGenerateEvent extends WorldEvent implements Cancellable {
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

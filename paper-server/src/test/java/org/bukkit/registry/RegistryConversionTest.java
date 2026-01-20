@@ -1,7 +1,6 @@
 package org.bukkit.registry;
 
 import com.google.common.base.Joiner;
-import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -10,12 +9,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 import net.minecraft.resources.ResourceKey;
 import org.bukkit.Keyed;
 import org.bukkit.Registry;
 import org.bukkit.craftbukkit.util.Handleable;
 import org.bukkit.support.environment.AllFeatures;
+import org.bukkit.support.provider.RegistryArgumentProvider;
 import org.bukkit.support.test.RegistriesTest;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -43,12 +42,6 @@ public class RegistryConversionTest {
     private static final Map<Class<? extends Keyed>, Method> BUKKIT_TO_MINECRAFT_METHODS = new HashMap<>();
 
     private static final Set<Class<? extends Keyed>> IMPLEMENT_HANDLE_ABLE = new HashSet<>();
-
-    public static Stream<? extends Arguments> getValues(RegistryKey<? extends Keyed> registryType) { // Paper
-        Registry<?> registry = RegistryAccess.registryAccess().getRegistry(registryType); // Paper
-        return registry.stream().map(keyed -> (Handleable<?>) keyed)
-            .map(handleAble -> Arguments.of(handleAble, handleAble.getHandle()));
-    }
 
     @Order(1)
     @RegistriesTest
@@ -217,7 +210,7 @@ public class RegistryConversionTest {
         Map<Object, Object> notMatching = new HashMap<>();
         Method method = RegistryConversionTest.MINECRAFT_TO_BUKKIT_METHODS.get(clazz);
 
-        getValues(type).map(Arguments::get).forEach(arguments -> { // Paper
+        RegistryArgumentProvider.getValues(type).map(Arguments::get).forEach(arguments -> { // Paper
             Keyed bukkit = (Keyed) arguments[0];
             Object minecraft = arguments[1];
 
@@ -248,7 +241,7 @@ public class RegistryConversionTest {
         Map<Object, Object> notMatching = new HashMap<>();
         Method method = RegistryConversionTest.BUKKIT_TO_MINECRAFT_METHODS.get(clazz);
 
-        getValues(type).map(Arguments::get).forEach(arguments -> { // Paper
+        RegistryArgumentProvider.getValues(type).map(Arguments::get).forEach(arguments -> { // Paper
             Keyed bukkit = (Keyed) arguments[0];
             Object minecraft = arguments[1];
 
@@ -270,7 +263,7 @@ public class RegistryConversionTest {
                 Joiner.on('\n').withKeyValueSeparator(" got: ").join(notMatching)));
     }
 
-    static final Set<RegistryKey<?>> IGNORE_FOR_DIRECT_HOLDER = Set.of(RegistryKey.TRIM_MATERIAL, RegistryKey.TRIM_PATTERN, RegistryKey.INSTRUMENT, RegistryKey.BANNER_PATTERN, RegistryKey.SOUND_EVENT, RegistryKey.DIALOG); // Paper
+    static final Set<RegistryKey<?>> IGNORE_FOR_DIRECT_HOLDER = Set.of(RegistryKey.TRIM_MATERIAL, RegistryKey.TRIM_PATTERN, RegistryKey.INSTRUMENT, RegistryKey.PAINTING_VARIANT, RegistryKey.BANNER_PATTERN, RegistryKey.SOUND_EVENT); // Paper
 
     /**
      * Minecraft registry can return a default key / value

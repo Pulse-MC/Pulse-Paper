@@ -24,7 +24,7 @@
 +                if (event.shouldConsume()) {
 +                    itemInHand.consume(1, player);
 +                } else {
-+                    player.containerMenu.forceHeldSlot(hand);
++                    player.containerMenu.sendAllDataToRemote();
 +                }
 +
 +                level.playSound(
@@ -38,7 +38,7 @@
 +                    0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F)
 +                );
 +            } else {
-+                player.containerMenu.forceHeldSlot(hand);
++                player.containerMenu.sendAllDataToRemote();
 +                return InteractionResult.FAIL;
 +            }
 +            // Paper end - PlayerLaunchProjectileEvent

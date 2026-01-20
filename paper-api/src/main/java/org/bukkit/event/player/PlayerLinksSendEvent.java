@@ -1,9 +1,7 @@
 package org.bukkit.event.player;
 
-import io.papermc.paper.connection.PlayerCommonConnection;
-import io.papermc.paper.connection.PlayerConfigurationConnection;
 import org.bukkit.ServerLinks;
-import org.bukkit.event.Event;
+import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -12,26 +10,14 @@ import org.jetbrains.annotations.NotNull;
  * This event is called when the list of links is sent to the player.
  */
 @ApiStatus.Experimental
-public class PlayerLinksSendEvent extends Event {
+public class PlayerLinksSendEvent extends PlayerEvent {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final ServerLinks links;
-    private final PlayerCommonConnection connection;
 
-    @ApiStatus.Internal
-    public PlayerLinksSendEvent(@NotNull final PlayerConfigurationConnection connection, @NotNull final ServerLinks links) {
-        this.connection = connection;
+    public PlayerLinksSendEvent(@NotNull final Player player, @NotNull final ServerLinks links) {
+        super(player);
         this.links = links;
-    }
-
-    /**
-     * Gets the connection that received the links.
-     * @return connection
-     */
-    @NotNull
-    public PlayerCommonConnection getConnection() {
-        return connection;
     }
 
     /**
@@ -41,17 +27,17 @@ public class PlayerLinksSendEvent extends Event {
      */
     @NotNull
     public ServerLinks getLinks() {
-        return this.links;
+        return links;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

@@ -1,7 +1,5 @@
 package org.bukkit.event.player;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.ApiStatus;
@@ -12,35 +10,30 @@ import org.jetbrains.annotations.Nullable;
  * Called when a player leaves a server
  */
 public class PlayerQuitEvent extends PlayerEvent {
+    private static final HandlerList handlers = new HandlerList();
+    private net.kyori.adventure.text.Component quitMessage; // Paper
+    private final QuitReason reason; // Paper
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    private final QuitReason reason;
-    private Component quitMessage;
-
-    @ApiStatus.Internal
     @Deprecated(forRemoval = true)
-    public PlayerQuitEvent(@NotNull final Player player, @Nullable final String quitMessage) {
-        this(player, quitMessage, null);
+    public PlayerQuitEvent(@NotNull final Player who, @Nullable final String quitMessage) {
+        // Paper start
+        this(who, quitMessage, null);
     }
-
-    @ApiStatus.Internal
     @Deprecated(forRemoval = true)
-    public PlayerQuitEvent(@NotNull final Player player, @Nullable final String quitMessage, @Nullable QuitReason quitReason) {
-        super(player);
-        this.quitMessage = quitMessage != null ? LegacyComponentSerializer.legacySection().deserialize(quitMessage) : null;
+    public PlayerQuitEvent(@NotNull final Player who, @Nullable final String quitMessage, @Nullable QuitReason quitReason) {
+        super(who);
+        this.quitMessage = quitMessage != null ? net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(quitMessage) : null; // Paper
         this.reason = quitReason == null ? QuitReason.DISCONNECTED : quitReason;
     }
-
-    @ApiStatus.Internal
+    // Paper start
     @Deprecated(forRemoval = true)
-    public PlayerQuitEvent(@NotNull final Player player, @Nullable final Component quitMessage) {
-        this(player, quitMessage, null);
+    public PlayerQuitEvent(@NotNull final Player who, @Nullable final net.kyori.adventure.text.Component quitMessage) {
+        this(who, quitMessage, null);
     }
 
     @ApiStatus.Internal
-    public PlayerQuitEvent(@NotNull final Player player, @Nullable final Component quitMessage, @Nullable QuitReason quitReason) {
-        super(player);
+    public PlayerQuitEvent(@NotNull final Player who, @Nullable final net.kyori.adventure.text.Component quitMessage, @Nullable QuitReason quitReason) {
+        super(who);
         this.quitMessage = quitMessage;
         this.reason = quitReason == null ? QuitReason.DISCONNECTED : quitReason;
     }
@@ -50,8 +43,8 @@ public class PlayerQuitEvent extends PlayerEvent {
      *
      * @return string quit message
      */
-    public @Nullable Component quitMessage() {
-        return this.quitMessage;
+    public net.kyori.adventure.text.@Nullable Component quitMessage() {
+        return quitMessage;
     }
 
     /**
@@ -59,9 +52,10 @@ public class PlayerQuitEvent extends PlayerEvent {
      *
      * @param quitMessage quit message
      */
-    public void quitMessage(@Nullable Component quitMessage) {
+    public void quitMessage(net.kyori.adventure.text.@Nullable Component quitMessage) {
         this.quitMessage = quitMessage;
     }
+    // Paper end
 
     /**
      * Gets the quit message to send to all online players
@@ -70,40 +64,40 @@ public class PlayerQuitEvent extends PlayerEvent {
      * @deprecated in favour of {@link #quitMessage()}
      */
     @Nullable
-    @Deprecated
+    @Deprecated // Paper
     public String getQuitMessage() {
-        return this.quitMessage == null ? null : LegacyComponentSerializer.legacySection().serialize(this.quitMessage);
+        return this.quitMessage == null ? null : net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(this.quitMessage); // Paper
     }
 
     /**
      * Sets the quit message to send to all online players
      *
      * @param quitMessage quit message
-     * @deprecated in favour of {@link #quitMessage(Component)}
+     * @deprecated in favour of {@link #quitMessage(net.kyori.adventure.text.Component)}
      */
-    @Deprecated
+    @Deprecated // Paper
     public void setQuitMessage(@Nullable String quitMessage) {
-        this.quitMessage = quitMessage != null ? LegacyComponentSerializer.legacySection().deserialize(quitMessage) : null;
-    }
-
-    @NotNull
-    public QuitReason getReason() {
-        return this.reason;
+        this.quitMessage = quitMessage != null ? net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(quitMessage) : null; // Paper
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
+    }
+
+    // Paper start
+    @NotNull
+    public QuitReason getReason() {
+        return this.reason;
     }
 
     public enum QuitReason {
-
         /**
          * The player left on their own behalf.
          * <p>
@@ -111,20 +105,24 @@ public class PlayerQuitEvent extends PlayerEvent {
          * connection themselves. This may occur if no keep-alive packet is received on their side, among other things.
          */
         DISCONNECTED,
+
         /**
          * The player was kicked from the server.
          */
         KICKED,
+
         /**
          * The player has timed out.
          */
         TIMED_OUT,
+
         /**
          * The player's connection has entered an erroneous state.
          * <p>
          * Reasons for this may include invalid packets, invalid data, and uncaught exceptions in the packet handler,
          * among others.
          */
-        ERRONEOUS_STATE
+        ERRONEOUS_STATE,
     }
+    // Paper end
 }

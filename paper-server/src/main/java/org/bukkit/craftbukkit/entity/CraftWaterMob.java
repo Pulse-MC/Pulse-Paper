@@ -14,4 +14,9 @@ public class CraftWaterMob extends CraftCreature implements WaterMob {
     public WaterAnimal getHandle() {
         return (WaterAnimal) this.entity;
     }
+
+    @Override
+    public String toString() {
+        return "CraftWaterMob";
+    }
 }

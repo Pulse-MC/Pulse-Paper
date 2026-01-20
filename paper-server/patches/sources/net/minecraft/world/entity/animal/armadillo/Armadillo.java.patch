@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/entity/animal/armadillo/Armadillo.java
 +++ b/net/minecraft/world/entity/animal/armadillo/Armadillo.java
-@@ -143,10 +_,12 @@
+@@ -141,10 +_,12 @@
          ArmadilloAi.updateActivity(this);
          profilerFiller.pop();
          if (this.isAlive() && !this.isBaby() && --this.scuteTime <= 0) {

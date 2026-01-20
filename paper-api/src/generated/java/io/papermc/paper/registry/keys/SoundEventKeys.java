@@ -22,8 +22,8 @@ import org.jspecify.annotations.NullMarked;
         "unused",
         "SpellCheckingInspection"
 })
+@GeneratedFrom("1.21.4")
 @NullMarked
-@GeneratedFrom("1.21.8")
 public final class SoundEventKeys {
     /**
      * {@code minecraft:ambient.basalt_deltas.additions}
@@ -880,20 +880,6 @@ public final class SoundEventKeys {
     public static final TypedKey<Sound> BLOCK_BUBBLE_COLUMN_WHIRLPOOL_INSIDE = create(key("block.bubble_column.whirlpool_inside"));
 
     /**
-     * {@code minecraft:block.cactus_flower.break}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_CACTUS_FLOWER_BREAK = create(key("block.cactus_flower.break"));
-
-    /**
-     * {@code minecraft:block.cactus_flower.place}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_CACTUS_FLOWER_PLACE = create(key("block.cactus_flower.place"));
-
-    /**
      * {@code minecraft:block.cake.add_candle}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -1741,13 +1727,6 @@ public final class SoundEventKeys {
     public static final TypedKey<Sound> BLOCK_CROP_BREAK = create(key("block.crop.break"));
 
     /**
-     * {@code minecraft:block.deadbush.idle}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_DEADBUSH_IDLE = create(key("block.deadbush.idle"));
-
-    /**
      * {@code minecraft:block.decorated_pot.break}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -1930,62 +1909,6 @@ public final class SoundEventKeys {
     public static final TypedKey<Sound> BLOCK_DISPENSER_LAUNCH = create(key("block.dispenser.launch"));
 
     /**
-     * {@code minecraft:block.dried_ghast.ambient}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_DRIED_GHAST_AMBIENT = create(key("block.dried_ghast.ambient"));
-
-    /**
-     * {@code minecraft:block.dried_ghast.ambient_water}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_DRIED_GHAST_AMBIENT_WATER = create(key("block.dried_ghast.ambient_water"));
-
-    /**
-     * {@code minecraft:block.dried_ghast.break}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_DRIED_GHAST_BREAK = create(key("block.dried_ghast.break"));
-
-    /**
-     * {@code minecraft:block.dried_ghast.fall}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_DRIED_GHAST_FALL = create(key("block.dried_ghast.fall"));
-
-    /**
-     * {@code minecraft:block.dried_ghast.place}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_DRIED_GHAST_PLACE = create(key("block.dried_ghast.place"));
-
-    /**
-     * {@code minecraft:block.dried_ghast.place_in_water}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_DRIED_GHAST_PLACE_IN_WATER = create(key("block.dried_ghast.place_in_water"));
-
-    /**
-     * {@code minecraft:block.dried_ghast.step}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_DRIED_GHAST_STEP = create(key("block.dried_ghast.step"));
-
-    /**
-     * {@code minecraft:block.dried_ghast.transition}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_DRIED_GHAST_TRANSITION = create(key("block.dried_ghast.transition"));
-
-    /**
      * {@code minecraft:block.dripstone_block.break}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -2019,13 +1942,6 @@ public final class SoundEventKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<Sound> BLOCK_DRIPSTONE_BLOCK_STEP = create(key("block.dripstone_block.step"));
-
-    /**
-     * {@code minecraft:block.dry_grass.ambient}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_DRY_GRASS_AMBIENT = create(key("block.dry_grass.ambient"));
 
     /**
      * {@code minecraft:block.enchantment_table.use}
@@ -2131,13 +2047,6 @@ public final class SoundEventKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<Sound> BLOCK_FIRE_EXTINGUISH = create(key("block.fire.extinguish"));
-
-    /**
-     * {@code minecraft:block.firefly_bush.idle}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_FIREFLY_BUSH_IDLE = create(key("block.firefly_bush.idle"));
 
     /**
      * {@code minecraft:block.flowering_azalea.break}
@@ -2602,41 +2511,6 @@ public final class SoundEventKeys {
     public static final TypedKey<Sound> BLOCK_HONEY_BLOCK_STEP = create(key("block.honey_block.step"));
 
     /**
-     * {@code minecraft:block.iron.break}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_IRON_BREAK = create(key("block.iron.break"));
-
-    /**
-     * {@code minecraft:block.iron.fall}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_IRON_FALL = create(key("block.iron.fall"));
-
-    /**
-     * {@code minecraft:block.iron.hit}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_IRON_HIT = create(key("block.iron.hit"));
-
-    /**
-     * {@code minecraft:block.iron.place}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_IRON_PLACE = create(key("block.iron.place"));
-
-    /**
-     * {@code minecraft:block.iron.step}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_IRON_STEP = create(key("block.iron.step"));
-
-    /**
      * {@code minecraft:block.iron_door.close}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -2768,41 +2642,6 @@ public final class SoundEventKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<Sound> BLOCK_LAVA_POP = create(key("block.lava.pop"));
-
-    /**
-     * {@code minecraft:block.leaf_litter.break}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_LEAF_LITTER_BREAK = create(key("block.leaf_litter.break"));
-
-    /**
-     * {@code minecraft:block.leaf_litter.fall}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_LEAF_LITTER_FALL = create(key("block.leaf_litter.fall"));
-
-    /**
-     * {@code minecraft:block.leaf_litter.hit}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_LEAF_LITTER_HIT = create(key("block.leaf_litter.hit"));
-
-    /**
-     * {@code minecraft:block.leaf_litter.place}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_LEAF_LITTER_PLACE = create(key("block.leaf_litter.place"));
-
-    /**
-     * {@code minecraft:block.leaf_litter.step}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_LEAF_LITTER_STEP = create(key("block.leaf_litter.step"));
 
     /**
      * {@code minecraft:block.lever.click}
@@ -4154,13 +3993,6 @@ public final class SoundEventKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<Sound> BLOCK_SAND_HIT = create(key("block.sand.hit"));
-
-    /**
-     * {@code minecraft:block.sand.idle}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> BLOCK_SAND_IDLE = create(key("block.sand.idle"));
 
     /**
      * {@code minecraft:block.sand.place}
@@ -7264,34 +7096,6 @@ public final class SoundEventKeys {
     public static final TypedKey<Sound> ENTITY_GHAST_WARN = create(key("entity.ghast.warn"));
 
     /**
-     * {@code minecraft:entity.ghastling.ambient}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_GHASTLING_AMBIENT = create(key("entity.ghastling.ambient"));
-
-    /**
-     * {@code minecraft:entity.ghastling.death}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_GHASTLING_DEATH = create(key("entity.ghastling.death"));
-
-    /**
-     * {@code minecraft:entity.ghastling.hurt}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_GHASTLING_HURT = create(key("entity.ghastling.hurt"));
-
-    /**
-     * {@code minecraft:entity.ghastling.spawn}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_GHASTLING_SPAWN = create(key("entity.ghastling.spawn"));
-
-    /**
      * {@code minecraft:entity.glow_item_frame.add_item}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -7535,62 +7339,6 @@ public final class SoundEventKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<Sound> ENTITY_GUARDIAN_HURT_LAND = create(key("entity.guardian.hurt_land"));
-
-    /**
-     * {@code minecraft:entity.happy_ghast.ambient}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_HAPPY_GHAST_AMBIENT = create(key("entity.happy_ghast.ambient"));
-
-    /**
-     * {@code minecraft:entity.happy_ghast.death}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_HAPPY_GHAST_DEATH = create(key("entity.happy_ghast.death"));
-
-    /**
-     * {@code minecraft:entity.happy_ghast.equip}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_HAPPY_GHAST_EQUIP = create(key("entity.happy_ghast.equip"));
-
-    /**
-     * {@code minecraft:entity.happy_ghast.harness_goggles_down}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_HAPPY_GHAST_HARNESS_GOGGLES_DOWN = create(key("entity.happy_ghast.harness_goggles_down"));
-
-    /**
-     * {@code minecraft:entity.happy_ghast.harness_goggles_up}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_HAPPY_GHAST_HARNESS_GOGGLES_UP = create(key("entity.happy_ghast.harness_goggles_up"));
-
-    /**
-     * {@code minecraft:entity.happy_ghast.hurt}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_HAPPY_GHAST_HURT = create(key("entity.happy_ghast.hurt"));
-
-    /**
-     * {@code minecraft:entity.happy_ghast.riding}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_HAPPY_GHAST_RIDING = create(key("entity.happy_ghast.riding"));
-
-    /**
-     * {@code minecraft:entity.happy_ghast.unequip}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_HAPPY_GHAST_UNEQUIP = create(key("entity.happy_ghast.unequip"));
 
     /**
      * {@code minecraft:entity.hoglin.ambient}
@@ -7955,6 +7703,20 @@ public final class SoundEventKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<Sound> ENTITY_ITEM_FRAME_ROTATE_ITEM = create(key("entity.item_frame.rotate_item"));
+
+    /**
+     * {@code minecraft:entity.leash_knot.break}
+     *
+     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
+     */
+    public static final TypedKey<Sound> ENTITY_LEASH_KNOT_BREAK = create(key("entity.leash_knot.break"));
+
+    /**
+     * {@code minecraft:entity.leash_knot.place}
+     *
+     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
+     */
+    public static final TypedKey<Sound> ENTITY_LEASH_KNOT_PLACE = create(key("entity.leash_knot.place"));
 
     /**
      * {@code minecraft:entity.lightning_bolt.impact}
@@ -9005,6 +8767,13 @@ public final class SoundEventKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<Sound> ENTITY_POLAR_BEAR_WARNING = create(key("entity.polar_bear.warning"));
+
+    /**
+     * {@code minecraft:entity.puffer_fish.ambient}
+     *
+     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
+     */
+    public static final TypedKey<Sound> ENTITY_PUFFER_FISH_AMBIENT = create(key("entity.puffer_fish.ambient"));
 
     /**
      * {@code minecraft:entity.puffer_fish.blow_out}
@@ -10449,6 +10218,13 @@ public final class SoundEventKeys {
     public static final TypedKey<Sound> ENTITY_WOLF_GROWL = create(key("entity.wolf.growl"));
 
     /**
+     * {@code minecraft:entity.wolf.howl}
+     *
+     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
+     */
+    public static final TypedKey<Sound> ENTITY_WOLF_HOWL = create(key("entity.wolf.howl"));
+
+    /**
      * {@code minecraft:entity.wolf.hurt}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -10482,258 +10258,6 @@ public final class SoundEventKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<Sound> ENTITY_WOLF_WHINE = create(key("entity.wolf.whine"));
-
-    /**
-     * {@code minecraft:entity.wolf_angry.ambient}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_ANGRY_AMBIENT = create(key("entity.wolf_angry.ambient"));
-
-    /**
-     * {@code minecraft:entity.wolf_angry.death}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_ANGRY_DEATH = create(key("entity.wolf_angry.death"));
-
-    /**
-     * {@code minecraft:entity.wolf_angry.growl}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_ANGRY_GROWL = create(key("entity.wolf_angry.growl"));
-
-    /**
-     * {@code minecraft:entity.wolf_angry.hurt}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_ANGRY_HURT = create(key("entity.wolf_angry.hurt"));
-
-    /**
-     * {@code minecraft:entity.wolf_angry.pant}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_ANGRY_PANT = create(key("entity.wolf_angry.pant"));
-
-    /**
-     * {@code minecraft:entity.wolf_angry.whine}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_ANGRY_WHINE = create(key("entity.wolf_angry.whine"));
-
-    /**
-     * {@code minecraft:entity.wolf_big.ambient}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_BIG_AMBIENT = create(key("entity.wolf_big.ambient"));
-
-    /**
-     * {@code minecraft:entity.wolf_big.death}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_BIG_DEATH = create(key("entity.wolf_big.death"));
-
-    /**
-     * {@code minecraft:entity.wolf_big.growl}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_BIG_GROWL = create(key("entity.wolf_big.growl"));
-
-    /**
-     * {@code minecraft:entity.wolf_big.hurt}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_BIG_HURT = create(key("entity.wolf_big.hurt"));
-
-    /**
-     * {@code minecraft:entity.wolf_big.pant}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_BIG_PANT = create(key("entity.wolf_big.pant"));
-
-    /**
-     * {@code minecraft:entity.wolf_big.whine}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_BIG_WHINE = create(key("entity.wolf_big.whine"));
-
-    /**
-     * {@code minecraft:entity.wolf_cute.ambient}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_CUTE_AMBIENT = create(key("entity.wolf_cute.ambient"));
-
-    /**
-     * {@code minecraft:entity.wolf_cute.death}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_CUTE_DEATH = create(key("entity.wolf_cute.death"));
-
-    /**
-     * {@code minecraft:entity.wolf_cute.growl}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_CUTE_GROWL = create(key("entity.wolf_cute.growl"));
-
-    /**
-     * {@code minecraft:entity.wolf_cute.hurt}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_CUTE_HURT = create(key("entity.wolf_cute.hurt"));
-
-    /**
-     * {@code minecraft:entity.wolf_cute.pant}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_CUTE_PANT = create(key("entity.wolf_cute.pant"));
-
-    /**
-     * {@code minecraft:entity.wolf_cute.whine}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_CUTE_WHINE = create(key("entity.wolf_cute.whine"));
-
-    /**
-     * {@code minecraft:entity.wolf_grumpy.ambient}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_GRUMPY_AMBIENT = create(key("entity.wolf_grumpy.ambient"));
-
-    /**
-     * {@code minecraft:entity.wolf_grumpy.death}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_GRUMPY_DEATH = create(key("entity.wolf_grumpy.death"));
-
-    /**
-     * {@code minecraft:entity.wolf_grumpy.growl}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_GRUMPY_GROWL = create(key("entity.wolf_grumpy.growl"));
-
-    /**
-     * {@code minecraft:entity.wolf_grumpy.hurt}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_GRUMPY_HURT = create(key("entity.wolf_grumpy.hurt"));
-
-    /**
-     * {@code minecraft:entity.wolf_grumpy.pant}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_GRUMPY_PANT = create(key("entity.wolf_grumpy.pant"));
-
-    /**
-     * {@code minecraft:entity.wolf_grumpy.whine}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_GRUMPY_WHINE = create(key("entity.wolf_grumpy.whine"));
-
-    /**
-     * {@code minecraft:entity.wolf_puglin.ambient}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_PUGLIN_AMBIENT = create(key("entity.wolf_puglin.ambient"));
-
-    /**
-     * {@code minecraft:entity.wolf_puglin.death}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_PUGLIN_DEATH = create(key("entity.wolf_puglin.death"));
-
-    /**
-     * {@code minecraft:entity.wolf_puglin.growl}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_PUGLIN_GROWL = create(key("entity.wolf_puglin.growl"));
-
-    /**
-     * {@code minecraft:entity.wolf_puglin.hurt}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_PUGLIN_HURT = create(key("entity.wolf_puglin.hurt"));
-
-    /**
-     * {@code minecraft:entity.wolf_puglin.pant}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_PUGLIN_PANT = create(key("entity.wolf_puglin.pant"));
-
-    /**
-     * {@code minecraft:entity.wolf_puglin.whine}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_PUGLIN_WHINE = create(key("entity.wolf_puglin.whine"));
-
-    /**
-     * {@code minecraft:entity.wolf_sad.ambient}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_SAD_AMBIENT = create(key("entity.wolf_sad.ambient"));
-
-    /**
-     * {@code minecraft:entity.wolf_sad.death}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_SAD_DEATH = create(key("entity.wolf_sad.death"));
-
-    /**
-     * {@code minecraft:entity.wolf_sad.growl}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_SAD_GROWL = create(key("entity.wolf_sad.growl"));
-
-    /**
-     * {@code minecraft:entity.wolf_sad.hurt}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_SAD_HURT = create(key("entity.wolf_sad.hurt"));
-
-    /**
-     * {@code minecraft:entity.wolf_sad.pant}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_SAD_PANT = create(key("entity.wolf_sad.pant"));
-
-    /**
-     * {@code minecraft:entity.wolf_sad.whine}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ENTITY_WOLF_SAD_WHINE = create(key("entity.wolf_sad.whine"));
 
     /**
      * {@code minecraft:entity.zoglin.ambient}
@@ -11443,46 +10967,11 @@ public final class SoundEventKeys {
     public static final TypedKey<Sound> ITEM_HONEYCOMB_WAX_ON = create(key("item.honeycomb.wax_on"));
 
     /**
-     * {@code minecraft:item.horse_armor.unequip}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ITEM_HORSE_ARMOR_UNEQUIP = create(key("item.horse_armor.unequip"));
-
-    /**
      * {@code minecraft:item.ink_sac.use}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<Sound> ITEM_INK_SAC_USE = create(key("item.ink_sac.use"));
-
-    /**
-     * {@code minecraft:item.lead.break}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ITEM_LEAD_BREAK = create(key("item.lead.break"));
-
-    /**
-     * {@code minecraft:item.lead.tied}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ITEM_LEAD_TIED = create(key("item.lead.tied"));
-
-    /**
-     * {@code minecraft:item.lead.untied}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ITEM_LEAD_UNTIED = create(key("item.lead.untied"));
-
-    /**
-     * {@code minecraft:item.llama_carpet.unequip}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ITEM_LLAMA_CARPET_UNEQUIP = create(key("item.llama_carpet.unequip"));
 
     /**
      * {@code minecraft:item.lodestone_compass.lock}
@@ -11525,20 +11014,6 @@ public final class SoundEventKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<Sound> ITEM_OMINOUS_BOTTLE_DISPOSE = create(key("item.ominous_bottle.dispose"));
-
-    /**
-     * {@code minecraft:item.saddle.unequip}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ITEM_SADDLE_UNEQUIP = create(key("item.saddle.unequip"));
-
-    /**
-     * {@code minecraft:item.shears.snip}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> ITEM_SHEARS_SNIP = create(key("item.shears.snip"));
 
     /**
      * {@code minecraft:item.shield.block}
@@ -11947,13 +11422,6 @@ public final class SoundEventKeys {
     public static final TypedKey<Sound> MUSIC_DISC_FAR = create(key("music_disc.far"));
 
     /**
-     * {@code minecraft:music_disc.lava_chicken}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> MUSIC_DISC_LAVA_CHICKEN = create(key("music_disc.lava_chicken"));
-
-    /**
      * {@code minecraft:music_disc.mall}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -12008,13 +11476,6 @@ public final class SoundEventKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<Sound> MUSIC_DISC_STRAD = create(key("music_disc.strad"));
-
-    /**
-     * {@code minecraft:music_disc.tears}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Sound> MUSIC_DISC_TEARS = create(key("music_disc.tears"));
 
     /**
      * {@code minecraft:music_disc.wait}

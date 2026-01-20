@@ -10,12 +10,15 @@ import io.papermc.paper.plugin.lifecycle.event.registrar.RegistrarEvent;
 import io.papermc.paper.plugin.lifecycle.event.registrar.ReloadableRegistrarEvent;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Holds various types of lifecycle events for
  * use when creating event handler configurations
  * in {@link LifecycleEventManager}.
  */
+@ApiStatus.Experimental
+@NullMarked
 public final class LifecycleEvents {
 
     /**
@@ -29,7 +32,6 @@ public final class LifecycleEvents {
      * These events are for registering tags to the server's tag system. You can register a handler for these events
      * only in {@link io.papermc.paper.plugin.bootstrap.PluginBootstrap#bootstrap(BootstrapContext)}.
      */
-    @ApiStatus.Experimental
     public static final TagEventTypeProvider TAGS = LifecycleEventTypeProvider.provider().tagProvider();
 
 
@@ -38,7 +40,6 @@ public final class LifecycleEvents {
      * can register a handler for this event only in {@link io.papermc.paper.plugin.bootstrap.PluginBootstrap#bootstrap(BootstrapContext)}.
      * @see DatapackRegistrar an example of a datapack being discovered
      */
-    @ApiStatus.Experimental
     public static final LifecycleEventType.Prioritizable<BootstrapContext, RegistrarEvent<DatapackRegistrar>> DATAPACK_DISCOVERY = bootstrapPrioritized("datapack_discovery");
 
     //<editor-fold desc="helper methods" defaultstate="collapsed">

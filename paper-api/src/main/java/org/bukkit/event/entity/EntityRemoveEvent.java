@@ -2,7 +2,6 @@ package org.bukkit.event.entity;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -18,13 +17,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public class EntityRemoveEvent extends EntityEvent {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final Cause cause;
 
-    @ApiStatus.Internal
-    public EntityRemoveEvent(@NotNull Entity entity, @NotNull Cause cause) {
-        super(entity);
+    public EntityRemoveEvent(@NotNull Entity what, @NotNull Cause cause) {
+        super(what);
         this.cause = cause;
     }
 
@@ -35,18 +32,18 @@ public class EntityRemoveEvent extends EntityEvent {
      */
     @NotNull
     public Cause getCause() {
-        return this.cause;
+        return cause;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     /**

@@ -8,11 +8,10 @@ import org.jetbrains.annotations.NotNull;
  * Represents a block related event.
  */
 public abstract class BlockEvent extends Event {
-
     protected Block block;
 
-    protected BlockEvent(@NotNull final Block block) {
-        this.block = block;
+    public BlockEvent(@NotNull final Block theBlock) {
+        block = theBlock;
     }
 
     /**
@@ -22,6 +21,6 @@ public abstract class BlockEvent extends Event {
      */
     @NotNull
     public final Block getBlock() {
-        return this.block;
+        return block;
     }
 }

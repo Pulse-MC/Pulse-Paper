@@ -7,10 +7,9 @@ import org.jetbrains.annotations.NotNull;
  * Used for plugin enable and disable events
  */
 public abstract class PluginEvent extends ServerEvent {
-
     private final Plugin plugin;
 
-    protected PluginEvent(@NotNull final Plugin plugin) {
+    public PluginEvent(@NotNull final Plugin plugin) {
         this.plugin = plugin;
     }
 
@@ -21,6 +20,6 @@ public abstract class PluginEvent extends ServerEvent {
      */
     @NotNull
     public Plugin getPlugin() {
-        return this.plugin;
+        return plugin;
     }
 }

@@ -20,7 +20,7 @@ public interface CachedServerIcon {
 
     // Paper start
     default boolean isEmpty() {
-        return this.getData() == null;
+        return getData() == null;
     }
     // Paper end
 }

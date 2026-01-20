@@ -19,13 +19,10 @@ import org.jetbrains.annotations.Nullable;
  * Called when a splash potion hits an area
  */
 public class PotionSplashEvent extends ProjectileHitEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    protected final Map<LivingEntity, Double> affectedEntities;
+    private static final HandlerList handlers = new HandlerList();
     private boolean cancelled;
+    protected final Map<LivingEntity, Double> affectedEntities; // Paper
 
-    @ApiStatus.Internal
     @Deprecated(since = "1.20.2", forRemoval = true)
     public PotionSplashEvent(@NotNull final ThrownPotion potion, @NotNull final Map<LivingEntity, Double> affectedEntities) {
         this(potion, null, null, null, affectedEntities);
@@ -40,7 +37,7 @@ public class PotionSplashEvent extends ProjectileHitEvent implements Cancellable
     @NotNull
     @Override
     public ThrownPotion getEntity() {
-        return (ThrownPotion) this.entity;
+        return (ThrownPotion) entity;
     }
 
     /**
@@ -50,7 +47,7 @@ public class PotionSplashEvent extends ProjectileHitEvent implements Cancellable
      */
     @NotNull
     public ThrownPotion getPotion() {
-        return this.getEntity();
+        return (ThrownPotion) getEntity();
     }
 
     /**
@@ -60,7 +57,7 @@ public class PotionSplashEvent extends ProjectileHitEvent implements Cancellable
      */
     @NotNull
     public Collection<LivingEntity> getAffectedEntities() {
-        return new ArrayList<>(this.affectedEntities.keySet());
+        return new ArrayList<LivingEntity>(affectedEntities.keySet());
     }
 
     /**
@@ -72,7 +69,7 @@ public class PotionSplashEvent extends ProjectileHitEvent implements Cancellable
      *     fully hit by potion effects
      */
     public double getIntensity(@NotNull LivingEntity entity) {
-        Double intensity = this.affectedEntities.get(entity);
+        Double intensity = affectedEntities.get(entity);
         return intensity != null ? intensity : 0.0;
     }
 
@@ -85,30 +82,30 @@ public class PotionSplashEvent extends ProjectileHitEvent implements Cancellable
     public void setIntensity(@NotNull LivingEntity entity, double intensity) {
         Preconditions.checkArgument(entity != null, "You must specify a valid entity.");
         if (intensity <= 0.0) {
-            this.affectedEntities.remove(entity);
+            affectedEntities.remove(entity);
         } else {
-            this.affectedEntities.put(entity, Math.min(intensity, 1.0));
+            affectedEntities.put(entity, Math.min(intensity, 1.0));
         }
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
     public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        cancelled = cancel;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

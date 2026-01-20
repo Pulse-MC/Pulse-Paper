@@ -1,9 +1,9 @@
 --- a/net/minecraft/world/entity/projectile/ShulkerBullet.java
 +++ b/net/minecraft/world/entity/projectile/ShulkerBullet.java
 @@ -57,7 +_,21 @@
-         this.finalTarget = new EntityReference<>(finalTarget);
+         this.finalTarget = finalTarget;
          this.currentMoveDirection = Direction.UP;
-         this.selectNextMoveDirection(axis, finalTarget);
+         this.selectNextMoveDirection(axis);
 -    }
 +        this.projectileSource = shooter.getBukkitLivingEntity(); // CraftBukkit
 +    }
@@ -11,19 +11,19 @@
 +    // CraftBukkit start
 +    @Nullable
 +    public Entity getTarget() {
-+        return EntityReference.get(this.finalTarget, this.level(), Entity.class);
++        return this.finalTarget;
 +    }
 +
-+    public void setTarget(@Nullable Entity finalTarget) {
-+        this.finalTarget = finalTarget == null ? null : new net.minecraft.world.entity.EntityReference<>(finalTarget);
++    public void setTarget(Entity finalTarget) {
++        this.finalTarget = finalTarget;
 +        this.currentMoveDirection = Direction.UP;
-+        this.selectNextMoveDirection(Direction.Axis.X, finalTarget);
++        this.selectNextMoveDirection(Direction.Axis.X);
 +    }
 +    // CraftBukkit end
  
      @Override
      public SoundSource getSoundSource() {
-@@ -179,7 +_,7 @@
+@@ -187,7 +_,7 @@
      @Override
      public void checkDespawn() {
          if (this.level().getDifficulty() == Difficulty.PEACEFUL) {
@@ -32,7 +32,7 @@
          }
      }
  
-@@ -223,7 +_,7 @@
+@@ -233,7 +_,7 @@
          }
  
          if (hitResult != null && this.isAlive() && hitResult.getType() != HitResult.Type.MISS) {
@@ -41,7 +41,7 @@
          }
  
          ProjectileUtil.rotateTowardsMovement(this, 0.5F);
-@@ -296,7 +_,7 @@
+@@ -301,7 +_,7 @@
              }
  
              if (entity instanceof LivingEntity livingEntity1) {
@@ -50,7 +50,7 @@
              }
          }
      }
-@@ -309,14 +_,20 @@
+@@ -314,14 +_,20 @@
      }
  
      private void destroy() {
@@ -59,7 +59,7 @@
 +        this.destroy(null);
 +    }
 +
-+    private void destroy(@Nullable org.bukkit.event.entity.EntityRemoveEvent.Cause cause) {
++    private void destroy(org.bukkit.event.entity.EntityRemoveEvent.Cause cause) {
 +        this.discard(cause);
 +        // CraftBukkit end
          this.level().gameEvent(GameEvent.ENTITY_DAMAGE, this.position(), GameEvent.Context.of(this));
@@ -73,7 +73,7 @@
      }
  
      @Override
-@@ -331,9 +_,14 @@
+@@ -336,9 +_,14 @@
  
      @Override
      public boolean hurtServer(ServerLevel level, DamageSource damageSource, float amount) {

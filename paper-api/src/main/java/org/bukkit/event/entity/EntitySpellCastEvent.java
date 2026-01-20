@@ -3,7 +3,6 @@ package org.bukkit.event.entity;
 import org.bukkit.entity.Spellcaster;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -11,27 +10,25 @@ import org.jetbrains.annotations.NotNull;
  */
 public class EntitySpellCastEvent extends EntityEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    //
+    private boolean cancelled = false;
     private final Spellcaster.Spell spell;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
-    public EntitySpellCastEvent(@NotNull Spellcaster spellcaster, @NotNull Spellcaster.Spell spell) {
-        super(spellcaster);
+    public EntitySpellCastEvent(@NotNull Spellcaster what, @NotNull Spellcaster.Spell spell) {
+        super(what);
         this.spell = spell;
     }
 
     @Override
     @NotNull
     public Spellcaster getEntity() {
-        return (Spellcaster) this.entity;
+        return (Spellcaster) entity;
     }
 
     /**
      * Get the spell to be cast in this event.
-     * <br>
+     *
      * This is a convenience method equivalent to
      * {@link Spellcaster#getSpell()}.
      *
@@ -39,7 +36,7 @@ public class EntitySpellCastEvent extends EntityEvent implements Cancellable {
      */
     @NotNull
     public Spellcaster.Spell getSpell() {
-        return this.spell;
+        return spell;
     }
 
     @Override
@@ -49,17 +46,17 @@ public class EntitySpellCastEvent extends EntityEvent implements Cancellable {
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
     @NotNull
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

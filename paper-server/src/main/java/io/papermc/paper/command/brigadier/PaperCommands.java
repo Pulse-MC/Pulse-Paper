@@ -91,13 +91,10 @@ public class PaperCommands implements Commands, PaperRegistrar<LifecycleEventOwn
 
     @Override
     public @Unmodifiable Set<String> registerWithFlags(final PluginMeta pluginMeta, final LiteralCommandNode<CommandSourceStack> node, final @Nullable String description, final Collection<String> aliases, final Set<CommandRegistrationFlag> flags) {
-        return this.registerWithFlagsInternal(pluginMeta, pluginMeta.namespace(), null, node, description, aliases, flags);
-    }
-
-    public @Unmodifiable Set<String> registerWithFlagsInternal(final @Nullable PluginMeta pluginMeta, final String namespace, final @Nullable String helpNamespaceOverride, final LiteralCommandNode<CommandSourceStack> node, final @Nullable String description, final Collection<String> aliases, final Set<CommandRegistrationFlag> flags) {
-        final APICommandMeta meta = new APICommandMeta(pluginMeta, description, List.of(), helpNamespaceOverride);
+        final PluginCommandMeta meta = new PluginCommandMeta(pluginMeta, description);
+        final String identifier = pluginMeta.getName().toLowerCase(Locale.ROOT);
         final String literal = node.getLiteral();
-        final LiteralCommandNode<CommandSourceStack> pluginLiteral = PaperBrigadier.copyLiteral(namespace + ":" + literal, node);
+        final LiteralCommandNode<CommandSourceStack> pluginLiteral = PaperBrigadier.copyLiteral(identifier + ":" + literal, node);
 
         final Set<String> registeredLabels = new HashSet<>(aliases.size() * 2 + 2);
 
@@ -114,27 +111,27 @@ public class PaperCommands implements Commands, PaperRegistrar<LifecycleEventOwn
             if (this.registerCopy(alias, pluginLiteral, meta)) {
                 registeredAliases.add(alias);
             }
-            if (this.registerCopy(namespace + ":" + alias, pluginLiteral, meta)) {
-                registeredAliases.add(namespace + ":" + alias);
+            if (this.registerCopy(identifier + ":" + alias, pluginLiteral, meta)) {
+                registeredAliases.add(identifier + ":" + alias);
             }
         }
 
-        pluginLiteral.apiCommandMeta = meta.withAliases(registeredAliases);
-        node.apiCommandMeta = pluginLiteral.apiCommandMeta;
+        pluginLiteral.pluginCommandMeta = new PluginCommandMeta(pluginMeta, description, registeredAliases);
+        node.pluginCommandMeta = pluginLiteral.pluginCommandMeta;
 
         registeredLabels.addAll(registeredAliases);
         return registeredLabels.isEmpty() ? Collections.emptySet() : Collections.unmodifiableSet(registeredLabels);
     }
 
-    private boolean registerCopy(final String aliasLiteral, final LiteralCommandNode<CommandSourceStack> redirectTo, final APICommandMeta meta) {
+    private boolean registerCopy(final String aliasLiteral, final LiteralCommandNode<CommandSourceStack> redirectTo, final PluginCommandMeta meta) {
         final LiteralCommandNode<CommandSourceStack> node = PaperBrigadier.copyLiteral(aliasLiteral, redirectTo);
-        node.apiCommandMeta = meta;
+        node.pluginCommandMeta = meta;
         return this.registerIntoDispatcher(node, false);
     }
 
     private boolean registerIntoDispatcher(final LiteralCommandNode<CommandSourceStack> node, boolean override) {
         final CommandNode<CommandSourceStack> existingChild = this.getDispatcher().getRoot().getChild(node.getLiteral());
-        if (existingChild != null && existingChild.apiCommandMeta == null && !(existingChild instanceof BukkitCommandNode)) {
+        if (existingChild != null && existingChild.pluginCommandMeta == null && !(existingChild instanceof BukkitCommandNode)) {
             override = true; // override vanilla commands
         }
         if (existingChild == null || override) { // Avoid merging behavior. Maybe something to look into in the future

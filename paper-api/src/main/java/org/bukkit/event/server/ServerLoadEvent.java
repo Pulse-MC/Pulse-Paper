@@ -1,7 +1,6 @@
 package org.bukkit.event.server;
 
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -9,11 +8,21 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ServerLoadEvent extends ServerEvent {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
+    /**
+     * Represents the context in which the enclosing event has been completed.
+     */
+    public enum LoadType {
+        STARTUP, RELOAD;
+    }
 
+    private static final HandlerList handlers = new HandlerList();
     private final LoadType type;
 
-    @ApiStatus.Internal
+    /**
+     * Creates a {@code ServerLoadEvent} with a given loading type.
+     *
+     * @param type the context in which the server was loaded
+     */
     public ServerLoadEvent(@NotNull LoadType type) {
         this.type = type;
     }
@@ -25,25 +34,17 @@ public class ServerLoadEvent extends ServerEvent {
      */
     @NotNull
     public LoadType getType() {
-        return this.type;
+        return type;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
-    }
-
-    /**
-     * Represents the context in which the enclosing event has been completed.
-     */
-    public enum LoadType {
-        STARTUP,
-        RELOAD
+        return handlers;
     }
 }

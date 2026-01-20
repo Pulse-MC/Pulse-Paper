@@ -10,10 +10,9 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import java.util.ArrayList;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.commands.CommandSource;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandException;
@@ -108,7 +107,7 @@ public class BukkitCommandNode extends LiteralCommandNode<CommandSourceStack> {
             try {
                 results = this.command.tabComplete(sender, this.literal, args, pos.clone());
             } catch (CommandException ex) {
-                sender.sendMessage(Component.text("An internal error occurred while attempting to tab-complete this command", NamedTextColor.RED));
+                sender.sendMessage(ChatColor.RED + "An internal error occurred while attempting to tab-complete this command");
                 Bukkit.getServer().getLogger().log(Level.SEVERE, "Exception when " + sender.getName() + " attempted to tab complete " + builder.getRemaining(), ex);
             }
 

@@ -11,6 +11,11 @@ public class CraftPiglinBrute extends CraftPiglinAbstract implements PiglinBrute
 
     @Override
     public net.minecraft.world.entity.monster.piglin.PiglinBrute getHandle() {
-        return (net.minecraft.world.entity.monster.piglin.PiglinBrute) this.entity;
+        return (net.minecraft.world.entity.monster.piglin.PiglinBrute) super.getHandle();
+    }
+
+    @Override
+    public String toString() {
+        return "CraftPiglinBrute";
     }
 }

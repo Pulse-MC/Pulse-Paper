@@ -48,10 +48,10 @@ index db31989ebe3d7021cfd2311439e9a00f819b0841..1373977b339405ef59bb3ea03d195285
              serverEntity.getLastSentYRot(),
              entity.getType(),
 diff --git a/net/minecraft/server/level/ChunkMap.java b/net/minecraft/server/level/ChunkMap.java
-index 61692c07dfb75ca0c19f603aafc96c0817861107..56a1d081a28e8b38384cfca732b103462693e322 100644
+index 3dff97f13586be3b52bbe786852c185f6753a019..ff6503bf8eb88d1264c3d848a89d0255b4b3ae68 100644
 --- a/net/minecraft/server/level/ChunkMap.java
 +++ b/net/minecraft/server/level/ChunkMap.java
-@@ -1278,6 +1278,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
+@@ -1208,6 +1208,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
                          this.serverEntity.addPairing(player);
                          }
                          // Paper end - entity tracking events
@@ -60,10 +60,10 @@ index 61692c07dfb75ca0c19f603aafc96c0817861107..56a1d081a28e8b38384cfca732b10346
                  } else if (this.seenBy.remove(player.connection)) {
                      this.serverEntity.removePairing(player);
 diff --git a/net/minecraft/server/level/ServerEntity.java b/net/minecraft/server/level/ServerEntity.java
-index 3d5a8163a7dd78a195b77c4aaebdee2dc3dee64b..e96d4dee14c05f2fa329bfb1588ec795d4e3d730 100644
+index db06f966077928419bfe469260f04d7dfda69f28..0fb253aa55a24b56b17f524b3261c5b75c7d7e59 100644
 --- a/net/minecraft/server/level/ServerEntity.java
 +++ b/net/minecraft/server/level/ServerEntity.java
-@@ -103,6 +103,13 @@ public class ServerEntity {
+@@ -90,6 +90,13 @@ public class ServerEntity {
          this.trackedDataValues = entity.getEntityData().getNonDefaultValues();
      }
  
@@ -77,7 +77,7 @@ index 3d5a8163a7dd78a195b77c4aaebdee2dc3dee64b..e96d4dee14c05f2fa329bfb1588ec795
      public void sendChanges() {
          // Paper start - optimise collisions
          if (((ca.spottedleaf.moonrise.patches.chunk_system.entity.ChunkSystemEntity)this.entity).moonrise$isHardColliding()) {
-@@ -141,7 +148,7 @@ public class ServerEntity {
+@@ -131,7 +138,7 @@ public class ServerEntity {
              this.sendDirtyEntityData();
          }
  
@@ -86,16 +86,16 @@ index 3d5a8163a7dd78a195b77c4aaebdee2dc3dee64b..e96d4dee14c05f2fa329bfb1588ec795
              byte b = Mth.packDegrees(this.entity.getYRot());
              byte b1 = Mth.packDegrees(this.entity.getXRot());
              boolean flag = Math.abs(b - this.lastSentYRot) >= 1 || Math.abs(b1 - this.lastSentXRot) >= 1;
-@@ -176,7 +183,7 @@ public class ServerEntity {
+@@ -166,7 +173,7 @@ public class ServerEntity {
                  long l1 = this.positionCodec.encodeY(vec3);
                  long l2 = this.positionCodec.encodeZ(vec3);
                  boolean flag5 = l < -32768L || l > 32767L || l1 < -32768L || l1 > 32767L || l2 < -32768L || l2 > 32767L;
--                if (this.entity.getRequiresPrecisePosition()
-+                if (this.forceStateResync || this.entity.getRequiresPrecisePosition() // Paper - fix desync when a player is added to the tracker
-                     || flag5
-                     || this.teleportDelay > 400
-                     || this.wasRiding
-@@ -245,6 +252,7 @@ public class ServerEntity {
+-                if (flag5 || this.teleportDelay > 400 || this.wasRiding || this.wasOnGround != this.entity.onGround()) {
++                if (this.forceStateResync || flag5 || this.teleportDelay > 400 || this.wasRiding || this.wasOnGround != this.entity.onGround()) { // Paper - fix desync when a player is added to the tracker
+                     this.wasOnGround = this.entity.onGround();
+                     this.teleportDelay = 0;
+                     packet = ClientboundEntityPositionSyncPacket.of(this.entity);
+@@ -231,6 +238,7 @@ public class ServerEntity {
              }
  
              this.entity.hasImpulse = false;

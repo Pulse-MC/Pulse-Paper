@@ -2,7 +2,6 @@ package org.bukkit.event.player;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -10,15 +9,13 @@ import org.jetbrains.annotations.NotNull;
  */
 public class PlayerExpCooldownChangeEvent extends PlayerEvent {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    private final ChangeReason reason;
+    private static final HandlerList handlers = new HandlerList();
     private int newCooldown;
+    private final ChangeReason reason;
 
-    @ApiStatus.Internal
-    public PlayerExpCooldownChangeEvent(@NotNull final Player player, int newCooldown, @NotNull ChangeReason reason) {
+    public PlayerExpCooldownChangeEvent(@NotNull final Player player, int newcooldown, @NotNull ChangeReason reason) {
         super(player);
-        this.newCooldown = newCooldown;
+        this.newCooldown = newcooldown;
         this.reason = reason;
     }
 
@@ -29,7 +26,7 @@ public class PlayerExpCooldownChangeEvent extends PlayerEvent {
      */
     @NotNull
     public ChangeReason getReason() {
-        return this.reason;
+        return reason;
     }
 
     /**
@@ -39,7 +36,7 @@ public class PlayerExpCooldownChangeEvent extends PlayerEvent {
      * @see Player#getExpCooldown()
      */
     public int getNewCooldown() {
-        return this.newCooldown;
+        return newCooldown;
     }
 
     /**
@@ -55,12 +52,12 @@ public class PlayerExpCooldownChangeEvent extends PlayerEvent {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     public enum ChangeReason {

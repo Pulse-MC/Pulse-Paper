@@ -11,6 +11,11 @@ public class CraftIllusioner extends CraftSpellcaster implements Illusioner, com
 
     @Override
     public net.minecraft.world.entity.monster.Illusioner getHandle() {
-        return (net.minecraft.world.entity.monster.Illusioner) this.entity;
+        return (net.minecraft.world.entity.monster.Illusioner) super.getHandle();
+    }
+
+    @Override
+    public String toString() {
+        return "CraftIllusioner";
     }
 }

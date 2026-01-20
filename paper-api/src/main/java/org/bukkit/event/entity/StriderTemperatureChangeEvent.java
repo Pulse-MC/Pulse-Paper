@@ -3,7 +3,6 @@ package org.bukkit.event.entity;
 import org.bukkit.entity.Strider;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -12,21 +11,19 @@ import org.jetbrains.annotations.NotNull;
  */
 public class StriderTemperatureChangeEvent extends EntityEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final boolean shivering;
     private boolean cancelled;
 
-    @ApiStatus.Internal
-    public StriderTemperatureChangeEvent(@NotNull Strider strider, boolean shivering) {
-        super(strider);
+    public StriderTemperatureChangeEvent(@NotNull Strider what, boolean shivering) {
+        super(what);
         this.shivering = shivering;
     }
 
     @NotNull
     @Override
     public Strider getEntity() {
-        return (Strider) this.entity;
+        return (Strider) entity;
     }
 
     /**
@@ -35,12 +32,12 @@ public class StriderTemperatureChangeEvent extends EntityEvent implements Cancel
      * @return the new shivering state
      */
     public boolean isShivering() {
-        return this.shivering;
+        return shivering;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
@@ -51,11 +48,11 @@ public class StriderTemperatureChangeEvent extends EntityEvent implements Cancel
     @Override
     @NotNull
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

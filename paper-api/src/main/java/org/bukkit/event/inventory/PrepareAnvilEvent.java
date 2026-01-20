@@ -1,9 +1,9 @@
 package org.bukkit.event.inventory;
 
+import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.view.AnvilView;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,7 +12,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class PrepareAnvilEvent extends com.destroystokyo.paper.event.inventory.PrepareResultEvent {
 
-    @ApiStatus.Internal
+    // Paper - move HandlerList to PrepareInventoryResultEvent
+
     public PrepareAnvilEvent(@NotNull AnvilView inventory, @Nullable ItemStack result) {
         super(inventory, result);
     }
@@ -25,10 +26,13 @@ public class PrepareAnvilEvent extends com.destroystokyo.paper.event.inventory.P
 
     /**
      * {@inheritDoc}
+     *
      * <p>
      * Note: by default custom recipes in anvil are disabled
      * you should define a repair cost on the anvil inventory
      * greater or equals to zero in order to allow that.
+     *
+     * @param result result item
      */
     public void setResult(@Nullable ItemStack result) {
         super.setResult(result);
@@ -39,4 +43,6 @@ public class PrepareAnvilEvent extends com.destroystokyo.paper.event.inventory.P
     public AnvilView getView() {
         return (AnvilView) super.getView();
     }
+
+    // Paper - move HandlerList to PrepareInventoryResultEvent
 }

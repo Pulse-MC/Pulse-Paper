@@ -4,7 +4,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.HandlerList;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -17,13 +16,10 @@ import org.jetbrains.annotations.NotNull;
  * any changes to velocity and location from taking place.
  */
 public class EntityPortalExitEvent extends EntityTeleportEvent {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    private final Vector before;
+    private static final HandlerList handlers = new HandlerList();
+    private Vector before;
     private Vector after;
 
-    @ApiStatus.Internal
     public EntityPortalExitEvent(@NotNull final Entity entity, @NotNull final Location from, @NotNull final Location to, @NotNull final Vector before, @NotNull final Vector after) {
         super(entity, from, to);
         this.before = before;
@@ -64,11 +60,11 @@ public class EntityPortalExitEvent extends EntityTeleportEvent {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

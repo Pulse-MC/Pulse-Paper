@@ -12,4 +12,9 @@ public class CraftBreezeWindCharge extends CraftAbstractWindCharge implements Br
     public net.minecraft.world.entity.projectile.windcharge.BreezeWindCharge getHandle() {
         return (net.minecraft.world.entity.projectile.windcharge.BreezeWindCharge) this.entity;
     }
+
+    @Override
+    public String toString() {
+        return "CraftBreezeWindCharge";
+    }
 }

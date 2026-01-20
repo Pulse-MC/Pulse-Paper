@@ -1,14 +1,15 @@
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
-@@ -148,6 +_,106 @@
+@@ -136,6 +_,108 @@
  import org.slf4j.Logger;
  
- public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess, ScoreHolder, DataComponentGetter {
+ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess, ScoreHolder {
++
 +    // CraftBukkit start
 +    private static final int CURRENT_LEVEL = 2;
-+    public boolean preserveMotion = true; // Paper - Fix Entity Teleportation and cancel velocity if teleported; keep initial motion on first snapTo
-+    static boolean isLevelAtLeast(ValueInput input, int level) {
-+        return input.getIntOr("Bukkit.updateLevel", CURRENT_LEVEL) >= level;
++    public boolean preserveMotion = true; // Paper - Fix Entity Teleportation and cancel velocity if teleported; keep initial motion on first setPositionRotation
++    static boolean isLevelAtLeast(CompoundTag tag, int level) {
++        return tag.contains("Bukkit.updateLevel") && tag.getInt("Bukkit.updateLevel") >= level;
 +    }
 +
 +    // Paper start - Share random for entities to make them more random
@@ -83,9 +84,9 @@
 +        }
 +    }
 +    // Paper end - Share random for entities to make them more random
-+    public @Nullable org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason spawnReason; // Paper - Entity#getEntitySpawnReason
++    public org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason spawnReason; // Paper - Entity#getEntitySpawnReason
 +
-+    private volatile @Nullable org.bukkit.craftbukkit.entity.CraftEntity bukkitEntity; // Paper - Folia schedulers - volatile
++    private @Nullable org.bukkit.craftbukkit.entity.CraftEntity bukkitEntity;
 +
 +    public org.bukkit.craftbukkit.entity.CraftEntity getBukkitEntity() {
 +        if (this.bukkitEntity == null) {
@@ -104,19 +105,20 @@
 +        return this.bukkitEntity;
 +    }
 +    // Paper end
++
      private static final Logger LOGGER = LogUtils.getLogger();
-     public static final String TAG_ID = "id";
-     public static final String TAG_UUID = "UUID";
-@@ -224,7 +_,7 @@
-     public double yOld;
+     public static final String ID_TAG = "id";
+     public static final String PASSENGERS_TAG = "Passengers";
+@@ -196,7 +_,7 @@
      public double zOld;
      public boolean noPhysics;
+     private boolean wasOnFire;
 -    public final RandomSource random = RandomSource.create();
 +    public final RandomSource random = SHARED_RANDOM; // Paper - Share random for entities to make them more random
      public int tickCount;
-     private int remainingFireTicks;
+     private int remainingFireTicks = -this.getFireImmuneTicks();
      public boolean wasTouchingWater;
-@@ -261,7 +_,7 @@
+@@ -233,7 +_,7 @@
      protected UUID uuid = Mth.createInsecureUUID(this.random);
      protected String stringUUID = this.uuid.toString();
      private boolean hasGlowingTag;
@@ -125,19 +127,10 @@
      private final double[] pistonDeltas = new double[]{0.0, 0.0, 0.0};
      private long pistonDeltasGameTime;
      private EntityDimensions dimensions;
-@@ -272,7 +_,7 @@
-     private boolean onGroundNoBlocks = false;
-     private float crystalSoundIntensity;
-     private int lastCrystalSoundPlayTick;
--    public boolean hasVisualFire;
-+    public net.kyori.adventure.util.TriState visualFire = net.kyori.adventure.util.TriState.NOT_SET; // Paper - improve visual fire API
-     @Nullable
-     private BlockState inBlockState = null;
-     public static final int MAX_MOVEMENTS_HANDELED_PER_TICK = 100;
-@@ -281,6 +_,41 @@
+@@ -250,6 +_,60 @@
+     private final List<Entity.Movement> movementThisTick = new ArrayList<>();
+     private final Set<BlockState> blocksInside = new ReferenceArraySet<>();
      private final LongSet visitedBlocks = new LongOpenHashSet();
-     private final InsideBlockEffectApplier.StepBasedCollector insideEffectCollector = new InsideBlockEffectApplier.StepBasedCollector();
-     private CustomData customData = CustomData.EMPTY;
 +    // CraftBukkit start
 +    public boolean forceDrops;
 +    public boolean persist = true;
@@ -150,24 +143,43 @@
 +    public org.bukkit.projectiles.ProjectileSource projectileSource; // For projectiles only
 +    public boolean lastDamageCancelled; // SPIGOT-5339, SPIGOT-6252, SPIGOT-6777: Keep track if the event was canceled
 +    public boolean persistentInvisibility = false;
-+    public @Nullable BlockPos lastLavaContact;
++    public BlockPos lastLavaContact;
 +    // Marks an entity, that it was removed by a plugin via Entity#remove
 +    // Main use case currently is for SPIGOT-7487, preventing dropping of leash when leash is removed
 +    public boolean pluginRemoved = false;
 +    protected int numCollisions = 0; // Paper - Cap entity collisions
 +    public boolean fromNetherPortal; // Paper - Add option to nerf pigmen from nether portals
 +    public boolean spawnedViaMobSpawner; // Paper - Yes this name is similar to above, upstream took the better one
-+    // Paper start
-+    public @Nullable Vec3 origin;
-+    public @Nullable UUID originWorld;
-+    // Paper end
++    // Paper start - Entity origin API
++    @javax.annotation.Nullable
++    private org.bukkit.util.Vector origin;
++    @javax.annotation.Nullable
++    private UUID originWorld;
 +    public boolean freezeLocked = false; // Paper - Freeze Tick Lock API
 +    public boolean fixedPose = false; // Paper - Expand Pose API
 +    private final int despawnTime; // Paper - entity despawn time limit
 +    public int totalEntityAge; // Paper - age-like counter for all entities
 +    public final io.papermc.paper.entity.activation.ActivationType activationType = io.papermc.paper.entity.activation.ActivationType.activationTypeFor(this); // Paper - EAR 2/tracking ranges
-+    // CraftBukkit end
 +
++    public void setOrigin(@javax.annotation.Nonnull org.bukkit.Location location) {
++        this.origin = location.toVector();
++        this.originWorld = location.getWorld().getUID();
++    }
++
++    @javax.annotation.Nullable
++    public org.bukkit.util.Vector getOriginVector() {
++        return this.origin != null ? this.origin.clone() : null;
++    }
++
++    @javax.annotation.Nullable
++    public UUID getOriginWorld() {
++        return this.originWorld;
++    }
++    // Paper end - Entity origin API
++    public float getBukkitYaw() {
++        return this.yRot;
++    }
++    // CraftBukkit end
 +    // Paper start
 +    public final AABB getBoundingBoxAt(double x, double y, double z) {
 +        return this.dimensions.makeBoundingBox(x, y, z);
@@ -176,7 +188,7 @@
  
      public Entity(EntityType<?> entityType, Level level) {
          this.type = entityType;
-@@ -302,6 +_,7 @@
+@@ -271,6 +_,7 @@
          this.entityData = builder.build();
          this.setPos(0.0, 0.0, 0.0);
          this.eyeHeight = this.dimensions.eyeHeight();
@@ -184,7 +196,7 @@
      }
  
      public boolean isColliding(BlockPos pos, BlockState state) {
-@@ -314,6 +_,12 @@
+@@ -284,6 +_,12 @@
          return team != null && team.getColor().getColor() != null ? team.getColor().getColor() : 16777215;
      }
  
@@ -197,7 +209,7 @@
      public boolean isSpectator() {
          return false;
      }
-@@ -362,7 +_,7 @@
+@@ -324,7 +_,7 @@
      }
  
      public boolean addTag(String tag) {
@@ -206,7 +218,7 @@
      }
  
      public boolean removeTag(String tag) {
-@@ -370,12 +_,18 @@
+@@ -332,12 +_,18 @@
      }
  
      public void kill(ServerLevel level) {
@@ -221,13 +233,13 @@
 +        this.discard(null);
 +    }
 +
-+    public final void discard(@Nullable org.bukkit.event.entity.EntityRemoveEvent.Cause cause) {
++    public final void discard(org.bukkit.event.entity.EntityRemoveEvent.Cause cause) {
 +        this.remove(Entity.RemovalReason.DISCARDED, cause);
 +        // CraftBukkit end
      }
  
      protected abstract void defineSynchedData(SynchedEntityData.Builder builder);
-@@ -384,6 +_,48 @@
+@@ -346,6 +_,48 @@
          return this.entityData;
      }
  
@@ -235,7 +247,7 @@
 +    public void refreshEntityData(ServerPlayer to) {
 +        List<SynchedEntityData.DataValue<?>> list = this.entityData.packAll(); // Paper - Update EVERYTHING not just not default
 +
-+        if (to.getBukkitEntity().canSee(this.getBukkitEntity())) { // Paper
++        if (list != null && to.getBukkitEntity().canSee(this.getBukkitEntity())) { // Paper
 +            to.connection.send(new net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket(this.getId(), list));
 +        }
 +    }
@@ -276,22 +288,22 @@
      @Override
      public boolean equals(Object object) {
          return object instanceof Entity && ((Entity)object).id == this.id;
-@@ -395,7 +_,13 @@
+@@ -357,7 +_,13 @@
      }
  
      public void remove(Entity.RemovalReason reason) {
 -        this.setRemoved(reason);
 +        // CraftBukkit start - add Bukkit remove cause
-+        this.remove(reason, null);
++        this.setRemoved(reason, null);
 +    }
 +
-+    public void remove(Entity.RemovalReason reason, @Nullable org.bukkit.event.entity.EntityRemoveEvent.Cause eventCause) {
++    public void remove(Entity.RemovalReason reason, org.bukkit.event.entity.EntityRemoveEvent.Cause eventCause) {
 +        this.setRemoved(reason, eventCause);
 +        // CraftBukkit end
      }
  
      public void onClientRemoval() {
-@@ -405,6 +_,15 @@
+@@ -367,6 +_,17 @@
      }
  
      public void setPose(Pose pose) {
@@ -300,14 +312,16 @@
 +        if (pose == this.getPose()) {
 +            return;
 +        }
++        // Paper start - Don't fire sync event during generation
 +        if (!this.generation) {
 +            this.level.getCraftServer().getPluginManager().callEvent(new org.bukkit.event.entity.EntityPoseChangeEvent(this.getBukkitEntity(), org.bukkit.entity.Pose.values()[pose.ordinal()]));
 +        }
++        // Paper end - Don't fire sync event during generation
 +        // CraftBukkit end
          this.entityData.set(DATA_POSE, pose);
      }
  
-@@ -428,6 +_,32 @@
+@@ -390,6 +_,32 @@
      }
  
      public void setRot(float yRot, float xRot) {
@@ -340,7 +354,7 @@
          this.setYRot(yRot % 360.0F);
          this.setXRot(xRot % 360.0F);
      }
-@@ -437,8 +_,8 @@
+@@ -399,8 +_,8 @@
      }
  
      public void setPos(double x, double y, double z) {
@@ -351,7 +365,7 @@
      }
  
      protected final AABB makeBoundingBox() {
-@@ -468,12 +_,28 @@
+@@ -430,12 +_,28 @@
      }
  
      public void tick() {
@@ -380,19 +394,28 @@
          this.inBlockState = null;
          if (this.isPassenger() && this.getVehicle().isRemoved()) {
              this.stopRiding();
-@@ -483,7 +_,7 @@
+@@ -445,7 +_,7 @@
              this.boardingCooldown--;
          }
  
 -        this.handlePortal();
-+        if (this instanceof ServerPlayer) this.handlePortal(); // CraftBukkit - Moved up to postTick
++        if (this instanceof ServerPlayer) this.handlePortal(); // CraftBukkit - // Moved up to postTick
          if (this.canSpawnSprintParticle()) {
              this.spawnSprintParticle();
          }
-@@ -511,6 +_,10 @@
+@@ -470,7 +_,7 @@
+                     this.setRemainingFireTicks(this.remainingFireTicks - 1);
+                 }
  
+-                if (this.getTicksFrozen() > 0) {
++                if (this.getTicksFrozen() > 0 && !this.freezeLocked) { // Paper - Freeze Tick Lock API
+                     this.setTicksFrozen(0);
+                     this.level().levelEvent(null, 1009, this.blockPosition, 1);
+                 }
+@@ -482,6 +_,10 @@
          if (this.isInLava()) {
-             this.fallDistance *= 0.5;
+             this.lavaHurt();
+             this.fallDistance *= 0.5F;
 +            // CraftBukkit start
 +        } else {
 +            this.lastLavaContact = null;
@@ -400,12 +423,7 @@
          }
  
          this.checkBelowWorld();
-@@ -527,11 +_,16 @@
-     }
- 
-     public void setSharedFlagOnFire(boolean isOnFire) {
--        this.setSharedFlag(0, isOnFire || this.hasVisualFire);
-+        this.setSharedFlag(0, this.visualFire.toBooleanOrElse(isOnFire)); // Paper - improve visual fire API
+@@ -502,7 +_,12 @@
      }
  
      public void checkBelowWorld() {
@@ -419,26 +437,20 @@
              this.onBelowWorld();
          }
      }
-@@ -559,15 +_,41 @@
-     }
+@@ -531,9 +_,24 @@
  
-     public void lavaIgnite() {
-+        // Paper start - track lava contact
-+        this.lavaIgnite(this.lastLavaContact); // fallback for minecarts if defined
-+    }
-+
-+    public void lavaIgnite(@Nullable BlockPos pos) {
-+        // Paper end - track lava contact
+     public void lavaHurt() {
          if (!this.fireImmune()) {
 -            this.igniteForSeconds(15.0F);
 +            // CraftBukkit start - Fallen in lava TODO: this event spams!
 +            if (this instanceof net.minecraft.world.entity.LivingEntity && this.remainingFireTicks <= 0) {
 +                // not on fire yet
-+                org.bukkit.block.Block damager = pos == null ? null : org.bukkit.craftbukkit.block.CraftBlock.at(this.level, pos);
++                org.bukkit.block.Block damager = (this.lastLavaContact == null) ? null : org.bukkit.craftbukkit.block.CraftBlock.at(this.level, this.lastLavaContact);
 +                org.bukkit.entity.Entity damagee = this.getBukkitEntity();
-+                org.bukkit.event.entity.EntityCombustEvent combustEvent = new org.bukkit.event.entity.EntityCombustByBlockEvent(damager, damagee, 15.0F);
++                org.bukkit.event.entity.EntityCombustEvent combustEvent = new org.bukkit.event.entity.EntityCombustByBlockEvent(damager, damagee, 15);
++                this.level.getCraftServer().getPluginManager().callEvent(combustEvent);
 +
-+                if (combustEvent.callEvent()) {
++                if (!combustEvent.isCancelled()) {
 +                    this.igniteForSeconds(combustEvent.getDuration(), false);
 +                }
 +            } else {
@@ -446,45 +458,38 @@
 +                this.igniteForSeconds(15.0F, false);
 +            }
 +            // CraftBukkit end
-         }
-     }
- 
-     public void lavaHurt() {
-+        // Paper start - track lava contact
-+        this.lavaHurt(this.lastLavaContact); // fallback for minecarts if defined
-+    }
-+
-+    public void lavaHurt(@Nullable BlockPos pos) {
-+        // Paper end - track lava contact
-         if (!this.fireImmune()) {
              if (this.level() instanceof ServerLevel serverLevel
 -                && this.hurtServer(serverLevel, this.damageSources().lava(), 4.0F)
-+                && this.hurtServer(serverLevel, this.damageSources().lava().eventBlockDamager(this.level, pos), 4.0F) // CraftBukkit - we also don't throw an event unless the object in lava is living, to save on some event calls
++                && this.hurtServer(serverLevel, this.damageSources().lava().eventBlockDamager(this.level, this.lastLavaContact), 4.0F) // CraftBukkit - we also don't throw an event unless the object in lava is living, to save on some event calls
                  && this.shouldPlayLavaHurtSound()
                  && !this.isSilent()) {
                  serverLevel.playSound(
-@@ -582,6 +_,20 @@
+@@ -548,7 +_,23 @@
      }
  
      public final void igniteForSeconds(float seconds) {
+-        this.igniteForTicks(Mth.floor(seconds * 20.0F));
 +        // CraftBukkit start
 +        this.igniteForSeconds(seconds, true);
 +    }
 +
-+    public final void igniteForSeconds(float seconds, boolean callEvent) {
++    public final void igniteForSeconds(float f, boolean callEvent) {
 +        if (callEvent) {
-+            org.bukkit.event.entity.EntityCombustEvent event = new org.bukkit.event.entity.EntityCombustEvent(this.getBukkitEntity(), seconds);
-+            if (!event.callEvent()) {
++            org.bukkit.event.entity.EntityCombustEvent event = new org.bukkit.event.entity.EntityCombustEvent(this.getBukkitEntity(), f);
++            this.level.getCraftServer().getPluginManager().callEvent(event);
++
++            if (event.isCancelled()) {
 +                return;
 +            }
 +
-+            seconds = event.getDuration();
++            f = event.getDuration();
 +        }
 +        // CraftBukkit end
-         this.igniteForTicks(Mth.floor(seconds * 20.0F));
++        this.igniteForTicks(Mth.floor(f * 20.0F));
      }
  
-@@ -606,7 +_,7 @@
+     public void igniteForTicks(int ticks) {
+@@ -570,7 +_,7 @@
      }
  
      protected void onBelowWorld() {
@@ -493,18 +498,33 @@
      }
  
      public boolean isFree(double x, double y, double z) {
-@@ -662,7 +_,28 @@
+@@ -626,7 +_,43 @@
          return this.onGround;
      }
  
 +    // Paper start - detailed watchdog information
 +    public final Object posLock = new Object(); // Paper - log detailed entity tick information
 +
-+    @Nullable
 +    private Vec3 moveVector;
 +    private double moveStartX;
 +    private double moveStartY;
 +    private double moveStartZ;
++
++    public final Vec3 getMoveVector() {
++        return this.moveVector;
++    }
++
++    public final double getMoveStartX() {
++        return this.moveStartX;
++    }
++
++    public final double getMoveStartY() {
++        return this.moveStartY;
++    }
++
++    public final double getMoveStartZ() {
++        return this.moveStartZ;
++    }
 +    // Paper end - detailed watchdog information
 +
      public void move(MoverType type, Vec3 movement) {
@@ -522,35 +542,36 @@
          if (this.noPhysics) {
              this.setPos(this.getX() + movement.x, this.getY() + movement.y, this.getZ() + movement.z);
          } else {
-@@ -738,6 +_,27 @@
-                         block.updateEntityMovementAfterFallOn(this.level(), this);
+@@ -701,6 +_,28 @@
                      }
                  }
+ 
 +                // CraftBukkit start
 +                if (this.horizontalCollision && this.getBukkitEntity() instanceof org.bukkit.entity.Vehicle) {
 +                    org.bukkit.entity.Vehicle vehicle = (org.bukkit.entity.Vehicle) this.getBukkitEntity();
-+                    org.bukkit.block.Block block = this.level.getWorld().getBlockAt(Mth.floor(this.getX()), Mth.floor(this.getY()), Mth.floor(this.getZ()));
++                    org.bukkit.block.Block bl = this.level.getWorld().getBlockAt(Mth.floor(this.getX()), Mth.floor(this.getY()), Mth.floor(this.getZ()));
 +
 +                    if (movement.x > vec3.x) {
-+                        block = block.getRelative(org.bukkit.block.BlockFace.EAST);
++                        bl = bl.getRelative(org.bukkit.block.BlockFace.EAST);
 +                    } else if (movement.x < vec3.x) {
-+                        block = block.getRelative(org.bukkit.block.BlockFace.WEST);
++                        bl = bl.getRelative(org.bukkit.block.BlockFace.WEST);
 +                    } else if (movement.z > vec3.z) {
-+                        block = block.getRelative(org.bukkit.block.BlockFace.SOUTH);
++                        bl = bl.getRelative(org.bukkit.block.BlockFace.SOUTH);
 +                    } else if (movement.z < vec3.z) {
-+                        block = block.getRelative(org.bukkit.block.BlockFace.NORTH);
++                        bl = bl.getRelative(org.bukkit.block.BlockFace.NORTH);
 +                    }
 +
-+                    if (!block.getType().isAir()) {
-+                        org.bukkit.event.vehicle.VehicleBlockCollisionEvent event = new org.bukkit.event.vehicle.VehicleBlockCollisionEvent(vehicle, block, org.bukkit.craftbukkit.util.CraftVector.toBukkit(originalMovement)); // Paper - Expose pre-collision velocity
-+                        event.callEvent();
++                    if (!bl.getType().isAir()) {
++                        org.bukkit.event.vehicle.VehicleBlockCollisionEvent event = new org.bukkit.event.vehicle.VehicleBlockCollisionEvent(vehicle, bl, org.bukkit.craftbukkit.util.CraftVector.toBukkit(originalMovement)); // Paper - Expose pre-collision velocity
++                        this.level.getCraftServer().getPluginManager().callEvent(event);
 +                    }
 +                }
 +                // CraftBukkit end
- 
-                 if (!this.level().isClientSide() || this.isLocalInstanceAuthoritative()) {
++
+                 if (!this.level().isClientSide() || this.isControlledByLocalInstance()) {
                      Entity.MovementEmission movementEmission = this.getMovementEmission();
-@@ -751,6 +_,13 @@
+                     if (movementEmission.emitsAnything() && !this.isPassenger()) {
+@@ -713,6 +_,13 @@
                  profilerFiller.pop();
              }
          }
@@ -564,7 +585,7 @@
      }
  
      private void applyMovementEmissionAndPlaySound(Entity.MovementEmission movementEmission, Vec3 movement, BlockPos pos, BlockState state) {
-@@ -932,7 +_,7 @@
+@@ -850,7 +_,7 @@
      }
  
      protected BlockPos getOnPos(float yOffset) {
@@ -573,46 +594,49 @@
              BlockPos blockPos = this.mainSupportingBlockPos.get();
              if (!(yOffset > 1.0E-5F)) {
                  return blockPos;
-@@ -1163,7 +_,7 @@
-                             || this.collidedWithShapeMovingFrom(vec3, vec31, entityInsideCollisionShape.move(new Vec3(pos)).toAabbs());
-                         if (flag) {
-                             try {
--                                stepBasedCollector.advanceStep(index);
-+                                stepBasedCollector.advanceStep(index, pos); // Paper - track position inside effect was triggered on
-                                 blockState.entityInside(this.level(), pos, this, stepBasedCollector);
-                                 this.onInsideBlock(blockState);
-                             } catch (Throwable var14) {
-@@ -1178,7 +_,7 @@
+@@ -1049,6 +_,20 @@
+         return SoundEvents.GENERIC_SPLASH;
+     }
  
-                         boolean flag1 = this.collidedWithFluid(blockState.getFluidState(), pos, vec3, vec31);
-                         if (flag1) {
--                            stepBasedCollector.advanceStep(index);
-+                            stepBasedCollector.advanceStep(index, pos); // Paper - track position inside effect was triggered on
-                             blockState.getFluidState().entityInside(this.level(), pos, this, stepBasedCollector);
-                         }
- 
-@@ -1594,6 +_,7 @@
++    // CraftBukkit start - Add delegate methods
++    public SoundEvent getSwimSound0() {
++        return this.getSwimSound();
++    }
++
++    public SoundEvent getSwimSplashSound0() {
++        return this.getSwimSplashSound();
++    }
++
++    public SoundEvent getSwimHighSpeedSplashSound0() {
++        return this.getSwimHighSpeedSplashSound();
++    }
++    // CraftBukkit end
++
+     public void recordMovementThroughBlocks(Vec3 oldPosition, Vec3 position) {
+         this.movementThisTick.add(new Entity.Movement(oldPosition, position));
+     }
+@@ -1485,6 +_,7 @@
          this.setXRot(Mth.clamp(xRot, -90.0F, 90.0F) % 360.0F);
          this.yRotO = this.getYRot();
          this.xRotO = this.getXRot();
 +        this.setYHeadRot(yRot); // Paper - Update head rotation
      }
  
-     public void absSnapTo(double x, double y, double z) {
-@@ -1603,6 +_,7 @@
+     public void absMoveTo(double x, double y, double z) {
+@@ -1494,6 +_,7 @@
          this.yo = y;
          this.zo = d1;
          this.setPos(d, y, d1);
 +        if (this.valid) this.level.getChunk((int) Math.floor(this.getX()) >> 4, (int) Math.floor(this.getZ()) >> 4); // CraftBukkit
      }
  
-     public void snapTo(Vec3 pos) {
-@@ -1622,11 +_,19 @@
+     public void moveTo(Vec3 vec) {
+@@ -1513,11 +_,19 @@
      }
  
-     public void snapTo(double x, double y, double z, float yRot, float xRot) {
+     public void moveTo(double x, double y, double z, float yRot, float xRot) {
 +        // Paper start - Fix Entity Teleportation and cancel velocity if teleported
-+        if (!this.preserveMotion) {
++        if (!preserveMotion) {
 +            this.deltaMovement = Vec3.ZERO;
 +        } else {
 +            this.preserveMotion = false;
@@ -627,7 +651,7 @@
      }
  
      public final void setOldPosAndRot() {
-@@ -1693,6 +_,7 @@
+@@ -1584,6 +_,7 @@
      public void push(Entity entity) {
          if (!this.isPassengerOfSameVehicle(entity)) {
              if (!entity.noPhysics && !this.noPhysics) {
@@ -635,7 +659,7 @@
                  double d = entity.getX() - this.getX();
                  double d1 = entity.getZ() - this.getZ();
                  double max = Mth.absMax(d, d1);
-@@ -1726,7 +_,21 @@
+@@ -1617,7 +_,21 @@
      }
  
      public void push(double x, double y, double z) {
@@ -658,7 +682,7 @@
          this.hasImpulse = true;
      }
  
-@@ -1833,8 +_,20 @@
+@@ -1724,8 +_,20 @@
      }
  
      public boolean isPushable() {
@@ -679,17 +703,16 @@
  
      public void awardKillScore(Entity entity, DamageSource damageSource) {
          if (entity instanceof ServerPlayer) {
-@@ -1861,15 +_,23 @@
+@@ -1752,15 +_,22 @@
      }
  
-     public boolean saveAsPassenger(ValueOutput output) {
+     public boolean saveAsPassenger(CompoundTag compound) {
 -        if (this.removalReason != null && !this.removalReason.shouldSave()) {
 +        // CraftBukkit start - allow excluding certain data when saving
 +        // Paper start - Raw entity serialization API
-+        return this.saveAsPassenger(output, true, false, false);
++        return this.saveAsPassenger(compound, true, false, false);
 +    }
-+
-+    public boolean saveAsPassenger(ValueOutput output, boolean includeAll, boolean includeNonSaveable, boolean forceSerialization) {
++    public boolean saveAsPassenger(CompoundTag compound, boolean includeAll, boolean includeNonSaveable, boolean forceSerialization) {
 +        // Paper end - Raw entity serialization API
 +        // CraftBukkit end
 +        if (this.removalReason != null && !this.removalReason.shouldSave() && !forceSerialization) { // Paper - Raw entity serialization API
@@ -701,35 +724,42 @@
 +            if ((!this.persist && !forceSerialization) || encodeId == null) { // CraftBukkit - persist flag // Paper - Raw entity serialization API
                  return false;
              } else {
-                 output.putString("id", encodeId);
--                this.saveWithoutId(output);
-+                this.saveWithoutId(output , includeAll, includeNonSaveable, forceSerialization); // CraftBukkit - pass on includeAll // Paper - Raw entity serialization API
+                 compound.putString("id", encodeId);
+-                this.saveWithoutId(compound);
++                this.saveWithoutId(compound, includeAll, includeNonSaveable, forceSerialization); // CraftBukkit - pass on includeAll // Paper - Raw entity serialization API
                  return true;
              }
          }
-@@ -1880,14 +_,35 @@
+@@ -1771,15 +_,37 @@
      }
  
-     public void saveWithoutId(ValueOutput output) {
+     public CompoundTag saveWithoutId(CompoundTag compound) {
 +        // CraftBukkit start - allow excluding certain data when saving
 +        // Paper start - Raw entity serialization API
-+        this.saveWithoutId(output, true, false, false);
++        return this.saveWithoutId(compound, true, false, false);
 +    }
 +
-+    public void saveWithoutId(ValueOutput output, boolean includeAll, boolean includeNonSaveable, boolean forceSerialization) {
++    public CompoundTag saveWithoutId(CompoundTag compound, boolean includeAll, boolean includeNonSaveable, boolean forceSerialization) {
 +        // Paper end - Raw entity serialization API
 +        // CraftBukkit end
          try {
-+            if (includeAll) { // CraftBukkit - selectively save position
-             if (this.vehicle != null) {
-                 output.store("Pos", Vec3.CODEC, new Vec3(this.vehicle.getX(), this.getY(), this.vehicle.getZ()));
-             } else {
-                 output.store("Pos", Vec3.CODEC, this.position());
-             }
-+            } // CraftBukkit
+-            if (this.vehicle != null) {
+-                compound.put("Pos", this.newDoubleList(this.vehicle.getX(), this.getY(), this.vehicle.getZ()));
+-            } else {
+-                compound.put("Pos", this.newDoubleList(this.getX(), this.getY(), this.getZ()));
+-            }
++            // CraftBukkit start - selectively save position
++            if (includeAll) {
++                if (this.vehicle != null) {
++                    compound.put("Pos", this.newDoubleList(this.vehicle.getX(), this.getY(), this.vehicle.getZ()));
++                } else {
++                    compound.put("Pos", this.newDoubleList(this.getX(), this.getY(), this.getZ()));
++                }
++             }
++            // CraftBukkit end
  
-+            this.setDeltaMovement(io.papermc.paper.util.MCUtil.sanitizeNanInf(this.deltaMovement, 0D)); // Paper - remove NaN values before usage in saving
-             output.store("Motion", Vec3.CODEC, this.getDeltaMovement());
+             Vec3 deltaMovement = this.getDeltaMovement();
+             compound.put("Motion", this.newDoubleList(deltaMovement.x, deltaMovement.y, deltaMovement.z));
 +            // CraftBukkit start - Checking for NaN pitch/yaw and resetting to zero
 +            // TODO: make sure this is the best way to address this.
 +            if (Float.isNaN(this.yRot)) {
@@ -740,184 +770,146 @@
 +                this.xRot = 0;
 +            }
 +            // CraftBukkit end
-             output.store("Rotation", Vec2.CODEC, new Vec2(this.getYRot(), this.getXRot()));
-             output.putDouble("fall_distance", this.fallDistance);
-             output.putShort("Fire", (short)this.remainingFireTicks);
-@@ -1895,7 +_,29 @@
-             output.putBoolean("OnGround", this.onGround());
-             output.putBoolean("Invulnerable", this.invulnerable);
-             output.putInt("PortalCooldown", this.portalCooldown);
+             compound.put("Rotation", this.newFloatList(this.getYRot(), this.getXRot()));
+             compound.putFloat("FallDistance", this.fallDistance);
+             compound.putShort("Fire", (short)this.remainingFireTicks);
+@@ -1787,7 +_,29 @@
+             compound.putBoolean("OnGround", this.onGround());
+             compound.putBoolean("Invulnerable", this.invulnerable);
+             compound.putInt("PortalCooldown", this.portalCooldown);
+-            compound.putUUID("UUID", this.getUUID());
 +            // CraftBukkit start - selectively save uuid and world
 +            if (includeAll) {
-             output.store("UUID", UUIDUtil.CODEC, this.getUUID());
-+            // PAIL: Check above UUID reads 1.8 properly, ie: UUIDMost / UUIDLeast
-+            output.putLong("WorldUUIDLeast", this.level.getWorld().getUID().getLeastSignificantBits());
-+            output.putLong("WorldUUIDMost", this.level.getWorld().getUID().getMostSignificantBits());
++                compound.putUUID("UUID", this.getUUID());
++                // PAIL: Check above UUID reads 1.8 properly, ie: UUIDMost / UUIDLeast
++                compound.putLong("WorldUUIDLeast", this.level.getWorld().getUID().getLeastSignificantBits());
++                compound.putLong("WorldUUIDMost", this.level.getWorld().getUID().getMostSignificantBits());
 +            }
-+            output.putInt("Bukkit.updateLevel", Entity.CURRENT_LEVEL);
++            compound.putInt("Bukkit.updateLevel", Entity.CURRENT_LEVEL);
 +            if (!this.persist) {
-+                output.putBoolean("Bukkit.persist", this.persist);
++                compound.putBoolean("Bukkit.persist", this.persist);
 +            }
 +            if (!this.visibleByDefault) {
-+                output.putBoolean("Bukkit.visibleByDefault", this.visibleByDefault);
++                compound.putBoolean("Bukkit.visibleByDefault", this.visibleByDefault);
 +            }
 +            if (this.persistentInvisibility) {
-+                output.putBoolean("Bukkit.invisible", this.persistentInvisibility);
++                compound.putBoolean("Bukkit.invisible", this.persistentInvisibility);
 +            }
 +            // SPIGOT-6907: re-implement LivingEntity#setMaximumAir()
 +            if (this.maxAirTicks != this.getDefaultMaxAirSupply()) {
-+                output.putInt("Bukkit.MaxAirSupply", this.getMaxAirSupply());
++                compound.putInt("Bukkit.MaxAirSupply", this.getMaxAirSupply());
 +            }
-+            output.putInt("Spigot.ticksLived", this.totalEntityAge); // Paper
++            compound.putInt("Spigot.ticksLived", this.totalEntityAge); // Paper
 +            // CraftBukkit end
-             output.storeNullable("CustomName", ComponentSerialization.CODEC, this.getCustomName());
-             if (this.isCustomNameVisible()) {
-                 output.putBoolean("CustomNameVisible", this.isCustomNameVisible());
-@@ -1918,9 +_,12 @@
-                 output.putInt("TicksFrozen", this.getTicksFrozen());
+             Component customName = this.getCustomName();
+             if (customName != null) {
+                 compound.putString("CustomName", Component.Serializer.toJson(customName, this.registryAccess()));
+@@ -1828,13 +_,13 @@
+                 compound.put("Tags", listTag);
              }
  
--            if (this.hasVisualFire) {
--                output.putBoolean("HasVisualFire", this.hasVisualFire);
-+            // Paper start - improve visual fire API
-+            if (this.visualFire.equals(net.kyori.adventure.util.TriState.TRUE)) {
-+                output.putBoolean("HasVisualFire", true);
-             }
-+            output.putString("Paper.FireOverride", visualFire.name());
-+            // Paper end
- 
-             if (!this.tags.isEmpty()) {
-                 output.store("Tags", TAG_LIST_CODEC, List.copyOf(this.tags));
-@@ -1930,13 +_,13 @@
-                 output.store("data", CustomData.CODEC, this.customData);
-             }
- 
--            this.addAdditionalSaveData(output);
-+            this.addAdditionalSaveData(output, includeAll); // CraftBukkit - pass on includeAll
+-            this.addAdditionalSaveData(compound);
++            this.addAdditionalSaveData(compound, includeAll); // CraftBukkit - pass on includeAll
              if (this.isVehicle()) {
-                 ValueOutput.ValueOutputList valueOutputList = output.childrenList("Passengers");
+                 ListTag listTag = new ListTag();
  
                  for (Entity entity : this.getPassengers()) {
-                     ValueOutput valueOutput = valueOutputList.addChild();
--                    if (!entity.saveAsPassenger(valueOutput)) {
-+                    if (!entity.saveAsPassenger(valueOutput, includeAll, includeNonSaveable, forceSerialization)) { // CraftBukkit - pass on includeAll // Paper - Raw entity serialization API
-                         valueOutputList.discardLast();
+                     CompoundTag compoundTag = new CompoundTag();
+-                    if (entity.saveAsPassenger(compoundTag)) {
++                    if (entity.saveAsPassenger(compoundTag, includeAll, includeNonSaveable, forceSerialization)) { // CraftBukkit - pass on includeAll // Paper - Raw entity serialization API
+                         listTag.add(compoundTag);
                      }
                  }
-@@ -1945,6 +_,34 @@
-                     output.discard("Passengers");
+@@ -1844,6 +_,33 @@
                  }
              }
-+
+ 
 +            // CraftBukkit start - stores eventually existing bukkit values
 +            if (this.bukkitEntity != null) {
-+                this.bukkitEntity.storeBukkitValues(output);
++                this.bukkitEntity.storeBukkitValues(compound);
 +            }
 +            // CraftBukkit end
 +            // Paper start
 +            if (this.origin != null) {
-+                UUID originWorld = this.originWorld != null ? this.originWorld : (this.level != null ? this.level.getWorld().getUID() : null);
++                UUID originWorld = this.originWorld != null ? this.originWorld : this.level != null ? this.level.getWorld().getUID() : null;
 +                if (originWorld != null) {
-+                    output.store("Paper.OriginWorld", UUIDUtil.CODEC, originWorld);
++                    compound.putUUID("Paper.OriginWorld", originWorld);
 +                }
-+                output.store("Paper.Origin", Vec3.CODEC, this.origin);
++                compound.put("Paper.Origin", this.newDoubleList(this.origin.getX(), this.origin.getY(), this.origin.getZ()));
 +            }
 +            if (this.spawnReason != null) {
-+                output.putString("Paper.SpawnReason", this.spawnReason.name());
++                compound.putString("Paper.SpawnReason", this.spawnReason.name());
 +            }
 +            // Save entity's from mob spawner status
 +            if (this.spawnedViaMobSpawner) {
-+                output.putBoolean("Paper.FromMobSpawner", true);
++                compound.putBoolean("Paper.FromMobSpawner", true);
 +            }
 +            if (this.fromNetherPortal) {
-+                output.putBoolean("Paper.FromNetherPortal", true);
++                compound.putBoolean("Paper.FromNetherPortal", true);
 +            }
 +            if (this.freezeLocked) {
-+                output.putBoolean("Paper.FreezeLock", true);
++                compound.putBoolean("Paper.FreezeLock", true);
 +            }
 +            // Paper end
-         } catch (Throwable var7) {
-             CrashReport crashReport = CrashReport.forThrowable(var7, "Saving entity NBT");
-             CrashReportCategory crashReportCategory = crashReport.addCategory("Entity being saved");
-@@ -1956,7 +_,7 @@
-     public void load(ValueInput input) {
-         try {
-             Vec3 vec3 = input.read("Pos", Vec3.CODEC).orElse(Vec3.ZERO);
--            Vec3 vec31 = input.read("Motion", Vec3.CODEC).orElse(Vec3.ZERO);
-+            Vec3 vec31 = input.read("Motion", Vec3.CODEC).orElse(Vec3.ZERO); vec31 = io.papermc.paper.util.MCUtil.sanitizeNanInf(vec31, 0D); // Paper - avoid setting NaN values
-             Vec2 vec2 = input.read("Rotation", Vec2.CODEC).orElse(Vec2.ZERO);
-             this.setDeltaMovement(Math.abs(vec31.x) > 10.0 ? 0.0 : vec31.x, Math.abs(vec31.y) > 10.0 ? 0.0 : vec31.y, Math.abs(vec31.z) > 10.0 ? 0.0 : vec31.z);
-             this.hasImpulse = true;
-@@ -1988,7 +_,20 @@
-                 this.setNoGravity(input.getBooleanOr("NoGravity", false));
-                 this.setGlowingTag(input.getBooleanOr("Glowing", false));
-                 this.setTicksFrozen(input.getIntOr("TicksFrozen", 0));
--                this.hasVisualFire = input.getBooleanOr("HasVisualFire", false);
-+                // Paper start - improve visual fire API
-+                input.getString("Paper.FireOverride").ifPresentOrElse(
-+                    override -> {
-+                        try {
-+                            this.visualFire = net.kyori.adventure.util.TriState.valueOf(override);
-+                        } catch (final Exception ignored) {
-+                            LOGGER.error("Unknown fire override {} for {}", override, this);
-+                        }
-+                    },
-+                    () -> this.visualFire = input.read("HasVisualFire", Codec.BOOL)
-+                        .map(net.kyori.adventure.util.TriState::byBoolean)
-+                        .orElse(net.kyori.adventure.util.TriState.NOT_SET)
-+                );
-+                // Paper end
-                 this.customData = input.read("data", CustomData.CODEC).orElse(CustomData.EMPTY);
-                 this.tags.clear();
-                 input.read("Tags", TAG_LIST_CODEC).ifPresent(this.tags::addAll);
-@@ -1999,6 +_,59 @@
+             return compound;
+         } catch (Throwable var9) {
+             CrashReport crashReport = CrashReport.forThrowable(var9, "Saving entity NBT");
+@@ -1930,6 +_,69 @@
              } else {
                  throw new IllegalStateException("Entity has invalid rotation");
              }
-+
 +            // CraftBukkit start
 +            // Spigot start
 +            if (this instanceof net.minecraft.world.entity.LivingEntity) {
-+                this.totalEntityAge = input.getIntOr("Spigot.ticksLived", 0); // Paper
++                this.totalEntityAge = compound.getInt("Spigot.ticksLived"); // Paper
 +            }
 +            // Spigot end
-+            this.persist = input.getBooleanOr("Bukkit.persist", true);
-+            this.visibleByDefault = input.getBooleanOr("Bukkit.visibleByDefault", true);
++            this.persist = !compound.contains("Bukkit.persist") || compound.getBoolean("Bukkit.persist");
++            this.visibleByDefault = !compound.contains("Bukkit.visibleByDefault") || compound.getBoolean("Bukkit.visibleByDefault");
 +            // SPIGOT-6907: re-implement LivingEntity#setMaximumAir()
-+            this.maxAirTicks = input.getIntOr("Bukkit.MaxAirSupply",this.maxAirTicks);
++            if (compound.contains("Bukkit.MaxAirSupply")) {
++                this.maxAirTicks = compound.getInt("Bukkit.MaxAirSupply");
++            }
 +            // CraftBukkit end
 +
 +            // CraftBukkit start
 +            // Paper - move world parsing/loading to PlayerList#placeNewPlayer
-+            this.getBukkitEntity().readBukkitValues(input);
-+            input.read("Bukkit.invisible", Codec.BOOL).ifPresent(bukkitInvisible -> {
++            this.getBukkitEntity().readBukkitValues(compound);
++            if (compound.contains("Bukkit.invisible")) {
++                boolean bukkitInvisible = compound.getBoolean("Bukkit.invisible");
 +                this.setInvisible(bukkitInvisible);
 +                this.persistentInvisibility = bukkitInvisible;
-+            });
++            }
 +            // CraftBukkit end
 +
 +            // Paper start
-+            Optional<Vec3> originVec = input.read("Paper.Origin", Vec3.CODEC);
-+            if (originVec.isPresent()) {
-+                this.originWorld = input.read("Paper.OriginWorld", UUIDUtil.CODEC)
-+                    .orElse(this.level != null ? this.level.getWorld().getUID() : null);
-+                this.origin = originVec.get();
++            ListTag originTag = compound.getList("Paper.Origin", net.minecraft.nbt.Tag.TAG_DOUBLE);
++            if (!originTag.isEmpty()) {
++                UUID originWorld = null;
++                if (compound.contains("Paper.OriginWorld")) {
++                    originWorld = compound.getUUID("Paper.OriginWorld");
++                } else if (this.level != null) {
++                    originWorld = this.level.getWorld().getUID();
++                }
++                this.originWorld = originWorld;
++                origin = new org.bukkit.util.Vector(originTag.getDouble(0), originTag.getDouble(1), originTag.getDouble(2));
 +            }
 +
-+            spawnedViaMobSpawner = input.getBooleanOr("Paper.FromMobSpawner", false); // Restore entity's from mob spawner status
-+            fromNetherPortal = input.getBooleanOr("Paper.FromNetherPortal", false);
-+            input.getString("Paper.SpawnReason").ifPresent(spawnReasonName -> {
++            spawnedViaMobSpawner = compound.getBoolean("Paper.FromMobSpawner"); // Restore entity's from mob spawner status
++            fromNetherPortal = compound.getBoolean("Paper.FromNetherPortal");
++            if (compound.contains("Paper.SpawnReason")) {
++                String spawnReasonName = compound.getString("Paper.SpawnReason");
 +                try {
 +                    spawnReason = org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.valueOf(spawnReasonName);
 +                } catch (Exception ignored) {
 +                    LOGGER.error("Unknown SpawnReason " + spawnReasonName + " for " + this);
 +                }
-+            });
++            }
 +            if (spawnReason == null) {
 +                if (spawnedViaMobSpawner) {
 +                    spawnReason = org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.SPAWNER;
 +                } else if (this instanceof Mob && (this instanceof net.minecraft.world.entity.animal.Animal || this instanceof net.minecraft.world.entity.animal.AbstractFish) && !((Mob) this).removeWhenFarAway(0.0)) {
-+                    if (!input.getBooleanOr("PersistenceRequired", false)) {
++                    if (!compound.getBoolean("PersistenceRequired")) {
 +                        spawnReason = org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.NATURAL;
 +                    }
 +                }
@@ -925,12 +917,14 @@
 +            if (spawnReason == null) {
 +                spawnReason = org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.DEFAULT;
 +            }
-+            freezeLocked = input.getBooleanOr("Paper.FreezeLock", false);
++            if (compound.contains("Paper.FreezeLock")) {
++                freezeLocked = compound.getBoolean("Paper.FreezeLock");
++            }
 +            // Paper end
-         } catch (Throwable var7) {
-             CrashReport crashReport = CrashReport.forThrowable(var7, "Loading entity NBT");
+         } catch (Throwable var17) {
+             CrashReport crashReport = CrashReport.forThrowable(var17, "Loading entity NBT");
              CrashReportCategory crashReportCategory = crashReport.addCategory("Entity being loaded");
-@@ -2013,13 +_,24 @@
+@@ -1944,10 +_,21 @@
  
      @Nullable
      public final String getEncodeId() {
@@ -942,28 +936,25 @@
          EntityType<?> type = this.getType();
          ResourceLocation key = EntityType.getKey(type);
 -        return type.canSerialize() && key != null ? key.toString() : null;
-+        return (type.canSerialize() || includeNonSaveable) ? key.toString() : null; // Paper - Raw entity serialization API
-     }
- 
-     protected abstract void readAdditionalSaveData(ValueInput input);
- 
+-    }
++        return (type.canSerialize() || includeNonSaveable) && key != null ? key.toString() : null; // Paper - Raw entity serialization API
++    }
++
 +    // CraftBukkit start - allow excluding certain data when saving
-+    protected void addAdditionalSaveData(ValueOutput output, boolean includeAll) {
-+        this.addAdditionalSaveData(output);
++    protected void addAdditionalSaveData(CompoundTag tag, boolean includeAll) {
++        this.addAdditionalSaveData(tag);
 +    }
 +    // CraftBukkit end
-+
-     protected abstract void addAdditionalSaveData(ValueOutput output);
+ 
+     protected abstract void readAdditionalSaveData(CompoundTag tag);
+ 
+@@ -1990,11 +_,61 @@
  
      @Nullable
-@@ -2039,11 +_,63 @@
- 
-     @Nullable
-     public ItemEntity spawnAtLocation(ServerLevel level, ItemStack stack, Vec3 offset) {
+     public ItemEntity spawnAtLocation(ServerLevel level, ItemStack stack, float yOffset) {
 +        // Paper start - Restore vanilla drops behavior
-+        return this.spawnAtLocation(level, stack, offset, null);
++        return this.spawnAtLocation(level, stack, yOffset, null);
 +    }
-+
 +    public record DefaultDrop(Item item, org.bukkit.inventory.ItemStack stack, @Nullable java.util.function.Consumer<ItemStack> dropConsumer) {
 +        public DefaultDrop(final ItemStack stack, final java.util.function.Consumer<ItemStack> dropConsumer) {
 +            this(stack.getItem(), org.bukkit.craftbukkit.inventory.CraftItemStack.asCraftMirror(stack), dropConsumer);
@@ -977,19 +968,18 @@
 +            }
 +        }
 +    }
-+
 +    @Nullable
-+    public ItemEntity spawnAtLocation(ServerLevel level, ItemStack stack, Vec3 offset, @Nullable java.util.function.Consumer<? super ItemEntity> delayedAddConsumer) {
++    public ItemEntity spawnAtLocation(ServerLevel level, ItemStack stack, float yOffset, @Nullable java.util.function.Consumer<? super ItemEntity> delayedAddConsumer) {
 +        // Paper end - Restore vanilla drops behavior
          if (stack.isEmpty()) {
              return null;
          } else {
--            ItemEntity itemEntity = new ItemEntity(level, this.getX() + offset.x, this.getY() + offset.y, this.getZ() + offset.z, stack);
+-            ItemEntity itemEntity = new ItemEntity(level, this.getX(), this.getY() + yOffset, this.getZ(), stack);
 +            // CraftBukkit start - Capture drops for death event
 +            if (this instanceof net.minecraft.world.entity.LivingEntity && !this.forceDrops) {
 +                // Paper start - Restore vanilla drops behavior
 +                ((net.minecraft.world.entity.LivingEntity) this).drops.add(new net.minecraft.world.entity.Entity.DefaultDrop(stack, itemStack -> {
-+                    ItemEntity itemEntity = new ItemEntity(this.level, this.getX() + offset.x, this.getY() + offset.y, this.getZ() + offset.z, itemStack); // stack is copied before consumer
++                    ItemEntity itemEntity = new ItemEntity(this.level, this.getX(), this.getY() + (double) yOffset, this.getZ(), itemStack); // stack is copied before consumer
 +                    itemEntity.setDefaultPickUpDelay();
 +                    this.level.addFreshEntity(itemEntity);
 +                    if (delayedAddConsumer != null) delayedAddConsumer.accept(itemEntity);
@@ -998,7 +988,7 @@
 +                return null;
 +            }
 +            // CraftBukkit end
-+            ItemEntity itemEntity = new ItemEntity(level, this.getX() + offset.x, this.getY() + offset.y, this.getZ() + offset.z, stack.copy()); // Paper - copy so we can destroy original
++            ItemEntity itemEntity = new ItemEntity(level, this.getX(), this.getY() + yOffset, this.getZ(), stack.copy()); // Paper - copy so we can destroy original
 +            stack.setCount(0); // Paper - destroy this item - if this ever leaks due to game bugs, ensure it doesn't dupe
 +
              itemEntity.setDefaultPickUpDelay();
@@ -1021,141 +1011,39 @@
              level.addFreshEntity(itemEntity);
              return itemEntity;
          }
-@@ -2089,6 +_,15 @@
- 
-                 for (Leashable leashable1 : list) {
-                     if (leashable1.canHaveALeashAttachedTo(this)) {
-+                        // Paper start - PlayerLeashEvent
-+                        final org.bukkit.event.entity.PlayerLeashEntityEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerLeashEntityEvent(
-+                            leashable1,
-+                            this,
-+                            player,
-+                            hand
-+                        );
-+                        if (event != null && event.isCancelled()) continue; // If the event was called and cancelled, skip this.
-+                        // Paper end - PlayerLeashEvent
-                         leashable1.setLeashedTo(this, true);
-                         flag = true;
-                     }
-@@ -2103,7 +_,7 @@
-         }
- 
-         ItemStack itemInHand = player.getItemInHand(hand);
--        if (itemInHand.is(Items.SHEARS) && this.shearOffAllLeashConnections(player)) {
-+        if (itemInHand.is(Items.SHEARS) && this.shearOffAllLeashConnections(player, hand)) { // Paper - PlayerUnleashEntityEvent - pass used hand
-             itemInHand.hurtAndBreak(1, player, hand);
-             return InteractionResult.SUCCESS;
-         } else if (this instanceof Mob mob
-@@ -2116,11 +_,13 @@
-             if (this.isAlive() && this instanceof Leashable leashable2) {
-                 if (leashable2.getLeashHolder() == player) {
-                     if (!this.level().isClientSide()) {
--                        if (player.hasInfiniteMaterials()) {
--                            leashable2.removeLeash();
--                        } else {
--                            leashable2.dropLeash();
-+                        // Paper start - EntityUnleashEvent
-+                        if (!org.bukkit.craftbukkit.event.CraftEventFactory.handlePlayerUnleashEntityEvent(
-+                            leashable2, player, hand, !player.hasInfiniteMaterials(), true
-+                        )) {
-+                            return InteractionResult.PASS;
-                         }
-+                        // Paper end - EntityUnleashEvent
- 
-                         this.gameEvent(GameEvent.ENTITY_INTERACT, player);
-                         this.playSound(SoundEvents.LEAD_UNTIED);
-@@ -2133,9 +_,22 @@
-                 if (itemInHand1.is(Items.LEAD) && !(leashable2.getLeashHolder() instanceof Player)) {
-                     if (!this.level().isClientSide() && leashable2.canHaveALeashAttachedTo(player)) {
-                         if (leashable2.isLeashed()) {
--                            leashable2.dropLeash();
-+                            // Paper start - EntityUnleashEvent
-+                            if (!org.bukkit.craftbukkit.event.CraftEventFactory.handlePlayerUnleashEntityEvent(
-+                                leashable2, player, hand, true, true
-+                            )) {
-+                                return InteractionResult.PASS;
-+                            }
-+                            // Paper end - EntityUnleashEvent
-+                            // leashable2.dropLeash(); // Paper - EntityUnleashEvent - moved into handlePlayerUnleashEntityEvent
-                         }
- 
-+                        // Paper start - EntityLeashEvent
-+                        if (org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerLeashEntityEvent(this, player, player, hand).isCancelled()) {
-+                            ((ServerPlayer) player).connection.send(new net.minecraft.network.protocol.game.ClientboundSetEntityLinkPacket(this, leashable2.getLeashHolder()));
-+                            return InteractionResult.PASS;
-+                        }
-+                        // Paper end - EntityLeashEvent
-                         leashable2.setLeashedTo(player, true);
-                         this.playSound(SoundEvents.LEAD_TIED);
-                         itemInHand1.shrink(1);
-@@ -2150,7 +_,12 @@
-     }
- 
-     public boolean shearOffAllLeashConnections(@Nullable Player player) {
--        boolean flag = this.dropAllLeashConnections(player);
-+    // Paper start - EntityUnleashEvent - overload
-+        return this.shearOffAllLeashConnections(player, null);
-+    }
-+    public boolean shearOffAllLeashConnections(@Nullable Player player, @Nullable InteractionHand interactionHand) {
-+    // Paper end - EntityUnleashEvent - overload
-+        boolean flag = this.dropAllLeashConnections(player, interactionHand); // Paper - EntityUnleashEvent - overload
-         if (flag && this.level() instanceof ServerLevel serverLevel) {
-             serverLevel.playSound(null, this.blockPosition(), SoundEvents.SHEARS_SNIP, player != null ? player.getSoundSource() : this.getSoundSource());
-         }
-@@ -2159,15 +_,38 @@
-     }
- 
-     public boolean dropAllLeashConnections(@Nullable Player player) {
-+    // Paper start - EntityUnleashEvent - overload
-+        return dropAllLeashConnections(player, null);
-+    }
-+    public boolean dropAllLeashConnections(@Nullable Player player, @Nullable InteractionHand interactionHand) {
-+    // Paper start - EntityUnleashEvent - overload
-         List<Leashable> list = Leashable.leashableLeashedTo(this);
--        boolean flag = !list.isEmpty();
-+        boolean flag = false; // Paper - EntityUnleashEvent - compute flag later, events might prevent unleashing all connected leashables.
-         if (this instanceof Leashable leashable && leashable.isLeashed()) {
--            leashable.dropLeash();
--            flag = true;
-+            // Paper start - EntityUnleashEvent
-+            flag |= org.bukkit.craftbukkit.event.CraftEventFactory.handlePlayerUnleashEntityEvent(
-+                this,
-+                player,
-+                interactionHand,
-+                true,
-+                true
-+            );
-+            // Paper end - EntityUnleashEvent
-+            // leashable.dropLeash(); // Paper - EntityUnleashEvent - moved into handlePlayerUnleashEntityEvent
-+            // flag = true; // Paper - EntityUnleashEvent - moved above
-         }
- 
-         for (Leashable leashable1 : list) {
--            leashable1.dropLeash();
-+            // Paper start - EntityUnleashEvent
-+            flag |= org.bukkit.craftbukkit.event.CraftEventFactory.handlePlayerUnleashEntityEvent( // Update flag here, if any entity was unleashed, set to true.
-+                leashable1,
-+                player,
-+                interactionHand,
-+                true,
-+                true
-+            );
-+            // leashable1.dropLeash(); // Paper - EntityUnleashEvent - moved into handlePlayerUnleashEntityEvent
-+            // Paper end - EntityUnleashEvent
-         }
- 
-         if (flag) {
-@@ -2191,7 +_,9 @@
-                 this.gameEvent(GameEvent.SHEAR, player);
-                 this.playSound(equippable.shearingSound().value());
-                 if (this.level() instanceof ServerLevel serverLevel) {
-+                    this.forceDrops = true; // Paper
-                     this.spawnAtLocation(serverLevel, itemBySlot, average);
-+                    this.forceDrops = false; // Paper
-                     CriteriaTriggers.PLAYER_SHEARED_EQUIPMENT.trigger((ServerPlayer)player, itemBySlot, mob);
+@@ -2028,7 +_,16 @@
+         if (this.isAlive() && this instanceof Leashable leashable) {
+             if (leashable.getLeashHolder() == player) {
+                 if (!this.level().isClientSide()) {
+-                    if (player.hasInfiniteMaterials()) {
++                    // CraftBukkit start - fire PlayerUnleashEntityEvent
++                    // Paper start - Expand EntityUnleashEvent
++                    org.bukkit.event.player.PlayerUnleashEntityEvent event = org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerUnleashEntityEvent(this, player, hand, !player.hasInfiniteMaterials());
++                    if (event.isCancelled()) {
++                        // Paper end - Expand EntityUnleashEvent
++                        ((ServerPlayer) player).connection.send(new net.minecraft.network.protocol.game.ClientboundSetEntityLinkPacket(this, leashable.getLeashHolder()));
++                        return InteractionResult.PASS;
++                    }
++                    // CraftBukkit end
++                    if (!event.isDropLeash()) { // Paper - Expand EntityUnleashEvent
+                         leashable.removeLeash();
+                     } else {
+                         leashable.dropLeash();
+@@ -2043,6 +_,13 @@
+             ItemStack itemInHand = player.getItemInHand(hand);
+             if (itemInHand.is(Items.LEAD) && leashable.canHaveALeashAttachedToIt()) {
+                 if (!this.level().isClientSide()) {
++                    // CraftBukkit start - fire PlayerLeashEntityEvent
++                    if (org.bukkit.craftbukkit.event.CraftEventFactory.callPlayerLeashEntityEvent(this, player, player, hand).isCancelled()) {
++                        ((ServerPlayer) player).connection.send(new net.minecraft.network.protocol.game.ClientboundSetEntityLinkPacket(this, leashable.getLeashHolder()));
++                        player.containerMenu.sendAllDataToRemote(); // Paper - Fix inventory desync
++                        return InteractionResult.PASS;
++                    }
++                    // CraftBukkit end
+                     leashable.setLeashedTo(player, true);
                  }
  
-@@ -2264,11 +_,11 @@
+@@ -2116,11 +_,11 @@
      }
  
      public boolean startRiding(Entity vehicle, boolean force) {
@@ -1169,7 +1057,7 @@
              return false;
          } else {
              for (Entity entity = vehicle; entity.vehicle != null; entity = entity.vehicle) {
-@@ -2278,6 +_,27 @@
+@@ -2130,6 +_,27 @@
              }
  
              if (force || this.canRide(vehicle) && vehicle.canAddPassenger(this)) {
@@ -1197,7 +1085,7 @@
                  if (this.isPassenger()) {
                      this.stopRiding();
                  }
-@@ -2306,15 +_,26 @@
+@@ -2158,15 +_,26 @@
      }
  
      public void removeVehicle() {
@@ -1226,7 +1114,7 @@
      }
  
      protected void addPassenger(Entity passenger) {
-@@ -2338,10 +_,43 @@
+@@ -2190,10 +_,43 @@
          }
      }
  
@@ -1271,7 +1159,7 @@
              if (this.passengers.size() == 1 && this.passengers.get(0) == passenger) {
                  this.passengers = ImmutableList.of();
              } else {
-@@ -2351,6 +_,7 @@
+@@ -2203,6 +_,7 @@
              passenger.boardingCooldown = 60;
              this.gameEvent(GameEvent.ENTITY_DISMOUNT, passenger);
          }
@@ -1279,7 +1167,7 @@
      }
  
      protected boolean canAddPassenger(Entity passenger) {
-@@ -2434,8 +_,8 @@
+@@ -2295,8 +_,8 @@
                      TeleportTransition portalDestination = this.portalProcess.getPortalDestination(serverLevel, this);
                      if (portalDestination != null) {
                          ServerLevel level = portalDestination.newLevel();
@@ -1290,7 +1178,7 @@
                              this.teleport(portalDestination);
                          }
                      }
-@@ -2516,7 +_,7 @@
+@@ -2377,7 +_,7 @@
      }
  
      public boolean isCrouching() {
@@ -1299,7 +1187,7 @@
      }
  
      public boolean isSprinting() {
-@@ -2532,7 +_,7 @@
+@@ -2393,7 +_,7 @@
      }
  
      public boolean isVisuallySwimming() {
@@ -1308,7 +1196,7 @@
      }
  
      public boolean isVisuallyCrawling() {
-@@ -2540,6 +_,13 @@
+@@ -2401,6 +_,13 @@
      }
  
      public void setSwimming(boolean swimming) {
@@ -1322,7 +1210,7 @@
          this.setSharedFlag(4, swimming);
      }
  
-@@ -2578,6 +_,7 @@
+@@ -2439,6 +_,7 @@
  
      @Nullable
      public PlayerTeam getTeam() {
@@ -1330,7 +1218,7 @@
          return this.level().getScoreboard().getPlayersTeam(this.getScoreboardName());
      }
  
-@@ -2594,7 +_,11 @@
+@@ -2455,7 +_,11 @@
      }
  
      public void setInvisible(boolean invisible) {
@@ -1343,7 +1231,7 @@
      }
  
      public boolean getSharedFlag(int flag) {
-@@ -2611,7 +_,7 @@
+@@ -2472,7 +_,7 @@
      }
  
      public int getMaxAirSupply() {
@@ -1352,7 +1240,7 @@
      }
  
      public int getAirSupply() {
-@@ -2619,10 +_,22 @@
+@@ -2480,7 +_,18 @@
      }
  
      public void setAirSupply(int air) {
@@ -1371,12 +1259,8 @@
 +        // CraftBukkit end
      }
  
-     public void clearFreeze() {
-+        if (this.freezeLocked) return; // Paper - Freeze Tick Lock API
-         this.setTicksFrozen(0);
-     }
- 
-@@ -2649,11 +_,43 @@
+     public int getTicksFrozen() {
+@@ -2506,11 +_,43 @@
  
      public void thunderHit(ServerLevel level, LightningBolt lightning) {
          this.setRemainingFireTicks(this.remainingFireTicks + 1);
@@ -1423,8 +1307,8 @@
 +        // CraftBukkit end
      }
  
-     public void onAboveBubbleColumn(boolean downwards, BlockPos pos) {
-@@ -2809,26 +_,30 @@
+     public void onAboveBubbleCol(boolean downwards) {
+@@ -2636,26 +_,30 @@
          return this.removalReason != null
              ? String.format(
                  Locale.ROOT,
@@ -1458,7 +1342,7 @@
              );
      }
  
-@@ -2852,6 +_,13 @@
+@@ -2679,6 +_,13 @@
      }
  
      public void restoreFrom(Entity entity) {
@@ -1469,16 +1353,16 @@
 +            this.bukkitEntity = bukkitEntity;
 +        }
 +        // Paper end - Forward CraftEntity in teleport command
-         try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(this.problemPath(), LOGGER)) {
-             TagValueOutput tagValueOutput = TagValueOutput.createWithContext(scopedCollector, entity.registryAccess());
-             entity.saveWithoutId(tagValueOutput);
-@@ -2864,7 +_,65 @@
+         CompoundTag compoundTag = entity.saveWithoutId(new CompoundTag());
+         compoundTag.remove("Dimension");
+         this.load(compoundTag);
+@@ -2688,7 +_,56 @@
  
      @Nullable
      public Entity teleport(TeleportTransition teleportTransition) {
 +        // Paper start - Fix item duplication and teleport issues
 +        if ((!this.isAlive() || !this.valid) && (teleportTransition.newLevel() != this.level)) {
-+            LOGGER.warn("Illegal Entity Teleport {} to {}:{}", this, teleportTransition.newLevel(), teleportTransition.position(), new Throwable());
++            LOGGER.warn("Illegal Entity Teleport " + this + " to " + teleportTransition.newLevel() + ":" + teleportTransition.position(), new Throwable());
 +            return null;
 +        }
 +        // Paper end - Fix item duplication and teleport issues
@@ -1501,33 +1385,24 @@
 +            }
 +            if (!to.equals(teleEvent.getTo())) {
 +                to = teleEvent.getTo();
-+                teleportTransition = new TeleportTransition(((org.bukkit.craftbukkit.CraftWorld) to.getWorld()).getHandle(), org.bukkit.craftbukkit.util.CraftLocation.toVec3(to), Vec3.ZERO, to.getYaw(), to.getPitch(), teleportTransition.missingRespawnBlock(), teleportTransition.asPassenger(), Set.of(), teleportTransition.postTeleportTransition(), teleportTransition.cause());
++                teleportTransition = new TeleportTransition(((org.bukkit.craftbukkit.CraftWorld) to.getWorld()).getHandle(), org.bukkit.craftbukkit.util.CraftLocation.toVec3D(to), Vec3.ZERO, to.getYaw(), to.getPitch(), teleportTransition.missingRespawnBlock(), teleportTransition.asPassenger(), Set.of(), teleportTransition.postTeleportTransition(), teleportTransition.cause());
 +                // Paper start - Call EntityPortalExitEvent
 +                velocity = Vec3.ZERO;
 +            }
 +            if (this.portalProcess != null) { // if in a portal
-+                org.bukkit.entity.Entity bukkitEntity = this.getBukkitEntity();
-+                org.bukkit.util.Vector before = bukkitEntity.getVelocity();
-+                org.bukkit.util.Vector after = org.bukkit.craftbukkit.util.CraftVector.toBukkit(velocity);
++                org.bukkit.craftbukkit.entity.CraftEntity bukkitEntity = this.getBukkitEntity();
 +                org.bukkit.event.entity.EntityPortalExitEvent event = new org.bukkit.event.entity.EntityPortalExitEvent(
 +                    bukkitEntity,
 +                    bukkitEntity.getLocation(), to.clone(),
-+                    before, after
++                    bukkitEntity.getVelocity(), org.bukkit.craftbukkit.util.CraftVector.toBukkit(velocity)
 +                );
 +                event.callEvent();
 +
 +                // Only change the target if actually needed, since we reset relative flags
-+                if (event.isCancelled() || !to.equals(event.getTo()) || !after.equals(event.getAfter())) {
-+                    if (event.isCancelled() || event.getTo() == null) {
-+                        org.bukkit.World toWorld = to.getWorld();
-+                        to = event.getFrom().clone();
-+                        to.setWorld(toWorld); // cancelling doesn't cancel the teleport just the position/velocity (old quirk)
-+                        velocity = org.bukkit.craftbukkit.util.CraftVector.toVec3(event.getBefore());
-+                    } else {
-+                        to = event.getTo().clone();
-+                        velocity = org.bukkit.craftbukkit.util.CraftVector.toVec3(event.getAfter());
-+                    }
-+                    teleportTransition = new TeleportTransition(((org.bukkit.craftbukkit.CraftWorld) to.getWorld()).getHandle(), org.bukkit.craftbukkit.util.CraftLocation.toVec3(to), velocity, to.getYaw(), to.getPitch(), teleportTransition.missingRespawnBlock(), teleportTransition.asPassenger(), Set.of(), teleportTransition.postTeleportTransition(), teleportTransition.cause());
++                if (!event.isCancelled() && event.getTo() != null && (!event.getTo().equals(event.getFrom()) || !event.getAfter().equals(event.getBefore()))) {
++                    to = event.getTo().clone();
++                    velocity = org.bukkit.craftbukkit.util.CraftVector.toNMS(event.getAfter());
++                    teleportTransition = new TeleportTransition(((org.bukkit.craftbukkit.CraftWorld) to.getWorld()).getHandle(), org.bukkit.craftbukkit.util.CraftLocation.toVec3D(to), velocity, to.getYaw(), to.getPitch(), teleportTransition.missingRespawnBlock(), teleportTransition.asPassenger(), Set.of(), teleportTransition.postTeleportTransition(), teleportTransition.cause());
 +                }
 +            }
 +            if (this.isRemoved()) {
@@ -1538,7 +1413,7 @@
              ServerLevel level = teleportTransition.newLevel();
              boolean flag = level.dimension() != serverLevel.dimension();
              if (!teleportTransition.asPassenger()) {
-@@ -2913,10 +_,15 @@
+@@ -2737,10 +_,19 @@
              profilerFiller.pop();
              return null;
          } else {
@@ -1549,13 +1424,17 @@
 +            // Paper end - Fix item duplication and teleport issues
              entityx.restoreFrom(this);
              this.removeAfterChangingDimensions();
++            // CraftBukkit start - Forward the CraftEntity to the new entity
++            //this.getBukkitEntity().setHandle(entity);
++            //entity.bukkitEntity = this.getBukkitEntity(); // Paper - forward CraftEntity in teleport command; moved to Entity#restoreFrom
++            // CraftBukkit end
              entityx.teleportSetPosition(PositionMoveRotation.of(teleportTransition), teleportTransition.relatives());
--            newLevel.addDuringTeleport(entityx);
-+            if (this.inWorld) newLevel.addDuringTeleport(entityx); // CraftBukkit - Don't spawn the new entity if the current entity isn't spawned
+-            level.addDuringTeleport(entityx);
++            if (this.inWorld) level.addDuringTeleport(entityx); // CraftBukkit - Don't spawn the new entity if the current entity isn't spawned
  
              for (Entity entity2 : list) {
                  entity2.startRiding(entityx, true);
-@@ -2999,9 +_,17 @@
+@@ -2814,9 +_,17 @@
      }
  
      protected void removeAfterChangingDimensions() {
@@ -1574,22 +1453,18 @@
 +            }
 +            // Paper end - Expand EntityUnleashEvent
          }
+     }
  
-         if (this instanceof WaypointTransmitter waypointTransmitter && this.level instanceof ServerLevel serverLevel) {
-@@ -3013,11 +_,37 @@
+@@ -2824,11 +_,34 @@
          return PortalShape.getRelativePosition(portal, axis, this.position(), this.getDimensions(this.getPose()));
      }
  
 +    // CraftBukkit start
-+    public @Nullable org.bukkit.craftbukkit.event.CraftPortalEvent callPortalEvent(
-+        Entity entity,
-+        org.bukkit.Location exit,
-+        org.bukkit.event.player.PlayerTeleportEvent.TeleportCause cause,
-+        int searchRadius, int creationRadius
-+    ) {
++    public org.bukkit.craftbukkit.event.CraftPortalEvent callPortalEvent(Entity entity, org.bukkit.Location exit, org.bukkit.event.player.PlayerTeleportEvent.TeleportCause cause, int searchRadius, int creationRadius) {
 +        org.bukkit.entity.Entity bukkitEntity = entity.getBukkitEntity();
 +        org.bukkit.Location enter = bukkitEntity.getLocation();
 +
++        // Paper start
 +        final org.bukkit.PortalType portalType = switch (cause) {
 +            case END_PORTAL -> org.bukkit.PortalType.ENDER;
 +            case NETHER_PORTAL -> org.bukkit.PortalType.NETHER;
@@ -1597,7 +1472,8 @@
 +            default -> org.bukkit.PortalType.CUSTOM;
 +        };
 +        org.bukkit.event.entity.EntityPortalEvent event = new org.bukkit.event.entity.EntityPortalEvent(bukkitEntity, enter, exit, searchRadius, true, creationRadius, portalType);
-+        event.callEvent();
++        // Paper end
++        event.getEntity().getServer().getPluginManager().callEvent(event);
 +        if (event.isCancelled() || event.getTo() == null || event.getTo().getWorld() == null || !entity.isAlive()) {
 +            return null;
 +        }
@@ -1614,24 +1490,24 @@
          if (fromLevel.dimension() == Level.END && toLevel.dimension() == Level.OVERWORLD) {
              for (Entity entity : this.getPassengers()) {
                  if (entity instanceof ServerPlayer serverPlayer && !serverPlayer.seenCredits) {
-@@ -3125,8 +_,14 @@
+@@ -2936,9 +_,14 @@
          return this.entityData.get(DATA_CUSTOM_NAME_VISIBLE);
      }
  
 -    public boolean teleportTo(ServerLevel level, double x, double y, double z, Set<Relative> relativeMovements, float yaw, float pitch, boolean setCamera) {
--        Entity entity = this.teleport(new TeleportTransition(level, new Vec3(x, y, z), Vec3.ZERO, yaw, pitch, relativeMovements, TeleportTransition.DO_NOTHING));
 +    // CraftBukkit start
 +    public final boolean teleportTo(ServerLevel level, double x, double y, double z, Set<Relative> relativeMovements, float yaw, float pitch, boolean setCamera) {
 +        return this.teleportTo(level, x, y, z, relativeMovements, yaw, pitch, setCamera, org.bukkit.event.player.PlayerTeleportEvent.TeleportCause.UNKNOWN);
 +    }
-+
 +    public boolean teleportTo(ServerLevel level, double x, double y, double z, Set<Relative> relativeMovements, float yaw, float pitch, boolean setCamera, org.bukkit.event.player.PlayerTeleportEvent.TeleportCause cause) {
 +        // CraftBukkit end
-+        Entity entity = this.teleport(new TeleportTransition(level, new Vec3(x, y, z), Vec3.ZERO, yaw, pitch, relativeMovements, TeleportTransition.DO_NOTHING, cause)); // CraftBukkit
+         float f = Mth.clamp(pitch, -90.0F, 90.0F);
+-        Entity entity = this.teleport(new TeleportTransition(level, new Vec3(x, y, z), Vec3.ZERO, yaw, f, relativeMovements, TeleportTransition.DO_NOTHING));
++        Entity entity = this.teleport(new TeleportTransition(level, new Vec3(x, y, z), Vec3.ZERO, yaw, f, relativeMovements, TeleportTransition.DO_NOTHING, cause)); // CraftBukkit
          return entity != null;
      }
  
-@@ -3240,7 +_,26 @@
+@@ -3052,7 +_,26 @@
      }
  
      public final void setBoundingBox(AABB bb) {
@@ -1659,7 +1535,7 @@
      }
  
      public final float getEyeHeight(Pose pose) {
-@@ -3272,6 +_,12 @@
+@@ -3096,6 +_,12 @@
      }
  
      public void stopSeenByPlayer(ServerPlayer serverPlayer) {
@@ -1672,7 +1548,7 @@
      }
  
      public float rotate(Rotation transformRotation) {
-@@ -3305,7 +_,7 @@
+@@ -3129,7 +_,7 @@
      }
  
      @Nullable
@@ -1681,7 +1557,7 @@
          return null;
      }
  
-@@ -3337,21 +_,32 @@
+@@ -3161,21 +_,32 @@
      }
  
      private Stream<Entity> getIndirectPassengersStream() {
@@ -1715,7 +1591,7 @@
      }
  
      public int countPlayerPassengers() {
-@@ -3359,6 +_,7 @@
+@@ -3183,6 +_,7 @@
      }
  
      public boolean hasExactlyOnePlayerPassenger() {
@@ -1723,8 +1599,8 @@
          return this.countPlayerPassengers() == 1;
      }
  
-@@ -3441,9 +_,38 @@
-         return 0;
+@@ -3260,9 +_,38 @@
+         return 1;
      }
  
 +    // CraftBukkit start
@@ -1763,7 +1639,7 @@
          );
      }
  
-@@ -3501,6 +_,11 @@
+@@ -3320,6 +_,11 @@
                                      vec3 = vec3.add(flow);
                                      i++;
                                  }
@@ -1775,7 +1651,7 @@
                              }
                          }
                      }
-@@ -3598,7 +_,9 @@
+@@ -3417,7 +_,9 @@
      }
  
      public void setDeltaMovement(Vec3 deltaMovement) {
@@ -1785,7 +1661,7 @@
      }
  
      public void addDeltaMovement(Vec3 addend) {
-@@ -3661,9 +_,35 @@
+@@ -3480,9 +_,43 @@
          return this.getZ((2.0 * this.random.nextDouble() - 1.0) * scale);
      }
  
@@ -1801,19 +1677,27 @@
 +        } catch (Exception ex) {
 +            entityInfo = "[Entity info unavailable] ";
 +        }
-+        LOGGER.error("New entity position is invalid! Tried to set invalid position ({},{},{}) for entity {} located at {}, entity info: {}", newX, newY, newZ, entity.getClass().getName(), entity.position(), entityInfo, new Throwable());
++        LOGGER.error("New entity position is invalid! Tried to set invalid position ({},{},{}) for entity {} located at {}, entity info: {}", newX, newY, newZ, entity.getClass().getName(), entity.position, entityInfo, new Throwable());
 +        return false;
 +    }
-+
      public final void setPosRaw(double x, double y, double z) {
 +        this.setPosRaw(x, y, z, false);
 +    }
-+
 +    public final void setPosRaw(double x, double y, double z, boolean forceBoundingBoxUpdate) {
 +        if (!checkPosition(this, x, y, z)) {
 +            return;
 +        }
 +        // Paper end - Block invalid positions and bounding box
++        // Paper start - Fix MC-4
++        if (this instanceof ItemEntity) {
++            if (io.papermc.paper.configuration.GlobalConfiguration.get().misc.fixEntityPositionDesync) {
++                // encode/decode from ClientboundMoveEntityPacket
++                x = Mth.lfloor(x * 4096.0) * (1 / 4096.0);
++                y = Mth.lfloor(y * 4096.0) * (1 / 4096.0);
++                z = Mth.lfloor(z * 4096.0) * (1 / 4096.0);
++            }
++        }
++        // Paper end - Fix MC-4
          if (this.position.x != x || this.position.y != y || this.position.z != z) {
 +            synchronized (this.posLock) { // Paper - detailed watchdog information
              this.position = new Vec3(x, y, z);
@@ -1821,17 +1705,10 @@
              int floor = Mth.floor(x);
              int floor1 = Mth.floor(y);
              int floor2 = Mth.floor(z);
-@@ -3685,7 +_,18 @@
-                     serverLevel.getWaypointManager().updatePlayer(serverPlayer);
-                 }
-             }
--        }
-+            // Paper start - Fix MC-44654
-+            if (this.getType().updateInterval() == Integer.MAX_VALUE) {
-+                this.hasImpulse = true;
-+            }
-+            // Paper end - Fix MC-44654
-+        }
+@@ -3496,6 +_,12 @@
+ 
+             this.levelCallback.onMove();
+         }
 +        // Paper start - Block invalid positions and bounding box; don't allow desync of pos and AABB
 +        // hanging has its own special logic
 +        if (!(this instanceof net.minecraft.world.entity.decoration.HangingEntity) && (forceBoundingBoxUpdate || this.position.x != x || this.position.y != y || this.position.z != z)) {
@@ -1841,31 +1718,23 @@
      }
  
      public void checkDespawn() {
-@@ -3739,6 +_,12 @@
-         return this.getTicksFrozen() > 0;
-     }
- 
-+    // CraftBukkit start
-+    public float getBukkitYaw() {
-+        return this.yRot;
-+    }
-+    // CraftBukkit end
-+
-     public float getYRot() {
-         return this.yRot;
-     }
-@@ -3789,7 +_,9 @@
-     }
+@@ -3583,6 +_,15 @@
  
      @Override
--    public final void setRemoved(Entity.RemovalReason removalReason) {
-+    public final void setRemoved(Entity.RemovalReason removalReason, @Nullable org.bukkit.event.entity.EntityRemoveEvent.Cause cause) { // CraftBukkit - add Bukkit remove cause
-+        org.bukkit.craftbukkit.event.CraftEventFactory.callEntityRemoveEvent(this, cause); // CraftBukkit
+     public final void setRemoved(Entity.RemovalReason removalReason) {
++        // CraftBukkit start - add Bukkit remove cause
++        this.setRemoved(removalReason, null);
++    }
++
++    @Override
++    public final void setRemoved(Entity.RemovalReason removalReason, org.bukkit.event.entity.EntityRemoveEvent.Cause cause) {
++        org.bukkit.craftbukkit.event.CraftEventFactory.callEntityRemoveEvent(this, cause);
++        // CraftBukkit end
 +        final boolean alreadyRemoved = this.removalReason != null; // Paper - Folia schedulers
          if (this.removalReason == null) {
              this.removalReason = removalReason;
          }
-@@ -3801,12 +_,28 @@
+@@ -3594,12 +_,28 @@
          this.getPassengers().forEach(Entity::stopRiding);
          this.levelCallback.onRemove(removalReason);
          this.onRemoval(removalReason);
@@ -1894,7 +1763,7 @@
      @Override
      public void setLevelCallback(EntityInLevelCallback levelCallback) {
          this.levelCallback = levelCallback;
-@@ -3991,4 +_,14 @@
+@@ -3723,4 +_,14 @@
              return this.save;
          }
      }
@@ -1905,7 +1774,7 @@
 +    }
 +
 +    public boolean isTicking() {
-+        return ((ServerLevel) this.level()).isPositionEntityTicking(this.blockPosition());
++        return ((ServerLevel) this.level).isPositionEntityTicking(this.blockPosition());
 +    }
 +    // Paper end - Expose entity id counter
  }

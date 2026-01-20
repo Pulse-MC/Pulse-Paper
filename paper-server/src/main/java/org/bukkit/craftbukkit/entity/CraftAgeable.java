@@ -10,11 +10,6 @@ public class CraftAgeable extends CraftCreature implements Ageable {
     }
 
     @Override
-    public AgeableMob getHandle() {
-        return (AgeableMob) this.entity;
-    }
-
-    @Override
     public int getAge() {
         return this.getHandle().getAge();
     }
@@ -37,7 +32,7 @@ public class CraftAgeable extends CraftCreature implements Ageable {
     @Override
     public void setBaby() {
         if (this.isAdult()) {
-            this.setAge(AgeableMob.BABY_START_AGE);
+            this.setAge(-24000);
         }
     }
 
@@ -66,5 +61,15 @@ public class CraftAgeable extends CraftCreature implements Ageable {
         } else if (this.isAdult()) {
             this.setAge(6000);
         }
+    }
+
+    @Override
+    public AgeableMob getHandle() {
+        return (AgeableMob) this.entity;
+    }
+
+    @Override
+    public String toString() {
+        return "CraftAgeable";
     }
 }

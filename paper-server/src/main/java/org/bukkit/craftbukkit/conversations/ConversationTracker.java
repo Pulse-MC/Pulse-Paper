@@ -7,9 +7,11 @@ import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationAbandonedEvent;
 import org.bukkit.conversations.ManuallyAbandonedConversationCanceller;
 
+/**
+ */
 public class ConversationTracker {
 
-    private LinkedList<Conversation> conversationQueue = new LinkedList<>();
+    private LinkedList<Conversation> conversationQueue = new LinkedList<Conversation>();
 
     public synchronized boolean beginConversation(Conversation conversation) {
         if (!this.conversationQueue.contains(conversation)) {

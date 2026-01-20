@@ -1,25 +1,19 @@
 package org.bukkit.craftbukkit.entity;
 
 import com.google.common.base.Preconditions;
-import io.papermc.paper.registry.HolderableBase;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.world.entity.animal.wolf.WolfSoundVariant;
-import net.minecraft.world.entity.animal.wolf.WolfVariant;
+import net.minecraft.world.entity.animal.WolfVariant;
 import org.bukkit.DyeColor;
+import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.CraftRegistry;
 import org.bukkit.craftbukkit.CraftServer;
+import org.bukkit.craftbukkit.util.Handleable;
 import org.bukkit.entity.Wolf;
 
 public class CraftWolf extends CraftTameableAnimal implements Wolf {
-
-    public CraftWolf(CraftServer server, net.minecraft.world.entity.animal.wolf.Wolf wolf) {
+    public CraftWolf(CraftServer server, net.minecraft.world.entity.animal.Wolf wolf) {
         super(server, wolf);
-    }
-
-    @Override
-    public net.minecraft.world.entity.animal.wolf.Wolf getHandle() {
-        return (net.minecraft.world.entity.animal.wolf.Wolf) this.entity;
     }
 
     @Override
@@ -34,6 +28,11 @@ public class CraftWolf extends CraftTameableAnimal implements Wolf {
         } else {
             this.getHandle().stopBeingAngry();
         }
+    }
+
+    @Override
+    public net.minecraft.world.entity.animal.Wolf getHandle() {
+        return (net.minecraft.world.entity.animal.Wolf) this.entity;
     }
 
     @Override
@@ -62,8 +61,8 @@ public class CraftWolf extends CraftTameableAnimal implements Wolf {
     }
 
     @Override
-    public void setInterested(boolean interested) {
-        this.getHandle().setIsInterested(interested);
+    public void setInterested(boolean flag) {
+        this.getHandle().setIsInterested(flag);
     }
 
     @Override
@@ -73,31 +72,19 @@ public class CraftWolf extends CraftTameableAnimal implements Wolf {
 
     @Override
     public void setVariant(Variant variant) {
-        Preconditions.checkArgument(variant != null, "variant cannot be null");
+        Preconditions.checkArgument(variant != null, "variant");
 
         this.getHandle().setVariant(CraftVariant.bukkitToMinecraftHolder(variant));
     }
 
-    @Override
-    public SoundVariant getSoundVariant() {
-        return CraftSoundVariant.minecraftHolderToBukkit(this.getHandle().getSoundVariant());
-    }
-
-    @Override
-    public void setSoundVariant(SoundVariant soundVariant) {
-        Preconditions.checkArgument(soundVariant != null, "soundVariant cannot be null");
-
-        this.getHandle().setSoundVariant(CraftSoundVariant.bukkitToMinecraftHolder(soundVariant));
-    }
-
-    public static class CraftVariant extends HolderableBase<WolfVariant> implements Variant {
+    public static class CraftVariant implements Variant, Handleable<WolfVariant> {
 
         public static Variant minecraftToBukkit(WolfVariant minecraft) {
             return CraftRegistry.minecraftToBukkit(minecraft, Registries.WOLF_VARIANT);
         }
 
         public static Variant minecraftHolderToBukkit(Holder<WolfVariant> minecraft) {
-            return CraftRegistry.minecraftHolderToBukkit(minecraft, Registries.WOLF_VARIANT);
+            return CraftVariant.minecraftToBukkit(minecraft.value());
         }
 
         public static WolfVariant bukkitToMinecraft(Variant bukkit) {
@@ -105,34 +92,57 @@ public class CraftWolf extends CraftTameableAnimal implements Wolf {
         }
 
         public static Holder<WolfVariant> bukkitToMinecraftHolder(Variant bukkit) {
-            return CraftRegistry.bukkitToMinecraftHolder(bukkit);
+            Preconditions.checkArgument(bukkit != null);
+
+            net.minecraft.core.Registry<WolfVariant> registry = CraftRegistry.getMinecraftRegistry(Registries.WOLF_VARIANT);
+
+            if (registry.wrapAsHolder(CraftVariant.bukkitToMinecraft(bukkit)) instanceof Holder.Reference<WolfVariant> holder) {
+                return holder;
+            }
+
+            throw new IllegalArgumentException("No Reference holder found for " + bukkit
+                    + ", this can happen if a plugin creates its own wolf variant with out properly registering it.");
         }
 
-        public CraftVariant(final Holder<WolfVariant> holder) {
-            super(holder);
-        }
-    }
+        private final NamespacedKey key;
+        private final WolfVariant variant;
 
-    public static class CraftSoundVariant extends HolderableBase<WolfSoundVariant> implements SoundVariant {
-
-        public static SoundVariant minecraftToBukkit(WolfSoundVariant minecraft) {
-            return CraftRegistry.minecraftToBukkit(minecraft, Registries.WOLF_SOUND_VARIANT);
+        public CraftVariant(NamespacedKey key, WolfVariant variant) {
+            this.key = key;
+            this.variant = variant;
         }
 
-        public static SoundVariant minecraftHolderToBukkit(Holder<WolfSoundVariant> minecraft) {
-            return CraftRegistry.minecraftHolderToBukkit(minecraft, Registries.WOLF_SOUND_VARIANT);
+        @Override
+        public WolfVariant getHandle() {
+            return this.variant;
         }
 
-        public static WolfSoundVariant bukkitToMinecraft(SoundVariant bukkit) {
-            return CraftRegistry.bukkitToMinecraft(bukkit);
+        @Override
+        public NamespacedKey getKey() {
+            return this.key;
         }
 
-        public static Holder<WolfSoundVariant> bukkitToMinecraftHolder(SoundVariant bukkit) {
-            return CraftRegistry.bukkitToMinecraftHolder(bukkit);
+        @Override
+        public String toString() {
+            return this.key.toString();
         }
 
-        public CraftSoundVariant(final Holder<WolfSoundVariant> holder) {
-            super(holder);
+        @Override
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+
+            if (!(other instanceof CraftVariant otherVariant)) {
+                return false;
+            }
+
+            return this.getKey().equals(otherVariant.getKey());
+        }
+
+        @Override
+        public int hashCode() {
+            return this.getKey().hashCode();
         }
     }
 }

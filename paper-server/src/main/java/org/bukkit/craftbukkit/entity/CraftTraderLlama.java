@@ -11,6 +11,11 @@ public class CraftTraderLlama extends CraftLlama implements TraderLlama {
 
     @Override
     public net.minecraft.world.entity.animal.horse.TraderLlama getHandle() {
-        return (net.minecraft.world.entity.animal.horse.TraderLlama) this.entity;
+        return (net.minecraft.world.entity.animal.horse.TraderLlama) super.getHandle();
+    }
+
+    @Override
+    public String toString() {
+        return "CraftTraderLlama";
     }
 }

@@ -15,7 +15,8 @@ import org.junit.jupiter.api.Test;
 public class StatisticsAndAchievementsTest {
 
     @Test
-    public void verifyEntityMapping() {
+    @SuppressWarnings("unchecked")
+    public void verifyEntityMapping() throws Throwable {
         for (Statistic statistic : Statistic.values()) {
             if (statistic.getType() == Statistic.Type.ENTITY) {
                 for (EntityType entity : EntityType.values()) {
@@ -29,7 +30,7 @@ public class StatisticsAndAchievementsTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void verifyStatisticMapping() {
+    public void verifyStatisticMapping() throws Throwable {
         HashMultiset<Statistic> statistics = HashMultiset.create();
         for (StatType wrapper : BuiltInRegistries.STAT_TYPE) {
             for (Object child : wrapper.getRegistry()) {

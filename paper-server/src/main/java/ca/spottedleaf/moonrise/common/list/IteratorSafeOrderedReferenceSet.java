@@ -2,7 +2,6 @@ package ca.spottedleaf.moonrise.common.list;
 
 import it.unimi.dsi.fastutil.objects.Reference2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
@@ -22,34 +21,15 @@ public final class IteratorSafeOrderedReferenceSet<E> {
     private int iteratorCount;
 
     public IteratorSafeOrderedReferenceSet() {
-        this(Object.class);
-    }
-
-    public IteratorSafeOrderedReferenceSet(final Class<? super E> arrComponent) {
-        this(16, 0.75f, 16, 0.2, arrComponent);
+        this(16, 0.75f, 16, 0.2);
     }
 
     public IteratorSafeOrderedReferenceSet(final int setCapacity, final float setLoadFactor, final int arrayCapacity,
                                            final double maxFragFactor) {
-        this(setCapacity, setLoadFactor, arrayCapacity, maxFragFactor, Object.class);
-    }
-
-    public IteratorSafeOrderedReferenceSet(final int setCapacity, final float setLoadFactor, final int arrayCapacity,
-                                           final double maxFragFactor, final Class<? super E> arrComponent) {
         this.indexMap = new Reference2IntLinkedOpenHashMap<>(setCapacity, setLoadFactor);
         this.indexMap.defaultReturnValue(-1);
         this.maxFragFactor = maxFragFactor;
-        this.listElements = (E[])Array.newInstance(arrComponent, arrayCapacity);
-    }
-
-    // includes null (gravestone) elements
-    public E[] getListRaw() {
-        return this.listElements;
-    }
-
-    // includes null (gravestone) elements
-    public int getListSize() {
-        return this.listSize;
+        this.listElements = (E[])new Object[arrayCapacity];
     }
 
     /*
@@ -101,7 +81,7 @@ public final class IteratorSafeOrderedReferenceSet<E> {
     public int createRawIterator() {
         ++this.iteratorCount;
         if (this.indexMap.isEmpty()) {
-            return Integer.MAX_VALUE;
+            return -1;
         } else {
             return this.firstInvalidIndex == 0 ? this.indexMap.getInt(this.indexMap.firstKey()) : 0;
         }
@@ -116,7 +96,7 @@ public final class IteratorSafeOrderedReferenceSet<E> {
             }
         }
 
-        return Integer.MAX_VALUE;
+        return -1;
     }
 
     public void finishRawIterator() {
@@ -223,6 +203,10 @@ public final class IteratorSafeOrderedReferenceSet<E> {
         this.listSize = lastValidIndex;
         this.firstInvalidIndex = -1;
         //this.check();
+    }
+
+    public E rawGet(final int index) {
+        return this.listElements[index];
     }
 
     public int size() {

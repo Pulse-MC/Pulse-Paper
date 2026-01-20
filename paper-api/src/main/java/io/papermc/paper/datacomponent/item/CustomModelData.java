@@ -1,7 +1,7 @@
 package io.papermc.paper.datacomponent.item;
 
-import io.papermc.paper.datacomponent.DataComponentBuilder;
 import java.util.List;
+import io.papermc.paper.datacomponent.DataComponentBuilder;
 import org.bukkit.Color;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;

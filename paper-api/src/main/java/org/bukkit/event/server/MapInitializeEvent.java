@@ -2,19 +2,15 @@ package org.bukkit.event.server;
 
 import org.bukkit.event.HandlerList;
 import org.bukkit.map.MapView;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Called when a map is initialized.
  */
 public class MapInitializeEvent extends ServerEvent {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final MapView mapView;
 
-    @ApiStatus.Internal
     public MapInitializeEvent(@NotNull final MapView mapView) {
         this.mapView = mapView;
     }
@@ -26,17 +22,17 @@ public class MapInitializeEvent extends ServerEvent {
      */
     @NotNull
     public MapView getMap() {
-        return this.mapView;
+        return mapView;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

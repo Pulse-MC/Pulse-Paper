@@ -2,19 +2,15 @@ package org.bukkit.event.block;
 
 import org.bukkit.block.Block;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * An event that's called when a block yields experience.
  */
 public class BlockExpEvent extends BlockEvent {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private int exp;
 
-    @ApiStatus.Internal
     public BlockExpEvent(@NotNull Block block, int exp) {
         super(block);
 
@@ -27,7 +23,7 @@ public class BlockExpEvent extends BlockEvent {
      * @return The experience to drop
      */
     public int getExpToDrop() {
-        return this.exp;
+        return exp;
     }
 
     /**
@@ -43,11 +39,11 @@ public class BlockExpEvent extends BlockEvent {
     @Override
     @NotNull
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

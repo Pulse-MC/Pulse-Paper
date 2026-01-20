@@ -6,7 +6,6 @@ import java.util.Set;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -42,31 +41,36 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  * If the event is cancelled, processing of the command will halt.
  * <p>
- * The state of whether there is a slash (<code>/</code>) at the
+ * The state of whether or not there is a slash (<code>/</code>) at the
  * beginning of the message should be preserved. If a slash is added or
  * removed, unexpected behavior may result.
  */
 public class PlayerCommandPreprocessEvent extends PlayerEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    private boolean cancel = false;
     private String message;
     private final Set<Player> recipients;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
     public PlayerCommandPreprocessEvent(@NotNull final Player player, @NotNull final String message) {
         super(player);
-        this.recipients = new HashSet<>(player.getServer().getOnlinePlayers());
+        this.recipients = new HashSet<Player>(player.getServer().getOnlinePlayers());
         this.message = message;
     }
 
-    @ApiStatus.Internal
     public PlayerCommandPreprocessEvent(@NotNull final Player player, @NotNull final String message, @NotNull final Set<Player> recipients) {
         super(player);
         this.recipients = recipients;
         this.message = message;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return cancel;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.cancel = cancel;
     }
 
     /**
@@ -79,7 +83,7 @@ public class PlayerCommandPreprocessEvent extends PlayerEvent implements Cancell
      */
     @NotNull
     public String getMessage() {
-        return this.message;
+        return message;
     }
 
     /**
@@ -89,12 +93,25 @@ public class PlayerCommandPreprocessEvent extends PlayerEvent implements Cancell
      * consider the first character when executing the content.
      *
      * @param command New message that the player will send
-     * @throws IllegalArgumentException if command is {@code null} or empty
+     * @throws IllegalArgumentException if command is null or empty
      */
     public void setMessage(@NotNull String command) throws IllegalArgumentException {
         Preconditions.checkArgument(command != null, "Command cannot be null");
         Preconditions.checkArgument(!command.isEmpty(), "Command cannot be empty");
         this.message = command;
+    }
+
+    /**
+     * Sets the player that this command will be executed as.
+     *
+     * @param player New player which this event will execute as
+     * @throws IllegalArgumentException if the player provided is null
+     * @deprecated Only works for sign commands; use {@link Player#performCommand(String)}, including those cases
+     */
+    @Deprecated(forRemoval = true)
+    public void setPlayer(@NotNull final Player player) throws IllegalArgumentException {
+        Preconditions.checkArgument(player != null, "Player cannot be null");
+        this.player = player;
     }
 
     /**
@@ -113,40 +130,17 @@ public class PlayerCommandPreprocessEvent extends PlayerEvent implements Cancell
     @NotNull
     @Deprecated(since = "1.3.1", forRemoval = true)
     public Set<Player> getRecipients() {
-        return this.recipients;
-    }
-
-    /**
-     * Sets the player that this command will be executed as.
-     *
-     * @param player New player which this event will execute as
-     * @throws IllegalArgumentException if the player provided is null
-     * @deprecated Only works for sign commands; use {@link Player#performCommand(String)}, including those cases
-     */
-    @Deprecated(forRemoval = true)
-    public void setPlayer(@NotNull final Player player) throws IllegalArgumentException {
-        Preconditions.checkArgument(player != null, "Player cannot be null");
-        this.player = player;
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return this.cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        return recipients;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

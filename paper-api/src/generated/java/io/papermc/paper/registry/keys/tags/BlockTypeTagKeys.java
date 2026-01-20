@@ -7,10 +7,11 @@ import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.tag.TagKey;
 import net.kyori.adventure.key.Key;
 import org.bukkit.block.BlockType;
+import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * Vanilla tag keys for {@link RegistryKey#BLOCK}.
+ * Vanilla keys for {@link RegistryKey#BLOCK}.
  *
  * @apiNote The fields provided here are a direct representation of
  * what is available from the vanilla game source. They may be
@@ -22,8 +23,9 @@ import org.jspecify.annotations.NullMarked;
         "unused",
         "SpellCheckingInspection"
 })
+@GeneratedFrom("1.21.4")
 @NullMarked
-@GeneratedFrom("1.21.8")
+@ApiStatus.Experimental
 public final class BlockTypeTagKeys {
     /**
      * {@code #minecraft:acacia_logs}
@@ -222,13 +224,6 @@ public final class BlockTypeTagKeys {
     public static final TagKey<BlockType> CAMEL_SAND_STEP_SOUND_BLOCKS = create(key("camel_sand_step_sound_blocks"));
 
     /**
-     * {@code #minecraft:camels_spawnable_on}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<BlockType> CAMELS_SPAWNABLE_ON = create(key("camels_spawnable_on"));
-
-    /**
      * {@code #minecraft:campfires}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -383,6 +378,13 @@ public final class BlockTypeTagKeys {
     public static final TagKey<BlockType> DARK_OAK_LOGS = create(key("dark_oak_logs"));
 
     /**
+     * {@code #minecraft:dead_bush_may_place_on}
+     *
+     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
+     */
+    public static final TagKey<BlockType> DEAD_BUSH_MAY_PLACE_ON = create(key("dead_bush_may_place_on"));
+
+    /**
      * {@code #minecraft:deepslate_ore_replaceables}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -437,20 +439,6 @@ public final class BlockTypeTagKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TagKey<BlockType> DRIPSTONE_REPLACEABLE_BLOCKS = create(key("dripstone_replaceable_blocks"));
-
-    /**
-     * {@code #minecraft:dry_vegetation_may_place_on}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<BlockType> DRY_VEGETATION_MAY_PLACE_ON = create(key("dry_vegetation_may_place_on"));
-
-    /**
-     * {@code #minecraft:edible_for_sheep}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<BlockType> EDIBLE_FOR_SHEEP = create(key("edible_for_sheep"));
 
     /**
      * {@code #minecraft:emerald_ores}
@@ -577,13 +565,6 @@ public final class BlockTypeTagKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TagKey<BlockType> GUARDED_BY_PIGLINS = create(key("guarded_by_piglins"));
-
-    /**
-     * {@code #minecraft:happy_ghast_avoids}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<BlockType> HAPPY_GHAST_AVOIDS = create(key("happy_ghast_avoids"));
 
     /**
      * {@code #minecraft:hoglin_repellents}
@@ -971,13 +952,6 @@ public final class BlockTypeTagKeys {
     public static final TagKey<BlockType> REPLACEABLE = create(key("replaceable"));
 
     /**
-     * {@code #minecraft:replaceable_by_mushrooms}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<BlockType> REPLACEABLE_BY_MUSHROOMS = create(key("replaceable_by_mushrooms"));
-
-    /**
      * {@code #minecraft:replaceable_by_trees}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -1174,13 +1148,6 @@ public final class BlockTypeTagKeys {
     public static final TagKey<BlockType> SWORD_EFFICIENT = create(key("sword_efficient"));
 
     /**
-     * {@code #minecraft:sword_instantly_mines}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<BlockType> SWORD_INSTANTLY_MINES = create(key("sword_instantly_mines"));
-
-    /**
      * {@code #minecraft:terracotta}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -1200,27 +1167,6 @@ public final class BlockTypeTagKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TagKey<BlockType> TRAPDOORS = create(key("trapdoors"));
-
-    /**
-     * {@code #minecraft:triggers_ambient_desert_dry_vegetation_block_sounds}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<BlockType> TRIGGERS_AMBIENT_DESERT_DRY_VEGETATION_BLOCK_SOUNDS = create(key("triggers_ambient_desert_dry_vegetation_block_sounds"));
-
-    /**
-     * {@code #minecraft:triggers_ambient_desert_sand_block_sounds}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<BlockType> TRIGGERS_AMBIENT_DESERT_SAND_BLOCK_SOUNDS = create(key("triggers_ambient_desert_sand_block_sounds"));
-
-    /**
-     * {@code #minecraft:triggers_ambient_dried_ghast_block_sounds}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<BlockType> TRIGGERS_AMBIENT_DRIED_GHAST_BLOCK_SOUNDS = create(key("triggers_ambient_dried_ghast_block_sounds"));
 
     /**
      * {@code #minecraft:underwater_bonemeals}
@@ -1392,6 +1338,7 @@ public final class BlockTypeTagKeys {
      * @param key the tag key's key
      * @return a new tag key
      */
+    @ApiStatus.Experimental
     public static TagKey<BlockType> create(final Key key) {
         return TagKey.create(RegistryKey.BLOCK, key);
     }

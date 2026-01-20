@@ -1,8 +1,7 @@
 package org.bukkit.entity;
 
-import org.bukkit.Location;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.util.UUID;
 
 /**
  * Represents a phantom.
@@ -15,17 +14,18 @@ public interface Phantom extends Flying, Enemy {
     public int getSize();
 
     /**
-     * @param size The new size of the phantom.
+     * @param sz The new size of the phantom.
      */
-    public void setSize(int size);
+    public void setSize(int sz);
 
+    // Paper start
     /**
      * Get the UUID of the entity that caused this phantom to spawn
      *
      * @return UUID
      */
     @Nullable
-    public UUID getSpawningEntity();
+    public java.util.UUID getSpawningEntity();
 
     /**
      * Check if this phantom will burn in the sunlight
@@ -47,13 +47,14 @@ public interface Phantom extends Flying, Enemy {
      *
      * @return circling location
      */
-    @Nullable
-    Location getAnchorLocation();
+    @org.jetbrains.annotations.NotNull
+    org.bukkit.Location getAnchorLocation();
 
     /**
      * Sets the location that this phantom circles around when not attacking a player
      *
      * @param location circling location (world is ignored, will always use the entity's world)
      */
-    void setAnchorLocation(@Nullable Location location);
+    void setAnchorLocation(@org.jetbrains.annotations.NotNull org.bukkit.Location location);
+    // Paper end
 }

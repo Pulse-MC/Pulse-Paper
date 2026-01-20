@@ -10,7 +10,6 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,6 +29,8 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  * <li>{@link HumanEntity#closeInventory()}
  * <li>{@link HumanEntity#openInventory(Inventory)}
+ * <li>{@link HumanEntity#openWorkbench(Location, boolean)}
+ * <li>{@link HumanEntity#openEnchanting(Location, boolean)}
  * <li>{@link InventoryView#close()}
  * </ul>
  * To invoke one of these methods, schedule a task using
@@ -49,28 +50,24 @@ import org.jetbrains.annotations.Nullable;
  * work as well.
  */
 public class InventoryClickEvent extends InventoryInteractEvent {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final ClickType click;
     private final InventoryAction action;
-    private final SlotType slotType;
-    private final int whichSlot;
-    private final int rawSlot;
+    private SlotType slot_type;
+    private int whichSlot;
+    private int rawSlot;
     private ItemStack current = null;
     private int hotbarKey = -1;
 
-    @ApiStatus.Internal
     public InventoryClickEvent(@NotNull InventoryView view, @NotNull SlotType type, int slot, @NotNull ClickType click, @NotNull InventoryAction action) {
         super(view);
-        this.slotType = type;
+        this.slot_type = type;
         this.rawSlot = slot;
         this.whichSlot = view.convertSlot(slot);
         this.click = click;
         this.action = action;
     }
 
-    @ApiStatus.Internal
     public InventoryClickEvent(@NotNull InventoryView view, @NotNull SlotType type, int slot, @NotNull ClickType click, @NotNull InventoryAction action, int key) {
         this(view, type, slot, click, action);
         this.hotbarKey = key;
@@ -83,7 +80,7 @@ public class InventoryClickEvent extends InventoryInteractEvent {
      */
     @NotNull
     public SlotType getSlotType() {
-        return this.slotType;
+        return slot_type;
     }
 
     /**
@@ -91,9 +88,9 @@ public class InventoryClickEvent extends InventoryInteractEvent {
      *
      * @return the cursor ItemStack
      */
-    @NotNull
+    @NotNull // Paper - fix nullability
     public ItemStack getCursor() {
-        return this.getView().getCursor();
+        return getView().getCursor();
     }
 
     /**
@@ -103,43 +100,43 @@ public class InventoryClickEvent extends InventoryInteractEvent {
      */
     @Nullable
     public ItemStack getCurrentItem() {
-        if (this.slotType == SlotType.OUTSIDE) {
-            return this.current;
+        if (slot_type == SlotType.OUTSIDE) {
+            return current;
         }
-        return this.getView().getItem(this.rawSlot);
+        return getView().getItem(rawSlot);
     }
 
     /**
-     * Gets whether the ClickType for this event represents a right
+     * Gets whether or not the ClickType for this event represents a right
      * click.
      *
-     * @return {@code true} if the ClickType uses the right mouse button.
+     * @return true if the ClickType uses the right mouse button.
      * @see ClickType#isRightClick()
      */
     public boolean isRightClick() {
-        return this.click.isRightClick();
+        return click.isRightClick();
     }
 
     /**
-     * Gets whether the ClickType for this event represents a left
+     * Gets whether or not the ClickType for this event represents a left
      * click.
      *
-     * @return {@code true} if the ClickType uses the left mouse button.
+     * @return true if the ClickType uses the left mouse button.
      * @see ClickType#isLeftClick()
      */
     public boolean isLeftClick() {
-        return this.click.isLeftClick();
+        return click.isLeftClick();
     }
 
     /**
      * Gets whether the ClickType for this event indicates that the key was
      * pressed down when the click was made.
      *
-     * @return {@code true} if the ClickType uses Shift or Ctrl.
+     * @return true if the ClickType uses Shift or Ctrl.
      * @see ClickType#isShiftClick()
      */
     public boolean isShiftClick() {
-        return this.click.isShiftClick();
+        return click.isShiftClick();
     }
 
     /**
@@ -153,7 +150,7 @@ public class InventoryClickEvent extends InventoryInteractEvent {
      */
     @Deprecated(since = "1.5.2")
     public void setCursor(@Nullable ItemStack stack) {
-        this.getView().setCursor(stack);
+        getView().setCursor(stack);
     }
 
     /**
@@ -162,22 +159,22 @@ public class InventoryClickEvent extends InventoryInteractEvent {
      * @param stack the item to be placed in the current slot
      */
     public void setCurrentItem(@Nullable ItemStack stack) {
-        if (this.slotType == SlotType.OUTSIDE) {
-            this.current = stack;
+        if (slot_type == SlotType.OUTSIDE) {
+            current = stack;
         } else {
-            getView().setItem(this.rawSlot, stack);
+            getView().setItem(rawSlot, stack);
         }
     }
 
     /**
      * Gets the inventory corresponding to the clicked slot.
      *
-     * @return inventory, or {@code null} if clicked outside
+     * @return inventory, or null if clicked outside
      * @see InventoryView#getInventory(int)
      */
     @Nullable
     public Inventory getClickedInventory() {
-        return this.getView().getInventory(rawSlot);
+        return getView().getInventory(rawSlot);
     }
 
     /**
@@ -185,10 +182,10 @@ public class InventoryClickEvent extends InventoryInteractEvent {
      * {@link Inventory#getItem(int)}. Note that there may be two slots with
      * the same slot number, since a view links two different inventories.
      *
-     * @return the slot number
+     * @return The slot number.
      */
     public int getSlot() {
-        return this.whichSlot;
+        return whichSlot;
     }
 
     /**
@@ -198,18 +195,18 @@ public class InventoryClickEvent extends InventoryInteractEvent {
      * @return the slot number
      */
     public int getRawSlot() {
-        return this.rawSlot;
+        return rawSlot;
     }
 
     /**
      * If the ClickType is NUMBER_KEY, this method will return the index of
-     * the pressed key (0-8) and -1 if player swapped with off-hand (or the action is not NUMBER_KEY).
+     * the pressed key (0-8).
      *
-     * @return the number on the key minus 1 (range 0-8);
-     * or -1 if ClickType is NUMBER_KEY and player did an off-hand swap. Is also -1 if ClickType is not NUMBER_KEY
+     * @return the number on the key minus 1 (range 0-8); or -1 if not
+     *     a NUMBER_KEY action
      */
     public int getHotbarButton() {
-        return this.hotbarKey;
+        return hotbarKey;
     }
 
     /**
@@ -223,7 +220,7 @@ public class InventoryClickEvent extends InventoryInteractEvent {
      */
     @NotNull
     public InventoryAction getAction() {
-        return this.action;
+        return action;
     }
 
     /**
@@ -235,17 +232,17 @@ public class InventoryClickEvent extends InventoryInteractEvent {
      */
     @NotNull
     public ClickType getClick() {
-        return this.click;
+        return click;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

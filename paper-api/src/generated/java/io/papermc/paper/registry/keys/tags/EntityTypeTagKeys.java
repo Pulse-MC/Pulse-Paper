@@ -7,10 +7,11 @@ import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.tag.TagKey;
 import net.kyori.adventure.key.Key;
 import org.bukkit.entity.EntityType;
+import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * Vanilla tag keys for {@link RegistryKey#ENTITY_TYPE}.
+ * Vanilla keys for {@link RegistryKey#ENTITY_TYPE}.
  *
  * @apiNote The fields provided here are a direct representation of
  * what is available from the vanilla game source. They may be
@@ -22,8 +23,9 @@ import org.jspecify.annotations.NullMarked;
         "unused",
         "SpellCheckingInspection"
 })
+@GeneratedFrom("1.21.4")
 @NullMarked
-@GeneratedFrom("1.21.8")
+@ApiStatus.Experimental
 public final class EntityTypeTagKeys {
     /**
      * {@code #minecraft:aquatic}
@@ -82,32 +84,11 @@ public final class EntityTypeTagKeys {
     public static final TagKey<EntityType> CAN_BREATHE_UNDER_WATER = create(key("can_breathe_under_water"));
 
     /**
-     * {@code #minecraft:can_equip_harness}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<EntityType> CAN_EQUIP_HARNESS = create(key("can_equip_harness"));
-
-    /**
-     * {@code #minecraft:can_equip_saddle}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<EntityType> CAN_EQUIP_SADDLE = create(key("can_equip_saddle"));
-
-    /**
      * {@code #minecraft:can_turn_in_boats}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TagKey<EntityType> CAN_TURN_IN_BOATS = create(key("can_turn_in_boats"));
-
-    /**
-     * {@code #minecraft:can_wear_horse_armor}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<EntityType> CAN_WEAR_HORSE_ARMOR = create(key("can_wear_horse_armor"));
 
     /**
      * {@code #minecraft:deflects_projectiles}
@@ -129,13 +110,6 @@ public final class EntityTypeTagKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TagKey<EntityType> FALL_DAMAGE_IMMUNE = create(key("fall_damage_immune"));
-
-    /**
-     * {@code #minecraft:followable_friendly_mobs}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TagKey<EntityType> FOLLOWABLE_FRIENDLY_MOBS = create(key("followable_friendly_mobs"));
 
     /**
      * {@code #minecraft:freeze_hurts_extra_types}
@@ -307,6 +281,7 @@ public final class EntityTypeTagKeys {
      * @param key the tag key's key
      * @return a new tag key
      */
+    @ApiStatus.Experimental
     public static TagKey<EntityType> create(final Key key) {
         return TagKey.create(RegistryKey.ENTITY_TYPE, key);
     }

@@ -17,29 +17,31 @@ import org.bukkit.inventory.meta.BundleMeta;
 public class CraftMetaBundle extends CraftMetaItem implements BundleMeta {
 
     static final ItemMetaKeyType<BundleContents> ITEMS = new ItemMetaKeyType<>(DataComponents.BUNDLE_CONTENTS, "items");
-
+    //
     private List<ItemStack> items;
 
     CraftMetaBundle(CraftMetaItem meta) {
         super(meta);
 
-        if (!(meta instanceof final CraftMetaBundle bundleMeta)) {
+        if (!(meta instanceof CraftMetaBundle)) {
             return;
         }
 
-        if (bundleMeta.hasItems()) {
-            this.items = new ArrayList<>(bundleMeta.items);
+        CraftMetaBundle bundle = (CraftMetaBundle) meta;
+
+        if (bundle.hasItems()) {
+            this.items = new ArrayList<>(bundle.items);
         }
     }
 
-    CraftMetaBundle(DataComponentPatch tag, java.util.Set<net.minecraft.core.component.DataComponentType<?>> extraHandledDcts) {
-        super(tag, extraHandledDcts);
+    CraftMetaBundle(DataComponentPatch tag, java.util.Set<net.minecraft.core.component.DataComponentType<?>> extraHandledDcts) { // Paper
+        super(tag, extraHandledDcts); // Paper
 
         getOrEmpty(tag, CraftMetaBundle.ITEMS).ifPresent((bundle) -> {
             bundle.items().forEach((item) -> {
                 ItemStack itemStack = CraftItemStack.asCraftMirror(item);
 
-                if (!itemStack.isEmpty()) { // SPIGOT-7174 - Avoid adding air
+                if (!itemStack.isEmpty()) { // SPIGOT-7174 - Avoid adding air // Paper
                     this.addItem(itemStack);
                 }
             });
@@ -52,7 +54,7 @@ public class CraftMetaBundle extends CraftMetaItem implements BundleMeta {
         Iterable<?> items = SerializableMeta.getObject(Iterable.class, map, CraftMetaBundle.ITEMS.BUKKIT, true);
         if (items != null) {
             for (Object stack : items) {
-                if (stack instanceof ItemStack itemStack && !itemStack.isEmpty()) { // SPIGOT-7174 - Avoid adding air
+                if (stack instanceof ItemStack itemStack && !itemStack.isEmpty()) { // SPIGOT-7174 - Avoid adding air // Paper
                     this.addItem(itemStack);
                 }
             }
@@ -108,7 +110,7 @@ public class CraftMetaBundle extends CraftMetaItem implements BundleMeta {
 
     @Override
     public void addItem(ItemStack item) {
-        Preconditions.checkArgument(item != null && !item.isEmpty(), "item is null or empty");
+        Preconditions.checkArgument(item != null && !item.isEmpty(), "item is null or empty"); // Paper
 
         if (this.items == null) {
             this.items = new ArrayList<>();
@@ -122,8 +124,10 @@ public class CraftMetaBundle extends CraftMetaItem implements BundleMeta {
         if (!super.equalsCommon(meta)) {
             return false;
         }
-        if (meta instanceof final CraftMetaBundle other) {
-            return (this.hasItems() ? other.hasItems() && this.items.equals(other.items) : !other.hasItems());
+        if (meta instanceof CraftMetaBundle) {
+            CraftMetaBundle that = (CraftMetaBundle) meta;
+
+            return (this.hasItems() ? that.hasItems() && this.items.equals(that.items) : !that.hasItems());
         }
         return true;
     }

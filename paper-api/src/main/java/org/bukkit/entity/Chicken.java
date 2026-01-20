@@ -1,30 +1,10 @@
 package org.bukkit.entity;
 
-import io.papermc.paper.registry.RegistryAccess;
-import io.papermc.paper.registry.RegistryKey;
-import org.bukkit.Keyed;
-import org.bukkit.NamespacedKey;
-import org.jspecify.annotations.NullMarked;
-
 /**
  * Represents a Chicken.
  */
-@NullMarked
+// Paper start
 public interface Chicken extends Animals {
-
-    /**
-     * Gets the variant of this chicken.
-     *
-     * @return the chicken variant
-     */
-    Variant getVariant();
-
-    /**
-     * Sets the variant of this chicken.
-     *
-     * @param variant the chicken variant
-     */
-    void setVariant(Variant variant);
 
     /**
      * Gets if this chicken was spawned as a chicken jockey.
@@ -53,23 +33,5 @@ public interface Chicken extends Animals {
      * @param eggLayTime ticks till the chicken lays an egg
      */
     void setEggLayTime(int eggLayTime);
-
-    /**
-     * Represents the variant of a chicken.
-     */
-    interface Variant extends Keyed {
-
-        // Start generate - ChickenVariant
-        // @GeneratedFrom 1.21.8
-        Variant COLD = getVariant("cold");
-
-        Variant TEMPERATE = getVariant("temperate");
-
-        Variant WARM = getVariant("warm");
-        // End generate - ChickenVariant
-
-        private static Variant getVariant(String key) {
-            return RegistryAccess.registryAccess().getRegistry(RegistryKey.CHICKEN_VARIANT).getOrThrow(NamespacedKey.minecraft(key));
-        }
-    }
 }
+// Paper end

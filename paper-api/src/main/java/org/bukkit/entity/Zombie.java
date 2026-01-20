@@ -71,7 +71,7 @@ public interface Zombie extends Monster, Ageable {
     /**
      * Gets the amount of ticks until this entity will be converted to a Drowned
      * as a result of being underwater.
-     * <br>
+     *
      * When this reaches 0, the entity will be converted.
      *
      * @return conversion time
@@ -82,7 +82,7 @@ public interface Zombie extends Monster, Ageable {
     /**
      * Sets the amount of ticks until this entity will be converted to a Drowned
      * as a result of being underwater.
-     * <br>
+     *
      * When this reaches 0, the entity will be converted. A value of less than 0
      * will stop the current conversion process without converting the current
      * entity.
@@ -110,6 +110,7 @@ public interface Zombie extends Monster, Ageable {
      */
     void setCanBreakDoors(boolean flag);
 
+    // Paper start
     /**
      * Check if zombie is drowning
      *
@@ -121,6 +122,7 @@ public interface Zombie extends Monster, Ageable {
      * Make zombie start drowning
      *
      * @param drownedConversionTime Amount of time until zombie converts from drowning
+     *
      * @deprecated See {@link #setConversionTime(int)}
      */
     @Deprecated
@@ -135,7 +137,7 @@ public interface Zombie extends Monster, Ageable {
      * Set if zombie has its arms raised
      *
      * @param raised True to raise arms
-     * @deprecated use {@link #setAggressive(boolean)}
+     * @deprecated use {{@link #setAggressive(boolean)}}
      */
     @Deprecated
     void setArmsRaised(boolean raised);
@@ -174,4 +176,5 @@ public interface Zombie extends Monster, Ageable {
      */
     @Deprecated(since = "1.21.2", forRemoval = true)
     boolean supportsBreakingDoors();
+    // Paper end
 }

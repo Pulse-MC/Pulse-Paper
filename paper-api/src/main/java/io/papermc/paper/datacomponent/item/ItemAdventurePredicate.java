@@ -16,7 +16,7 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 @ApiStatus.Experimental
 @ApiStatus.NonExtendable
-public interface ItemAdventurePredicate {
+public interface ItemAdventurePredicate extends ShownInTooltip<ItemAdventurePredicate> {
 
     @Contract(value = "_ -> new", pure = true)
     static ItemAdventurePredicate itemAdventurePredicate(final List<BlockPredicate> predicates) {
@@ -41,7 +41,7 @@ public interface ItemAdventurePredicate {
      */
     @ApiStatus.Experimental
     @ApiStatus.NonExtendable
-    interface Builder extends DataComponentBuilder<ItemAdventurePredicate> {
+    interface Builder extends ShownInTooltip.Builder<Builder>, DataComponentBuilder<ItemAdventurePredicate> {
         /**
          * Adds a block predicate to this builder.
          *

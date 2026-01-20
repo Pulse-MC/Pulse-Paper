@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/level/chunk/ChunkAccess.java
 +++ b/net/minecraft/world/level/chunk/ChunkAccess.java
-@@ -65,7 +_,7 @@
+@@ -64,7 +_,7 @@
      protected final ShortList[] postProcessing;
      private volatile boolean unsaved;
      private volatile boolean isLightCorrect;
@@ -9,7 +9,7 @@
      private long inhabitedTime;
      @Nullable
      @Deprecated
-@@ -83,6 +_,11 @@
+@@ -82,6 +_,11 @@
      public final Map<BlockPos, BlockEntity> blockEntities = new Object2ObjectOpenHashMap<>();
      protected final LevelHeightAccessor levelHeightAccessor;
      protected final LevelChunkSection[] sections;
@@ -21,7 +21,7 @@
  
      public ChunkAccess(
          ChunkPos chunkPos,
-@@ -93,7 +_,8 @@
+@@ -92,7 +_,8 @@
          @Nullable LevelChunkSection[] sections,
          @Nullable BlendingData blendingData
      ) {
@@ -31,7 +31,7 @@
          this.upgradeData = upgradeData;
          this.levelHeightAccessor = levelHeightAccessor;
          this.sections = new LevelChunkSection[levelHeightAccessor.getSectionsCount()];
-@@ -110,6 +_,7 @@
+@@ -109,6 +_,7 @@
          }
  
          replaceMissingSections(biomeRegistry, this.sections);
@@ -39,16 +39,15 @@
      }
  
      private static void replaceMissingSections(Registry<Biome> biomeRegistry, LevelChunkSection[] sections) {
-@@ -124,6 +_,8 @@
+@@ -123,6 +_,7 @@
          return GameEventListenerRegistry.NOOP;
      }
  
 +    public abstract BlockState getBlockState(final int x, final int y, final int z); // Paper
-+
      @Nullable
-     public BlockState setBlockState(BlockPos pos, BlockState state) {
-         return this.setBlockState(pos, state, 3);
-@@ -275,6 +_,7 @@
+     public abstract BlockState setBlockState(BlockPos pos, BlockState state, boolean isMoving);
+ 
+@@ -273,6 +_,7 @@
      public boolean tryMarkSaved() {
          if (this.unsaved) {
              this.unsaved = false;
@@ -56,7 +55,7 @@
              return true;
          } else {
              return false;
-@@ -282,7 +_,7 @@
+@@ -280,7 +_,7 @@
      }
  
      public boolean isUnsaved() {
@@ -65,7 +64,7 @@
      }
  
      public abstract ChunkStatus getPersistedStatus();
-@@ -448,6 +_,22 @@
+@@ -446,6 +_,22 @@
              throw new ReportedException(crashReport);
          }
      }

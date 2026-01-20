@@ -1,5 +1,6 @@
 package org.bukkit.plugin.java;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import io.papermc.paper.command.brigadier.BasicCommand;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
@@ -12,7 +13,6 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -165,7 +165,7 @@ public abstract class JavaPlugin extends PluginBase {
     protected final @Nullable Reader getTextResource(String file) {
         final InputStream in = getResource(file);
 
-        return in == null ? null : new InputStreamReader(in, StandardCharsets.UTF_8);
+        return in == null ? null : new InputStreamReader(in, Charsets.UTF_8);
     }
 
     @Override
@@ -177,7 +177,7 @@ public abstract class JavaPlugin extends PluginBase {
             return;
         }
 
-        newConfig.setDefaults(YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream, StandardCharsets.UTF_8)));
+        newConfig.setDefaults(YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream, Charsets.UTF_8)));
     }
 
     @Override
@@ -372,6 +372,7 @@ public abstract class JavaPlugin extends PluginBase {
      * @param basicCommand the basic command instance to register
      * @see LifecycleEvents#COMMANDS
      */
+    @ApiStatus.Experimental
     public void registerCommand(final String label, final BasicCommand basicCommand) {
         this.registerCommand(label, null, Collections.emptyList(), basicCommand);
     }
@@ -391,6 +392,7 @@ public abstract class JavaPlugin extends PluginBase {
      * @param basicCommand the basic command instance to register
      * @see LifecycleEvents#COMMANDS
      */
+    @ApiStatus.Experimental
     public void registerCommand(final String label, final @Nullable String description, final BasicCommand basicCommand) {
         this.registerCommand(label, description, Collections.emptyList(), basicCommand);
     }
@@ -410,6 +412,7 @@ public abstract class JavaPlugin extends PluginBase {
      * @param basicCommand the basic command instance to register
      * @see LifecycleEvents#COMMANDS
      */
+    @ApiStatus.Experimental
     public void registerCommand(final String label, final Collection<String> aliases, final BasicCommand basicCommand) {
         this.registerCommand(label, null, aliases, basicCommand);
     }
@@ -430,6 +433,7 @@ public abstract class JavaPlugin extends PluginBase {
      * @param basicCommand the basic command instance to register
      * @see LifecycleEvents#COMMANDS
      */
+    @ApiStatus.Experimental
     public void registerCommand(final String label, final @Nullable String description, final Collection<String> aliases, final BasicCommand basicCommand) {
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             event.registrar().register(label, description, aliases, basicCommand);

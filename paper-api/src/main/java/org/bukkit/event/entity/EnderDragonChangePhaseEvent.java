@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,24 +12,21 @@ import org.jetbrains.annotations.Nullable;
  */
 public class EnderDragonChangePhaseEvent extends EntityEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    private boolean cancel;
     private final EnderDragon.Phase currentPhase;
     private EnderDragon.Phase newPhase;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
     public EnderDragonChangePhaseEvent(@NotNull EnderDragon enderDragon, @Nullable EnderDragon.Phase currentPhase, @NotNull EnderDragon.Phase newPhase) {
         super(enderDragon);
         this.currentPhase = currentPhase;
-        this.newPhase = newPhase;
+        this.setNewPhase(newPhase);
     }
 
     @NotNull
     @Override
     public EnderDragon getEntity() {
-        return (EnderDragon) this.entity;
+        return (EnderDragon) entity;
     }
 
     /**
@@ -41,7 +37,7 @@ public class EnderDragonChangePhaseEvent extends EntityEvent implements Cancella
      */
     @Nullable
     public EnderDragon.Phase getCurrentPhase() {
-        return this.currentPhase;
+        return currentPhase;
     }
 
     /**
@@ -51,7 +47,7 @@ public class EnderDragonChangePhaseEvent extends EntityEvent implements Cancella
      */
     @NotNull
     public EnderDragon.Phase getNewPhase() {
-        return this.newPhase;
+        return newPhase;
     }
 
     /**
@@ -66,22 +62,22 @@ public class EnderDragonChangePhaseEvent extends EntityEvent implements Cancella
 
     @Override
     public boolean isCancelled() {
-        return cancelled;
+        return cancel;
     }
 
     @Override
     public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        this.cancel = cancel;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

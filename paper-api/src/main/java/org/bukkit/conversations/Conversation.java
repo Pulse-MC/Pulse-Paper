@@ -193,7 +193,7 @@ public class Conversation {
     }
 
     /**
-     * Returns the current state of the conversation.
+     * Returns Returns the current state of the conversation.
      *
      * @return The current state of the conversation.
      */

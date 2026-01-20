@@ -10,11 +10,6 @@ public class CraftZoglin extends CraftMonster implements Zoglin {
     }
 
     @Override
-    public net.minecraft.world.entity.monster.Zoglin getHandle() {
-        return (net.minecraft.world.entity.monster.Zoglin) this.entity;
-    }
-
-    @Override
     public boolean isBaby() {
         return this.getHandle().isBaby();
     }
@@ -22,6 +17,16 @@ public class CraftZoglin extends CraftMonster implements Zoglin {
     @Override
     public void setBaby(boolean flag) {
         this.getHandle().setBaby(flag);
+    }
+
+    @Override
+    public net.minecraft.world.entity.monster.Zoglin getHandle() {
+        return (net.minecraft.world.entity.monster.Zoglin) this.entity;
+    }
+
+    @Override
+    public String toString() {
+        return "CraftZoglin";
     }
 
     @Override

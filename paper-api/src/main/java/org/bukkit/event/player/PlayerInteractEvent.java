@@ -12,7 +12,6 @@ import org.bukkit.event.block.BlockCanBuildEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,47 +21,42 @@ import org.jetbrains.annotations.Nullable;
  * {@link #getHand()}.
  * <p>
  * This event will fire as cancelled if the vanilla behavior is to do nothing
- * (e.g. interacting with air). For the purpose of avoiding doubt, this means
+ * (e.g interacting with air). For the purpose of avoiding doubt, this means
  * that the event will only be in the cancelled state if it is fired as a result
  * of some prediction made by the server where no subsequent code will run,
  * rather than when the subsequent interaction activity (e.g. placing a block in
- * an illegal position ({@link BlockCanBuildEvent}) will fail).
+ * an illegal position ({@link BlockCanBuildEvent}) will fail.
  */
 public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
-    private final Action action;
-    private final ItemStack item;
-    private final Block blockClicked;
-    private final BlockFace blockFace;
-    private final EquipmentSlot hand;
-    private final Vector clickedPosition;
-    private Result useItemInHand;
+    private static final HandlerList handlers = new HandlerList();
+    protected ItemStack item;
+    protected Action action;
+    protected Block blockClicked;
+    protected BlockFace blockFace;
     private Result useClickedBlock;
+    private Result useItemInHand;
+    private EquipmentSlot hand;
+    private Vector clickedPosistion;
 
-    @ApiStatus.Internal
-    public PlayerInteractEvent(@NotNull final Player player, @NotNull final Action action, @Nullable final ItemStack item, @Nullable final Block clickedBlock, @NotNull final BlockFace clickedFace) {
-        this(player, action, item, clickedBlock, clickedFace, EquipmentSlot.HAND);
+    public PlayerInteractEvent(@NotNull final Player who, @NotNull final Action action, @Nullable final ItemStack item, @Nullable final Block clickedBlock, @NotNull final BlockFace clickedFace) {
+        this(who, action, item, clickedBlock, clickedFace, EquipmentSlot.HAND);
     }
 
-    @ApiStatus.Internal
-    public PlayerInteractEvent(@NotNull final Player player, @NotNull final Action action, @Nullable final ItemStack item, @Nullable final Block clickedBlock, @NotNull final BlockFace clickedFace, @Nullable final EquipmentSlot hand) {
-        this(player, action, item, clickedBlock, clickedFace, hand, null);
+    public PlayerInteractEvent(@NotNull final Player who, @NotNull final Action action, @Nullable final ItemStack item, @Nullable final Block clickedBlock, @NotNull final BlockFace clickedFace, @Nullable final EquipmentSlot hand) {
+        this(who, action, item, clickedBlock, clickedFace, hand, null);
     }
 
-    @ApiStatus.Internal
-    public PlayerInteractEvent(@NotNull final Player player, @NotNull final Action action, @Nullable final ItemStack item, @Nullable final Block clickedBlock, @NotNull final BlockFace clickedFace, @Nullable final EquipmentSlot hand, @Nullable final Vector clickedPosition) {
-        super(player);
+    public PlayerInteractEvent(@NotNull final Player who, @NotNull final Action action, @Nullable final ItemStack item, @Nullable final Block clickedBlock, @NotNull final BlockFace clickedFace, @Nullable final EquipmentSlot hand, @Nullable final Vector clickedPosition) {
+        super(who);
         this.action = action;
         this.item = item;
         this.blockClicked = clickedBlock;
         this.blockFace = clickedFace;
         this.hand = hand;
-        this.clickedPosition = clickedPosition;
+        this.clickedPosistion = clickedPosition;
 
-        this.useItemInHand = Result.DEFAULT;
-        this.useClickedBlock = clickedBlock == null ? Result.DENY : Result.ALLOW;
+        useItemInHand = Result.DEFAULT;
+        useClickedBlock = clickedBlock == null ? Result.DENY : Result.ALLOW;
     }
 
     /**
@@ -72,37 +66,40 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
      */
     @NotNull
     public Action getAction() {
-        return this.action;
+        return action;
     }
 
     /**
-     * Gets the cancellation state of this event. Set to {@code true} if you want to
+     * Gets the cancellation state of this event. Set to true if you want to
      * prevent buckets from placing water and so forth
      *
      * @return boolean cancellation state
      * @deprecated This event has two possible cancellation states, one for
      * {@link #useInteractedBlock()} and one for {@link #useItemInHand()}. It is
-     * possible a call might have the former false, but the latter {@code true}, e.g. in
+     * possible a call might have the former false, but the latter true, eg in
      * the case of using a firework whilst gliding. Callers should check the
      * relevant methods individually.
      */
     @Deprecated(since = "1.14")
     @Override
     public boolean isCancelled() {
-        return this.useInteractedBlock() == Result.DENY;
+        return useInteractedBlock() == Result.DENY;
     }
 
     /**
-     * {@inheritDoc}
+     * Sets the cancellation state of this event. A canceled event will not be
+     * executed in the server, but will still pass to other plugins
      * <p>
      * Canceling this event will prevent use of food (player won't lose the
      * food item), prevent bows/snowballs/eggs from firing, etc. (player won't
      * lose the ammo)
+     *
+     * @param cancel true if you wish to cancel this event
      */
     @Override
     public void setCancelled(boolean cancel) {
-        this.setUseInteractedBlock(cancel ? Result.DENY : this.useInteractedBlock() == Result.DENY ? Result.DEFAULT : this.useInteractedBlock());
-        this.setUseItemInHand(cancel ? Result.DENY : this.useItemInHand() == Result.DENY ? Result.DEFAULT : this.useItemInHand());
+        setUseInteractedBlock(cancel ? Result.DENY : useInteractedBlock() == Result.DENY ? Result.DEFAULT : useInteractedBlock());
+        setUseItemInHand(cancel ? Result.DENY : useItemInHand() == Result.DENY ? Result.DEFAULT : useItemInHand());
     }
 
     /**
@@ -123,17 +120,17 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
      */
     @NotNull
     public Material getMaterial() {
-        if (!this.hasItem()) {
+        if (!hasItem()) {
             return Material.AIR;
         }
 
-        return this.item.getType();
+        return item.getType();
     }
 
     /**
      * Check if this event involved a block
      *
-     * @return boolean {@code true} if it did
+     * @return boolean true if it did
      */
     public boolean hasBlock() {
         return this.blockClicked != null;
@@ -142,7 +139,7 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
     /**
      * Check if this event involved an item
      *
-     * @return boolean {@code true} if it did
+     * @return boolean true if it did
      */
     public boolean hasItem() {
         return this.item != null;
@@ -152,14 +149,14 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
      * Convenience method to inform the user whether this was a block
      * placement event.
      *
-     * @return boolean {@code true} if the item in hand was a block
+     * @return boolean true if the item in hand was a block
      */
     public boolean isBlockInHand() {
-        if (!this.hasItem()) {
+        if (!hasItem()) {
             return false;
         }
 
-        return this.item.getType().isBlock();
+        return item.getType().isBlock();
     }
 
     /**
@@ -169,7 +166,7 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
      */
     @Nullable
     public Block getClickedBlock() {
-        return this.blockClicked;
+        return blockClicked;
     }
 
     /**
@@ -179,49 +176,7 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
      */
     @NotNull
     public BlockFace getBlockFace() {
-        return this.blockFace;
-    }
-
-    /**
-     * The hand used to perform this interaction. May be {@code null} in the case of
-     * {@link Action#PHYSICAL}.
-     *
-     * @return the hand used to interact. May be {@code null}.
-     */
-    @Nullable
-    public EquipmentSlot getHand() {
-        return this.hand;
-    }
-
-    /**
-     * Gets the exact position on the block the player interacted with, this will
-     * be {@code null} outside of {@link Action#RIGHT_CLICK_BLOCK}.
-     * <p>
-     * All vector components are between 0.0 and 1.0 inclusive.
-     *
-     * @deprecated misleading, use {@link #getInteractionPoint()}
-     * @return the clicked position. May be {@code null}.
-     */
-    @Nullable
-    @Deprecated
-    public Vector getClickedPosition() {
-        if (this.clickedPosition == null) {
-            return null;
-        }
-        return this.clickedPosition.clone();
-    }
-
-    /**
-     * The exact point at which the interaction occurred. May be {@code null}.
-     *
-     * @return the exact interaction point. May be {@code null}.
-     */
-    @Nullable
-    public Location getInteractionPoint() {
-        if (this.blockClicked == null || this.clickedPosition == null) {
-            return null;
-        }
-        return this.blockClicked.getLocation().add(this.clickedPosition);
+        return blockFace;
     }
 
     /**
@@ -233,7 +188,7 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
      */
     @NotNull
     public Result useInteractedBlock() {
-        return this.useClickedBlock;
+        return useClickedBlock;
     }
 
     /**
@@ -253,7 +208,7 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
      */
     @NotNull
     public Result useItemInHand() {
-        return this.useItemInHand;
+        return useItemInHand;
     }
 
     /**
@@ -263,14 +218,58 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
         this.useItemInHand = useItemInHand;
     }
 
+    /**
+     * The hand used to perform this interaction. May be null in the case of
+     * {@link Action#PHYSICAL}.
+     *
+     * @return the hand used to interact. May be null.
+     */
+    @Nullable
+    public EquipmentSlot getHand() {
+        return hand;
+    }
+
+    /**
+     * Gets the exact position on the block the player interacted with, this will
+     * be null outside of {@link Action#RIGHT_CLICK_BLOCK}.
+     * <p>
+     * All vector components are between 0.0 and 1.0 inclusive.
+     *
+     * @deprecated misleading, use {@link #getInteractionPoint()}
+     * @return the clicked position. May be null.
+     */
+    @Nullable
+    @Deprecated // Paper
+    public Vector getClickedPosition() {
+        if (this.clickedPosistion == null) {
+            return null;
+        }
+        return clickedPosistion.clone();
+    }
+
+    // Paper start
+    /**
+     * The exact point at which the interaction occurred. May be null.
+     *
+     * @return the exact interaction point. May be null.
+     */
+    @Nullable
+    public Location getInteractionPoint() {
+        if (this.blockClicked == null || this.clickedPosistion == null) {
+            return null;
+        }
+        return this.blockClicked.getLocation().add(this.clickedPosistion);
+    }
+    // Paper end
+
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

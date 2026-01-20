@@ -11,6 +11,7 @@ import org.bukkit.material.MaterialData;
 public final class CraftLegacy {
 
     private CraftLegacy() {
+        //
     }
 
     public static Material fromLegacy(Material material) {

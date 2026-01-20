@@ -4,7 +4,6 @@ package org.bukkit.event.inventory;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.InventoryView;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -20,6 +19,8 @@ import org.jetbrains.annotations.NotNull;
  * <ul>
  * <li>{@link HumanEntity#closeInventory()}
  * <li>{@link HumanEntity#openInventory(org.bukkit.inventory.Inventory)}
+ * <li>{@link HumanEntity#openWorkbench(org.bukkit.Location, boolean)}
+ * <li>{@link HumanEntity#openEnchanting(org.bukkit.Location, boolean)}
  * <li>{@link InventoryView#close()}
  * </ul>
  * To invoke one of these methods, schedule a task using
@@ -28,46 +29,12 @@ import org.jetbrains.annotations.NotNull;
  * other methods could potentially create issues as well.
  */
 public class InventoryCloseEvent extends InventoryEvent {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    // Paper start
     private final Reason reason;
-
-    @ApiStatus.Internal
-    public InventoryCloseEvent(@NotNull InventoryView transaction) {
-        this(transaction, Reason.UNKNOWN);
-    }
-
-    @ApiStatus.Internal
-    public InventoryCloseEvent(@NotNull InventoryView transaction, @NotNull Reason reason) {
-        super(transaction);
-        this.reason = reason;
-    }
-
-    /**
-     * Returns the player involved in this event
-     *
-     * @return Player who is involved in this event
-     */
-    @NotNull
-    public final HumanEntity getPlayer() {
-        return this.transaction.getPlayer();
-    }
-
     @NotNull
     public Reason getReason() {
-        return this.reason;
-    }
-
-    @NotNull
-    @Override
-    public HandlerList getHandlers() {
-        return HANDLER_LIST;
-    }
-
-    @NotNull
-    public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return reason;
     }
 
     public enum Reason {
@@ -107,5 +74,36 @@ public class InventoryCloseEvent extends InventoryEvent {
          * Closed by Bukkit API
          */
         PLUGIN,
+    }
+
+    public InventoryCloseEvent(@NotNull InventoryView transaction) {
+        this(transaction, Reason.UNKNOWN);
+    }
+
+    public InventoryCloseEvent(@NotNull InventoryView transaction, @NotNull Reason reason) {
+        super(transaction);
+        this.reason = reason;
+        // Paper end
+    }
+
+    /**
+     * Returns the player involved in this event
+     *
+     * @return Player who is involved in this event
+     */
+    @NotNull
+    public final HumanEntity getPlayer() {
+        return transaction.getPlayer();
+    }
+
+    @NotNull
+    @Override
+    public HandlerList getHandlers() {
+        return handlers;
+    }
+
+    @NotNull
+    public static HandlerList getHandlerList() {
+        return handlers;
     }
 }

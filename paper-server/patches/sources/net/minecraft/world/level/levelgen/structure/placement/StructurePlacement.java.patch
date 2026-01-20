@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/level/levelgen/structure/placement/StructurePlacement.java
 +++ b/net/minecraft/world/level/levelgen/structure/placement/StructurePlacement.java
-@@ -79,14 +_,31 @@
+@@ -79,14 +_,30 @@
          return this.exclusionZone;
      }
  
@@ -9,8 +9,7 @@
 +        // Paper start - Add missing structure set seed configs
 +        return this.isStructureChunk(structureState, x, z, null);
 +    }
-+
-+    public boolean isStructureChunk(ChunkGeneratorStructureState structureState, int x, int z, @javax.annotation.Nullable net.minecraft.resources.ResourceKey<StructureSet> structureSetKey) {
++    public boolean isStructureChunk(ChunkGeneratorStructureState structureState, int x, int z, @org.jetbrains.annotations.Nullable net.minecraft.resources.ResourceKey<StructureSet> structureSetKey) {
 +        Integer saltOverride = null;
 +        if (structureSetKey != null) {
 +            if (structureSetKey == net.minecraft.world.level.levelgen.structure.BuiltinStructureSets.MINESHAFTS) {
@@ -29,7 +28,7 @@
 -    public boolean applyAdditionalChunkRestrictions(int regionX, int regionZ, long levelSeed) {
 -        return !(this.frequency < 1.0F) || this.frequencyReductionMethod.shouldGenerate(levelSeed, this.salt, regionX, regionZ, this.frequency);
 +    // Paper start - Add missing structure set seed configs
-+    public boolean applyAdditionalChunkRestrictions(int regionX, int regionZ, long levelSeed, @javax.annotation.Nullable Integer saltOverride) {
++    public boolean applyAdditionalChunkRestrictions(int regionX, int regionZ, long levelSeed, @org.jetbrains.annotations.Nullable Integer saltOverride) {
 +        return !(this.frequency < 1.0F) || this.frequencyReductionMethod.shouldGenerate(levelSeed, this.salt, regionX, regionZ, this.frequency, saltOverride);
 +        // Paper end - Add missing structure set seed configs
      }
@@ -76,8 +75,8 @@
  
      @FunctionalInterface
      public interface FrequencyReducer {
--        boolean shouldGenerate(long levelSeed, int salt, int regionX, int regionZ, float probability);
-+        boolean shouldGenerate(long levelSeed, int salt, int regionX, int regionZ, float probability, @org.jetbrains.annotations.Nullable Integer saltOverride); // Paper - Add missing structure set seed configs
+-        boolean shouldGenerate(long levelSeed, int i, int salt, int regionX, float regionZ);
++        boolean shouldGenerate(long levelSeed, int i, int salt, int regionX, float regionZ, @org.jetbrains.annotations.Nullable Integer saltOverride); // Paper - Add missing structure set seed configs
      }
  
      public static enum FrequencyReductionMethod implements StringRepresentable {

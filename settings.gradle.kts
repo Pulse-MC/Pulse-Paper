@@ -1,3 +1,5 @@
+import java.util.Locale
+
 pluginManagement {
     repositories {
         gradlePluginPortal()
@@ -6,7 +8,7 @@ pluginManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
 }
 
 if (!file(".git").exists()) {
@@ -32,12 +34,14 @@ if (!file(".git").exists()) {
 rootProject.name = "Pulse"
 
 for (name in listOf("paper-api", "paper-server")) {
-    include(name)
+    val projName = name.lowercase(Locale.ENGLISH)
+    include(projName)
     file(name).mkdirs()
+    findProject(":$projName")!!.projectDir = file(name)
 }
 
 optionalInclude("test-plugin")
-optionalInclude("paper-generator")
+optionalInclude("paper-api-generator")
 
 fun optionalInclude(name: String, op: (ProjectDescriptor.() -> Unit)? = null) {
     val settingsFile = file("$name.settings.gradle.kts")
@@ -52,29 +56,5 @@ fun optionalInclude(name: String, op: (ProjectDescriptor.() -> Unit)? = null) {
 
             """.trimIndent()
         )
-    }
-}
-
-if (providers.gradleProperty("paperBuildCacheEnabled").orNull.toBoolean()) {
-    val buildCacheUsername = providers.gradleProperty("paperBuildCacheUsername").orElse("").get()
-    val buildCachePassword = providers.gradleProperty("paperBuildCachePassword").orElse("").get()
-    if (buildCacheUsername.isBlank() || buildCachePassword.isBlank()) {
-        println("The Paper remote build cache is enabled, but no credentials were provided. Remote build cache will not be used.")
-    } else {
-        val buildCacheUrl = providers.gradleProperty("paperBuildCacheUrl")
-            .orElse("https://gradle-build-cache.papermc.io/")
-            .get()
-        val buildCachePush = providers.gradleProperty("paperBuildCachePush").orNull?.toBoolean()
-            ?: System.getProperty("CI").toBoolean()
-        buildCache {
-            remote<HttpBuildCache> {
-                url = uri(buildCacheUrl)
-                isPush = buildCachePush
-                credentials {
-                    username = buildCacheUsername
-                    password = buildCachePassword
-                }
-            }
-        }
     }
 }

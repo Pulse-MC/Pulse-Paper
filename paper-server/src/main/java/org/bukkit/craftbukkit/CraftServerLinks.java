@@ -61,6 +61,7 @@ public class CraftServerLinks implements ServerLinks {
         return link;
     }
 
+    // Paper start - Adventure
     @Override
     public ServerLink addLink(net.kyori.adventure.text.Component displayName, URI url) {
         Preconditions.checkArgument(displayName != null, "displayName cannot be null");
@@ -71,6 +72,7 @@ public class CraftServerLinks implements ServerLinks {
 
         return link;
     }
+    // Paper end - Adventure
 
     @Override
     public ServerLink addLink(String displayName, URI url) {
@@ -145,10 +147,12 @@ public class CraftServerLinks implements ServerLinks {
             return CraftChatMessage.fromComponent(this.handle.displayName());
         }
 
+        // Paper start - Adventure
         @Override
         public net.kyori.adventure.text.Component displayName() {
             return io.papermc.paper.adventure.PaperAdventure.asAdventure(this.handle.displayName());
         }
+        // Paper end - Adventure
 
         @Override
         public URI getUrl() {

@@ -1,7 +1,6 @@
 package org.bukkit.configuration.serialization;
 
 import java.util.Map;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -31,12 +30,8 @@ public interface ConfigurationSerializable {
      * This class must provide a method to restore this class, as defined in
      * the {@link ConfigurationSerializable} interface javadocs.
      *
-     * nb: It is not intended for this method to be called directly, this will
-     * be called by the {@link ConfigurationSerialization} class.
-     *
      * @return Map containing the current state of this class
      */
     @NotNull
-    @ApiStatus.OverrideOnly
     public Map<String, Object> serialize();
 }

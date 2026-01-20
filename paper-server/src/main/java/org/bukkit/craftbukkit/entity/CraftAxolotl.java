@@ -12,7 +12,12 @@ public class CraftAxolotl extends CraftAnimals implements Axolotl, io.papermc.pa
 
     @Override
     public net.minecraft.world.entity.animal.axolotl.Axolotl getHandle() {
-        return (net.minecraft.world.entity.animal.axolotl.Axolotl) this.entity;
+        return (net.minecraft.world.entity.animal.axolotl.Axolotl) super.getHandle();
+    }
+
+    @Override
+    public String toString() {
+        return "CraftAxolotl";
     }
 
     @Override
@@ -32,7 +37,7 @@ public class CraftAxolotl extends CraftAnimals implements Axolotl, io.papermc.pa
 
     @Override
     public void setVariant(Variant variant) {
-        Preconditions.checkArgument(variant != null, "variant cannot be null");
+        Preconditions.checkArgument(variant != null, "variant");
 
         this.getHandle().setVariant(net.minecraft.world.entity.animal.axolotl.Axolotl.Variant.byId(variant.ordinal()));
     }

@@ -7,7 +7,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -16,23 +15,30 @@ import org.jetbrains.annotations.NotNull;
  * is disabled as no block interaction will occur.
  */
 public class EntityExplodeEvent extends EntityEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    private boolean cancel;
     private final Location location;
     private final List<Block> blocks;
     private float yield;
     private final ExplosionResult result;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
-    public EntityExplodeEvent(@NotNull final Entity entity, @NotNull final Location location, @NotNull final List<Block> blocks, final float yield, @NotNull final ExplosionResult result) {
-        super(entity);
+    public EntityExplodeEvent(@NotNull final Entity what, @NotNull final Location location, @NotNull final List<Block> blocks, final float yield, @NotNull final ExplosionResult result) {
+        super(what);
         this.location = location;
         this.blocks = blocks;
         this.yield = yield;
+        this.cancel = false;
         this.result = result;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return cancel;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.cancel = cancel;
     }
 
     /**
@@ -42,7 +48,7 @@ public class EntityExplodeEvent extends EntityEvent implements Cancellable {
      */
     @NotNull
     public ExplosionResult getExplosionResult() {
-        return this.result;
+        return result;
     }
 
     /**
@@ -53,7 +59,7 @@ public class EntityExplodeEvent extends EntityEvent implements Cancellable {
      */
     @NotNull
     public List<Block> blockList() {
-        return this.blocks;
+        return blocks;
     }
 
     /**
@@ -66,7 +72,7 @@ public class EntityExplodeEvent extends EntityEvent implements Cancellable {
      */
     @NotNull
     public Location getLocation() {
-        return this.location.clone();
+        return location.clone(); // Paper - clone to avoid changes
     }
 
     /**
@@ -75,7 +81,7 @@ public class EntityExplodeEvent extends EntityEvent implements Cancellable {
      * @return The yield.
      */
     public float getYield() {
-        return this.yield;
+        return yield;
     }
 
     /**
@@ -87,24 +93,14 @@ public class EntityExplodeEvent extends EntityEvent implements Cancellable {
         this.yield = yield;
     }
 
-    @Override
-    public boolean isCancelled() {
-        return this.cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
-    }
-
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

@@ -48,23 +48,18 @@ public interface Crafter extends BlockData {
      * @return the 'orientation' value
      */
     @NotNull
-    org.bukkit.block.Orientation getOrientation();
+    Orientation getOrientation();
 
     /**
      * Sets the value of the 'orientation' property.
      *
      * @param orientation the new 'orientation' value
      */
-    void setOrientation(@NotNull org.bukkit.block.Orientation orientation);
+    void setOrientation(@NotNull Orientation orientation);
 
     /**
      * The directions the Crafter can be oriented.
-     *
-     * @deprecated this property is not specific to the Crafter, use
-     * {@link org.bukkit.block.Orientation} instead. All references
-     * to this enum will be redirected to that enum at runtime.
      */
-    @Deprecated
     public enum Orientation {
 
         DOWN_EAST,

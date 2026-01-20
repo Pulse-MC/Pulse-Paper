@@ -3,41 +3,35 @@ package org.bukkit.event.entity;
 import java.util.List;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Thrown whenever a LivingEntity dies
  */
-public class EntityDeathEvent extends EntityEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+public class EntityDeathEvent extends EntityEvent implements org.bukkit.event.Cancellable { // Paper - make cancellable
+    private static final HandlerList handlers = new HandlerList();
     private final DamageSource damageSource;
     private final List<ItemStack> drops;
     private int dropExp = 0;
-
+    // Paper start - make cancellable
+    private boolean cancelled;
     private double reviveHealth = 0;
     private boolean shouldPlayDeathSound;
     @Nullable private org.bukkit.Sound deathSound;
     @Nullable private org.bukkit.SoundCategory deathSoundCategory;
     private float deathSoundVolume;
     private float deathSoundPitch;
+    // Paper end
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
-    public EntityDeathEvent(@NotNull final LivingEntity livingEntity, @NotNull DamageSource damageSource, @NotNull final List<ItemStack> drops) {
-        this(livingEntity, damageSource, drops, 0);
+    public EntityDeathEvent(@NotNull final LivingEntity entity, @NotNull DamageSource damageSource, @NotNull final List<ItemStack> drops) {
+        this(entity, damageSource, drops, 0);
     }
 
-    @ApiStatus.Internal
-    public EntityDeathEvent(@NotNull final LivingEntity livingEntity, @NotNull DamageSource damageSource, @NotNull final List<ItemStack> drops, final int droppedExp) {
-        super(livingEntity);
+    public EntityDeathEvent(@NotNull final LivingEntity what, @NotNull DamageSource damageSource, @NotNull final List<ItemStack> drops, final int droppedExp) {
+        super(what);
         this.damageSource = damageSource;
         this.drops = drops;
         this.dropExp = droppedExp;
@@ -46,7 +40,7 @@ public class EntityDeathEvent extends EntityEvent implements Cancellable {
     @NotNull
     @Override
     public LivingEntity getEntity() {
-        return (LivingEntity) this.entity;
+        return (LivingEntity) entity;
     }
 
     /**
@@ -56,7 +50,7 @@ public class EntityDeathEvent extends EntityEvent implements Cancellable {
      */
     @NotNull
     public DamageSource getDamageSource() {
-        return this.damageSource;
+        return damageSource;
     }
 
     /**
@@ -68,7 +62,7 @@ public class EntityDeathEvent extends EntityEvent implements Cancellable {
      * @return Amount of EXP to drop.
      */
     public int getDroppedExp() {
-        return this.dropExp;
+        return dropExp;
     }
 
     /**
@@ -90,7 +84,29 @@ public class EntityDeathEvent extends EntityEvent implements Cancellable {
      */
     @NotNull
     public List<ItemStack> getDrops() {
-        return this.drops;
+        return drops;
+    }
+
+    @NotNull
+    @Override
+    public HandlerList getHandlers() {
+        return handlers;
+    }
+
+    @NotNull
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
+
+    // Paper start - make cancellable
+    @Override
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        cancelled = cancel;
     }
 
     /**
@@ -100,7 +116,7 @@ public class EntityDeathEvent extends EntityEvent implements Cancellable {
      * @return The amount of health
      */
     public double getReviveHealth() {
-        return this.reviveHealth;
+        return reviveHealth;
     }
 
     /**
@@ -111,7 +127,7 @@ public class EntityDeathEvent extends EntityEvent implements Cancellable {
      * @throws IllegalArgumentException Thrown if the health is {@literal <= 0 or >} max health
      */
     public void setReviveHealth(double reviveHealth) throws IllegalArgumentException {
-        double maxHealth = ((LivingEntity) this.entity).getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue();
+        double maxHealth = ((LivingEntity) entity).getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue();
         if ((maxHealth != 0 && reviveHealth <= 0) || (reviveHealth > maxHealth)) {
             throw new IllegalArgumentException("Health must be between 0 (exclusive) and " + maxHealth + " (inclusive), but was " + reviveHealth);
         }
@@ -119,16 +135,16 @@ public class EntityDeathEvent extends EntityEvent implements Cancellable {
     }
 
     /**
-     * Whether the death sound should play when the entity dies. If the event is cancelled it does not play!
+     * Whether or not the death sound should play when the entity dies. If the event is cancelled it does not play!
      *
-     * @return Whether the death sound should play. Event is called with this set to {@code false} if the entity is silent.
+     * @return Whether or not the death sound should play. Event is called with this set to false if the entity is silent.
      */
     public boolean shouldPlayDeathSound() {
-        return this.shouldPlayDeathSound;
+        return shouldPlayDeathSound;
     }
 
     /**
-     * Set whether the death sound should play when the entity dies. If the event is cancelled it does not play!
+     * Set whether or not the death sound should play when the entity dies. If the event is cancelled it does not play!
      *
      * @param playDeathSound Enable or disable the death sound
      */
@@ -143,7 +159,7 @@ public class EntityDeathEvent extends EntityEvent implements Cancellable {
      */
     @Nullable
     public org.bukkit.Sound getDeathSound() {
-        return this.deathSound;
+        return deathSound;
     }
 
     /**
@@ -152,7 +168,7 @@ public class EntityDeathEvent extends EntityEvent implements Cancellable {
      * @param sound The sound that the entity should make when dying
      */
     public void setDeathSound(@Nullable org.bukkit.Sound sound) {
-        this.deathSound = sound;
+        deathSound = sound;
     }
 
     /**
@@ -162,7 +178,7 @@ public class EntityDeathEvent extends EntityEvent implements Cancellable {
      */
     @Nullable
     public org.bukkit.SoundCategory getDeathSoundCategory() {
-        return this.deathSoundCategory;
+        return deathSoundCategory;
     }
 
     /**
@@ -180,7 +196,7 @@ public class EntityDeathEvent extends EntityEvent implements Cancellable {
      * @return The volume the death sound will play at
      */
     public float getDeathSoundVolume() {
-        return this.deathSoundVolume;
+        return deathSoundVolume;
     }
 
     /**
@@ -198,7 +214,7 @@ public class EntityDeathEvent extends EntityEvent implements Cancellable {
      * @return The pitch the death sound will play with
      */
     public float getDeathSoundPitch() {
-        return this.deathSoundPitch;
+        return deathSoundPitch;
     }
 
     /**
@@ -209,25 +225,5 @@ public class EntityDeathEvent extends EntityEvent implements Cancellable {
     public void setDeathSoundPitch(float pitch) {
         this.deathSoundPitch = pitch;
     }
-
-    @Override
-    public boolean isCancelled() {
-        return this.cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
-    }
-
-    @NotNull
-    @Override
-    public HandlerList getHandlers() {
-        return HANDLER_LIST;
-    }
-
-    @NotNull
-    public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
-    }
+    // Paper end
 }

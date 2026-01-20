@@ -12,7 +12,7 @@ public class CraftPufferFish extends CraftFish implements PufferFish {
 
     @Override
     public Pufferfish getHandle() {
-        return (Pufferfish) this.entity;
+        return (Pufferfish) super.getHandle();
     }
 
     @Override
@@ -23,5 +23,10 @@ public class CraftPufferFish extends CraftFish implements PufferFish {
     @Override
     public void setPuffState(int state) {
         this.getHandle().setPuffState(state);
+    }
+
+    @Override
+    public String toString() {
+        return "CraftPufferFish";
     }
 }

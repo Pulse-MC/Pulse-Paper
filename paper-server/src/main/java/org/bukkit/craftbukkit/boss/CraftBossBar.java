@@ -48,37 +48,51 @@ public class CraftBossBar implements BossBar {
 
     private void initialize() {
         this.flags = new HashMap<>();
-        this.flags.put(BarFlag.DARKEN_SKY, new FlagContainer(this.handle::shouldDarkenScreen, this.handle::setDarkenScreen));
-        this.flags.put(BarFlag.PLAY_BOSS_MUSIC, new FlagContainer(this.handle::shouldPlayBossMusic, this.handle::setPlayBossMusic));
-        this.flags.put(BarFlag.CREATE_FOG, new FlagContainer(this.handle::shouldCreateWorldFog, this.handle::setCreateWorldFog));
+        this.flags.put(BarFlag.DARKEN_SKY, new FlagContainer(handle::shouldDarkenScreen, handle::setDarkenScreen));
+        this.flags.put(BarFlag.PLAY_BOSS_MUSIC, new FlagContainer(handle::shouldPlayBossMusic, handle::setPlayBossMusic));
+        this.flags.put(BarFlag.CREATE_FOG, new FlagContainer(handle::shouldCreateWorldFog, handle::setCreateWorldFog));
     }
 
     private BarColor convertColor(BossEvent.BossBarColor color) {
-        return BarColor.valueOf(color.name());
+        BarColor bukkitColor = BarColor.valueOf(color.name());
+        return (bukkitColor == null) ? BarColor.WHITE : bukkitColor;
     }
 
     private BossEvent.BossBarColor convertColor(BarColor color) {
-        return BossEvent.BossBarColor.valueOf(color.name());
+        BossEvent.BossBarColor nmsColor = BossEvent.BossBarColor.valueOf(color.name());
+        return (nmsColor == null) ? BossEvent.BossBarColor.WHITE : nmsColor;
     }
 
     private BossEvent.BossBarOverlay convertStyle(BarStyle style) {
-        return switch (style) {
-            case SOLID -> BossEvent.BossBarOverlay.PROGRESS;
-            case SEGMENTED_6 -> BossEvent.BossBarOverlay.NOTCHED_6;
-            case SEGMENTED_10 -> BossEvent.BossBarOverlay.NOTCHED_10;
-            case SEGMENTED_12 -> BossEvent.BossBarOverlay.NOTCHED_12;
-            case SEGMENTED_20 -> BossEvent.BossBarOverlay.NOTCHED_20;
-        };
+        switch (style) {
+            default:
+            case SOLID:
+                return BossEvent.BossBarOverlay.PROGRESS;
+            case SEGMENTED_6:
+                return BossEvent.BossBarOverlay.NOTCHED_6;
+            case SEGMENTED_10:
+                return BossEvent.BossBarOverlay.NOTCHED_10;
+            case SEGMENTED_12:
+                return BossEvent.BossBarOverlay.NOTCHED_12;
+            case SEGMENTED_20:
+                return BossEvent.BossBarOverlay.NOTCHED_20;
+        }
     }
 
     private BarStyle convertStyle(BossEvent.BossBarOverlay style) {
-        return switch (style) {
-            case PROGRESS -> BarStyle.SOLID;
-            case NOTCHED_6 -> BarStyle.SEGMENTED_6;
-            case NOTCHED_10 -> BarStyle.SEGMENTED_10;
-            case NOTCHED_12 -> BarStyle.SEGMENTED_12;
-            case NOTCHED_20 -> BarStyle.SEGMENTED_20;
-        };
+        switch (style) {
+            default:
+            case PROGRESS:
+                return BarStyle.SOLID;
+            case NOTCHED_6:
+                return BarStyle.SEGMENTED_6;
+            case NOTCHED_10:
+                return BarStyle.SEGMENTED_10;
+            case NOTCHED_12:
+                return BarStyle.SEGMENTED_12;
+            case NOTCHED_20:
+                return BarStyle.SEGMENTED_20;
+        }
     }
 
     @Override
@@ -203,8 +217,8 @@ public class CraftBossBar implements BossBar {
 
     private final class FlagContainer {
 
-        private final Supplier<Boolean> get;
-        private final Consumer<Boolean> set;
+        private Supplier<Boolean> get;
+        private Consumer<Boolean> set;
 
         private FlagContainer(Supplier<Boolean> get, Consumer<Boolean> set) {
             this.get = get;

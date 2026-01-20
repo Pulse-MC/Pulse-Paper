@@ -1,12 +1,8 @@
 package org.bukkit;
 
 import com.google.common.base.Preconditions;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Locale;
-import java.util.OptionalInt;
 import java.util.UUID;
-import net.kyori.adventure.key.Key;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents a String based key which consists of two components - a namespace
  * and a key.
- * <p>
+ *
  * Namespaces may only contain lowercase alphanumeric characters, periods,
  * underscores, and hyphens.
  * <p>
@@ -23,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
  * underscores, hyphens, and forward slashes.
  *
  */
-public final class NamespacedKey implements Key, com.destroystokyo.paper.Namespaced {
+public final class NamespacedKey implements net.kyori.adventure.key.Key, com.destroystokyo.paper.Namespaced { // Paper - implement Key and Namespaced
 
     /**
      * The namespace representing all inbuilt keys.
@@ -34,9 +30,47 @@ public final class NamespacedKey implements Key, com.destroystokyo.paper.Namespa
      * compatibility measures.
      */
     public static final String BUKKIT = "bukkit";
-
+    //
     private final String namespace;
     private final String key;
+
+    private static boolean isValidNamespaceChar(char c) {
+        return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '.' || c == '_' || c == '-';
+    }
+
+    private static boolean isValidKeyChar(char c) {
+        return isValidNamespaceChar(c) || c == '/';
+    }
+
+    private static boolean isValidNamespace(String namespace) {
+        int len = namespace.length();
+        if (len == 0) {
+            return false;
+        }
+
+        for (int i = 0; i < len; i++) {
+            if (!isValidNamespaceChar(namespace.charAt(i))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static boolean isValidKey(String key) {
+        int len = key.length();
+        if (len == 0) {
+            return false;
+        }
+
+        for (int i = 0; i < len; i++) {
+            if (!isValidKeyChar(key.charAt(i))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     /**
      * Create a key in a specific namespace.
@@ -72,7 +106,7 @@ public final class NamespacedKey implements Key, com.destroystokyo.paper.Namespa
     public NamespacedKey(@NotNull Plugin plugin, @NotNull String key) {
         Preconditions.checkArgument(plugin != null, "Plugin cannot be null");
         Preconditions.checkArgument(key != null, "Key cannot be null");
-        this.namespace = plugin.namespace();
+        this.namespace = plugin.getName().toLowerCase(Locale.ROOT);
         this.key = key.toLowerCase(Locale.ROOT);
 
         // Check validity after normalization
@@ -81,34 +115,29 @@ public final class NamespacedKey implements Key, com.destroystokyo.paper.Namespa
 
     private void validate() {
         Preconditions.checkArgument(this.namespace.length() + 1 + this.key.length() <= Short.MAX_VALUE, "NamespacedKey must be less than 32768 characters");
-        checkError("[a-z0-9_-.]", "namespace", this.namespace, Key.checkNamespace(this.namespace));
-        checkError("[a-z0-9_-./]", "key", this.key, Key.checkValue(this.key));
-    }
-
-    private static void checkError(String pattern, String name, String value, OptionalInt index) {
-        index.ifPresent(indexValue -> {
-            char character = value.charAt(indexValue);
-            throw new IllegalArgumentException(String.format("Non %s character in %s '%s' at index %d ('%s', bytes: %s)", pattern, name, value, indexValue, character, Arrays.toString(String.valueOf(character).getBytes(StandardCharsets.UTF_8))));
-        });
+        Preconditions.checkArgument(isValidNamespace(this.namespace), "Invalid namespace. Must be [a-z0-9._-]: %s", this.namespace);
+        Preconditions.checkArgument(isValidKey(this.key), "Invalid key. Must be [a-z0-9/._-]: %s", this.key);
     }
 
     @NotNull
-    @Override
+    @Override // Paper
     public String getNamespace() {
-        return this.namespace;
+        return namespace;
     }
 
     @NotNull
-    @Override
+    @Override // Paper
     public String getKey() {
-        return this.key;
+        return key;
     }
 
     @Override
     public int hashCode() {
+        // Paper start
         int result = this.namespace.hashCode();
         result = (31 * result) + this.key.hashCode();
         return result;
+        // Paper end
     }
 
     @Override
@@ -116,14 +145,15 @@ public final class NamespacedKey implements Key, com.destroystokyo.paper.Namespa
         if (obj == null) {
             return false;
         }
-
-        if (!(obj instanceof Key key)) return false;
+        // Paper start
+        if (!(obj instanceof net.kyori.adventure.key.Key key)) return false;
         return this.namespace.equals(key.namespace()) && this.key.equals(key.value());
+        // Paper end
     }
 
     @Override
     public String toString() {
-        return this.namespace + ':' + this.key;
+        return this.namespace + ":" + this.key;
     }
 
     /**
@@ -176,8 +206,10 @@ public final class NamespacedKey implements Key, com.destroystokyo.paper.Namespa
      */
     @Nullable
     public static NamespacedKey fromString(@NotNull String string, @Nullable Plugin defaultNamespace) {
+        // Paper - Return null for empty string, check length
         Preconditions.checkArgument(string != null, "Input string must not be null");
         if (string.isEmpty() || string.length() > Short.MAX_VALUE) return null;
+        // Paper end - Return null for empty string, check length
 
         String[] components = string.split(":", 3);
         if (components.length > 2) {
@@ -187,12 +219,12 @@ public final class NamespacedKey implements Key, com.destroystokyo.paper.Namespa
         String key = (components.length == 2) ? components[1] : "";
         if (components.length == 1) {
             String value = components[0];
-            if (value.isEmpty() || !Key.parseableValue(value)) {
+            if (value.isEmpty() || !isValidKey(value)) {
                 return null;
             }
 
             return (defaultNamespace != null) ? new NamespacedKey(defaultNamespace, value) : minecraft(value);
-        } else if (components.length == 2 && !Key.parseableValue(key)) {
+        } else if (components.length == 2 && !isValidKey(key)) {
             return null;
         }
 
@@ -201,7 +233,7 @@ public final class NamespacedKey implements Key, com.destroystokyo.paper.Namespa
             return (defaultNamespace != null) ? new NamespacedKey(defaultNamespace, key) : minecraft(key);
         }
 
-        if (!Key.parseableNamespace(namespace)) {
+        if (!isValidNamespace(namespace)) {
             return null;
         }
 
@@ -210,7 +242,7 @@ public final class NamespacedKey implements Key, com.destroystokyo.paper.Namespa
 
     /**
      * Get a NamespacedKey from the supplied string.
-     * <p>
+     *
      * The default namespace will be Minecraft's (i.e.
      * {@link #minecraft(String)}).
      *
@@ -223,6 +255,7 @@ public final class NamespacedKey implements Key, com.destroystokyo.paper.Namespa
         return fromString(key, null);
     }
 
+    // Paper start
     @NotNull
     @Override
     public String namespace() {
@@ -238,6 +271,7 @@ public final class NamespacedKey implements Key, com.destroystokyo.paper.Namespa
     @NotNull
     @Override
     public String asString() {
-        return this.toString();
+        return this.namespace + ':' + this.key;
     }
+    // Paper end
 }

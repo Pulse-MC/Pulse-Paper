@@ -1,17 +1,17 @@
 package io.papermc.paper.world.flag;
 
-import io.papermc.paper.util.Holderable;
 import java.util.Set;
 import net.minecraft.world.flag.FeatureElement;
 import org.bukkit.FeatureFlag;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.Unmodifiable;
-import org.jspecify.annotations.NullMarked;
 
-@NullMarked
-public interface PaperFeatureDependent<M extends FeatureElement> extends FeatureDependant, Holderable<M> {
+public interface PaperFeatureDependent extends FeatureDependant {
+
+    <M extends FeatureElement> M getHandle();
 
     @Override
-    default @Unmodifiable Set<FeatureFlag> requiredFeatures() {
+    default @Unmodifiable @NonNull Set<FeatureFlag> requiredFeatures() {
         return PaperFeatureFlagProviderImpl.fromNms(this.getHandle().requiredFeatures());
     }
 }

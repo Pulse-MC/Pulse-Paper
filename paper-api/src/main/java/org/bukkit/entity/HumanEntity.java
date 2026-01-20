@@ -3,8 +3,6 @@ package org.bukkit.entity;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Consumer;
-import io.papermc.paper.datacomponent.item.UseCooldown;
-import net.kyori.adventure.key.Key;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -301,16 +299,16 @@ public interface HumanEntity extends LivingEntity, AnimalTamer, InventoryHolder 
     /**
      * Force-closes the currently open inventory view for this player, if any.
      */
-    default void closeInventory() {
-        this.closeInventory(org.bukkit.event.inventory.InventoryCloseEvent.Reason.PLUGIN);
-    }
+    public void closeInventory();
 
+    // Paper start
     /**
      * Force-closes the currently open inventory view for this player, if any.
      *
      * @param reason why the inventory is closing
      */
-    void closeInventory(org.bukkit.event.inventory.InventoryCloseEvent.Reason reason);
+    public void closeInventory(org.bukkit.event.inventory.InventoryCloseEvent.Reason reason);
+    // Paper end
 
     /**
      * Returns the ItemStack currently in your hand, can be empty.
@@ -370,7 +368,7 @@ public interface HumanEntity extends LivingEntity, AnimalTamer, InventoryHolder 
 
     /**
      * Set a cooldown on the specified material for a certain amount of ticks.
-     * 0 ticks will result in the removal of the cooldown.
+     * ticks. 0 ticks will result in the removal of the cooldown.
      * <p>
      * Cooldowns are used by the server for items such as ender pearls and
      * shields to prevent them from being used repeatedly.
@@ -384,6 +382,7 @@ public interface HumanEntity extends LivingEntity, AnimalTamer, InventoryHolder 
      */
     public void setCooldown(Material material, int ticks);
 
+    // Paper start
     /**
      * Sets player hurt direction
      *
@@ -391,13 +390,16 @@ public interface HumanEntity extends LivingEntity, AnimalTamer, InventoryHolder 
      */
     @Override
     void setHurtDirection(float hurtDirection);
+    // Paper end
 
+    // Paper start
     /**
      * If the player has slept enough to count towards passing the night.
      *
      * @return true if the player has slept enough
      */
     public boolean isDeeplySleeping();
+    // Paper end
 
     /**
      * Check whether a cooldown is active on the specified item.
@@ -417,7 +419,7 @@ public interface HumanEntity extends LivingEntity, AnimalTamer, InventoryHolder 
 
     /**
      * Set a cooldown on the specified item for a certain amount of ticks.
-     * 0 ticks will result in the removal of the cooldown.
+     * ticks. 0 ticks will result in the removal of the cooldown.
      * <p>
      * Cooldowns are used by the server for items such as ender pearls and
      * shields to prevent them from being used repeatedly.
@@ -431,31 +433,6 @@ public interface HumanEntity extends LivingEntity, AnimalTamer, InventoryHolder 
     public void setCooldown(ItemStack item, int ticks);
 
     /**
-     * Get the cooldown time in ticks remaining for the specified cooldown group.
-     *
-     * @param key the cooldown group to check
-     * @return the remaining cooldown time in ticks
-     * @see UseCooldown#cooldownGroup()
-     */
-    public int getCooldown(Key key);
-
-    /**
-     * Set a cooldown on items with the specified cooldown group for a certain amount of ticks.
-     * 0 ticks will result in the removal of the cooldown.
-     * <p>
-     * Cooldowns are used by the server for items such as ender pearls and
-     * shields to prevent them from being used repeatedly.
-     * <p>
-     * Note that cooldowns will not by themselves stop an item from being used
-     * for attacking.
-     *
-     * @param key cooldown group to set the cooldown for
-     * @param ticks the amount of ticks to set or 0 to remove
-     * @see UseCooldown#cooldownGroup()
-     */
-    public void setCooldown(Key key, int ticks);
-
-    /**
      * Get the sleep ticks of the player. This value may be capped.
      *
      * @return slumber ticks
@@ -463,15 +440,16 @@ public interface HumanEntity extends LivingEntity, AnimalTamer, InventoryHolder 
     public int getSleepTicks();
 
 
+    // Paper start - Potential bed api
     /**
      * Gets the Location of the player's bed, null if they have not slept
      * in one. This method will not attempt to validate if the current bed
      * is still valid.
      *
      * @return Bed Location if has slept in one, otherwise null.
+     * @see #getPotentialRespawnLocation()
      * @deprecated Misleading name. This method also returns the location of
-     * respawn anchors, use {@link Player#getRespawnLocation(boolean)} with
-     * loadLocationAndValidate = false instead
+     * respawn anchors.
      */
     @Nullable
     @Deprecated(since = "1.21.4")
@@ -485,17 +463,17 @@ public interface HumanEntity extends LivingEntity, AnimalTamer, InventoryHolder 
      * to validate if the current respawn location is still valid.
      *
      * @return respawn location if exists, otherwise null.
-     * @deprecated this method doesn't take the respawn angle into account, use
-     * {@link Player#getRespawnLocation(boolean)} with loadLocationAndValidate = false instead
      */
-    @Deprecated(since = "1.21.5")
-    @Nullable Location getPotentialRespawnLocation();
-
+    @Nullable
+    Location getPotentialRespawnLocation();
+    // Paper end
+    // Paper start
     /**
      * @return the player's fishing hook if they are fishing
      */
     @Nullable
     FishHook getFishHook();
+    // Paper end
 
     /**
      * Attempts to make the entity sleep at the given location.

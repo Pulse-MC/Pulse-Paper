@@ -13,7 +13,12 @@ public class CraftCamel extends CraftAbstractHorse implements Camel {
 
     @Override
     public net.minecraft.world.entity.animal.camel.Camel getHandle() {
-        return (net.minecraft.world.entity.animal.camel.Camel) this.entity;
+        return (net.minecraft.world.entity.animal.camel.Camel) super.getHandle();
+    }
+
+    @Override
+    public String toString() {
+        return "CraftCamel";
     }
 
     @Override

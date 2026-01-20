@@ -11,11 +11,6 @@ public class CraftSkeleton extends CraftAbstractSkeleton implements Skeleton {
     }
 
     @Override
-    public net.minecraft.world.entity.monster.Skeleton getHandle() {
-        return (net.minecraft.world.entity.monster.Skeleton) this.entity;
-    }
-
-    @Override
     public boolean isConverting() {
         return this.getHandle().isFreezeConverting();
     }
@@ -37,12 +32,24 @@ public class CraftSkeleton extends CraftAbstractSkeleton implements Skeleton {
     }
 
     @Override
+    public net.minecraft.world.entity.monster.Skeleton getHandle() {
+        return (net.minecraft.world.entity.monster.Skeleton) this.entity;
+    }
+
+    @Override
+    public String toString() {
+        return "CraftSkeleton";
+    }
+
+    @Override
     public SkeletonType getSkeletonType() {
        return SkeletonType.NORMAL;
     }
 
+    // Paper start
     @Override
     public int inPowderedSnowTime() {
-        return this.getHandle().inPowderSnowTime;
+        return getHandle().inPowderSnowTime;
     }
+    // Paper end
 }

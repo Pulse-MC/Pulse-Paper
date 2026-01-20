@@ -17,9 +17,20 @@ public record PaperDyedItemColor(
         return Color.fromRGB(this.impl.rgb() & 0x00FFFFFF); // skip alpha channel
     }
 
+    @Override
+    public boolean showInTooltip() {
+        return this.impl.showInTooltip();
+    }
+
+    @Override
+    public DyedItemColor showInTooltip(final boolean showInTooltip) {
+        return new PaperDyedItemColor(this.impl.withTooltip(showInTooltip));
+    }
+
     static final class BuilderImpl implements DyedItemColor.Builder {
 
         private Color color = Color.WHITE;
+        private boolean showInToolTip = true;
 
         @Override
         public DyedItemColor.Builder color(final Color color) {
@@ -28,10 +39,14 @@ public record PaperDyedItemColor(
         }
 
         @Override
+        public DyedItemColor.Builder showInTooltip(final boolean showInTooltip) {
+            this.showInToolTip = showInTooltip;
+            return this;
+        }
+
+        @Override
         public DyedItemColor build() {
-            return new PaperDyedItemColor(new net.minecraft.world.item.component.DyedItemColor(
-                this.color.asRGB())
-            );
+            return new PaperDyedItemColor(new net.minecraft.world.item.component.DyedItemColor(this.color.asRGB(), this.showInToolTip));
         }
     }
 }

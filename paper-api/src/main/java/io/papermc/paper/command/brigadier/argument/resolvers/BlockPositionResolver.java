@@ -10,6 +10,7 @@ import org.jetbrains.annotations.ApiStatus;
  *
  * @see io.papermc.paper.command.brigadier.argument.ArgumentTypes#blockPosition()
  */
+@ApiStatus.Experimental
 @ApiStatus.NonExtendable
 public interface BlockPositionResolver extends ArgumentResolver<BlockPosition> {
 }

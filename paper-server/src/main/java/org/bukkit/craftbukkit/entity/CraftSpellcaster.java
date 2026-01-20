@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import net.minecraft.world.entity.monster.SpellcasterIllager;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.entity.Spellcaster;
+import org.bukkit.entity.Spellcaster.Spell;
 
 public class CraftSpellcaster extends CraftIllager implements Spellcaster {
 
@@ -13,7 +14,12 @@ public class CraftSpellcaster extends CraftIllager implements Spellcaster {
 
     @Override
     public SpellcasterIllager getHandle() {
-        return (SpellcasterIllager) this.entity;
+        return (SpellcasterIllager) super.getHandle();
+    }
+
+    @Override
+    public String toString() {
+        return "CraftSpellcaster";
     }
 
     @Override

@@ -1,6 +1,7 @@
 package org.bukkit.craftbukkit.block;
 
 import com.google.common.base.Preconditions;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.BellBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BellBlockEntity;
@@ -14,8 +15,8 @@ import org.bukkit.entity.Entity;
 
 public class CraftBell extends CraftBlockEntityState<BellBlockEntity> implements Bell {
 
-    public CraftBell(World world, BellBlockEntity blockEntity) {
-        super(world, blockEntity);
+    public CraftBell(World world, BellBlockEntity tileEntity) {
+        super(world, tileEntity);
     }
 
     protected CraftBell(CraftBell state, Location location) {
@@ -26,13 +27,30 @@ public class CraftBell extends CraftBlockEntityState<BellBlockEntity> implements
     public boolean ring(Entity entity, BlockFace direction) {
         Preconditions.checkArgument(direction == null || direction.isCartesian(), "direction must be cartesian, given %s", direction);
 
-        BlockEntity blockEntity = this.getBlockEntityFromWorld();
-        if (blockEntity == null) {
+        BlockEntity tileEntity = this.getTileEntityFromWorld();
+        if (tileEntity == null) {
             return false;
         }
 
         net.minecraft.world.entity.Entity nmsEntity = (entity != null) ? ((CraftEntity) entity).getHandle() : null;
-        return ((BellBlock) Blocks.BELL).attemptToRing(nmsEntity, this.world.getHandle(), this.getPosition(), CraftBlock.blockFaceToNotch(direction));
+        Direction enumDirection = CraftBlock.blockFaceToNotch(direction);
+
+        return ((BellBlock) Blocks.BELL).attemptToRing(nmsEntity, this.world.getHandle(), this.getPosition(), enumDirection);
+    }
+
+    @Override
+    public boolean ring(Entity entity) {
+        return this.ring(entity, null);
+    }
+
+    @Override
+    public boolean ring(BlockFace direction) {
+        return this.ring(null, direction);
+    }
+
+    @Override
+    public boolean ring() {
+        return this.ring(null, null);
     }
 
     @Override

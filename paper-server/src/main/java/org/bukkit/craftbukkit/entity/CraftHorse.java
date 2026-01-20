@@ -1,7 +1,6 @@
 package org.bukkit.craftbukkit.entity;
 
 import com.google.common.base.Preconditions;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.animal.horse.Markings;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.inventory.CraftInventoryHorse;
@@ -16,7 +15,7 @@ public class CraftHorse extends CraftAbstractHorse implements Horse {
 
     @Override
     public net.minecraft.world.entity.animal.horse.Horse getHandle() {
-        return (net.minecraft.world.entity.animal.horse.Horse) this.entity;
+        return (net.minecraft.world.entity.animal.horse.Horse) super.getHandle();
     }
 
     @Override
@@ -58,9 +57,11 @@ public class CraftHorse extends CraftAbstractHorse implements Horse {
 
     @Override
     public HorseInventory getInventory() {
-        return new CraftInventoryHorse(this.getHandle().inventory,
-            this.getHandle().createEquipmentSlotContainer(EquipmentSlot.BODY),
-            this.getHandle().createEquipmentSlotContainer(EquipmentSlot.SADDLE)
-        );
+        return new CraftInventoryHorse(this.getHandle().inventory, this.getHandle().getBodyArmorAccess());
+    }
+
+    @Override
+    public String toString() {
+        return "CraftHorse{variant=" + this.getVariant() + ", owner=" + this.getOwner() + '}';
     }
 }

@@ -22,8 +22,8 @@ import org.jspecify.annotations.NullMarked;
         "unused",
         "SpellCheckingInspection"
 })
+@GeneratedFrom("1.21.4")
 @NullMarked
-@GeneratedFrom("1.21.8")
 public final class BlockTypeKeys {
     /**
      * {@code minecraft:acacia_button}
@@ -1062,25 +1062,11 @@ public final class BlockTypeKeys {
     public static final TypedKey<BlockType> BUDDING_AMETHYST = create(key("budding_amethyst"));
 
     /**
-     * {@code minecraft:bush}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<BlockType> BUSH = create(key("bush"));
-
-    /**
      * {@code minecraft:cactus}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<BlockType> CACTUS = create(key("cactus"));
-
-    /**
-     * {@code minecraft:cactus_flower}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<BlockType> CACTUS_FLOWER = create(key("cactus_flower"));
 
     /**
      * {@code minecraft:cake}
@@ -2476,13 +2462,6 @@ public final class BlockTypeKeys {
     public static final TypedKey<BlockType> DRAGON_WALL_HEAD = create(key("dragon_wall_head"));
 
     /**
-     * {@code minecraft:dried_ghast}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<BlockType> DRIED_GHAST = create(key("dried_ghast"));
-
-    /**
      * {@code minecraft:dried_kelp_block}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -2705,13 +2684,6 @@ public final class BlockTypeKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<BlockType> FIRE_CORAL_WALL_FAN = create(key("fire_coral_wall_fan"));
-
-    /**
-     * {@code minecraft:firefly_bush}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<BlockType> FIREFLY_BUSH = create(key("firefly_bush"));
 
     /**
      * {@code minecraft:fletching_table}
@@ -3433,13 +3405,6 @@ public final class BlockTypeKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<BlockType> LAVA_CAULDRON = create(key("lava_cauldron"));
-
-    /**
-     * {@code minecraft:leaf_litter}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<BlockType> LEAF_LITTER = create(key("leaf_litter"));
 
     /**
      * {@code minecraft:lectern}
@@ -6116,13 +6081,6 @@ public final class BlockTypeKeys {
     public static final TypedKey<BlockType> SEAGRASS = create(key("seagrass"));
 
     /**
-     * {@code minecraft:short_dry_grass}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<BlockType> SHORT_DRY_GRASS = create(key("short_dry_grass"));
-
-    /**
      * {@code minecraft:short_grass}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -6774,13 +6732,6 @@ public final class BlockTypeKeys {
     public static final TypedKey<BlockType> SWEET_BERRY_BUSH = create(key("sweet_berry_bush"));
 
     /**
-     * {@code minecraft:tall_dry_grass}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<BlockType> TALL_DRY_GRASS = create(key("tall_dry_grass"));
-
-    /**
      * {@code minecraft:tall_grass}
      *
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
@@ -6807,20 +6758,6 @@ public final class BlockTypeKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<BlockType> TERRACOTTA = create(key("terracotta"));
-
-    /**
-     * {@code minecraft:test_block}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<BlockType> TEST_BLOCK = create(key("test_block"));
-
-    /**
-     * {@code minecraft:test_instance_block}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<BlockType> TEST_INSTANCE_BLOCK = create(key("test_instance_block"));
 
     /**
      * {@code minecraft:tinted_glass}
@@ -7619,13 +7556,6 @@ public final class BlockTypeKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<BlockType> WHITE_WOOL = create(key("white_wool"));
-
-    /**
-     * {@code minecraft:wildflowers}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<BlockType> WILDFLOWERS = create(key("wildflowers"));
 
     /**
      * {@code minecraft:wither_rose}

@@ -24,8 +24,8 @@ public class CraftSign<T extends SignBlockEntity> extends CraftBlockEntityState<
     private final CraftSignSide front;
     private final CraftSignSide back;
 
-    public CraftSign(World world, T blockEntity) {
-        super(world, blockEntity);
+    public CraftSign(World world, T tileEntity) {
+        super(world, tileEntity);
         this.front = new CraftSignSide(this.getSnapshot().getFrontText());
         this.back = new CraftSignSide(this.getSnapshot().getBackText());
     }
@@ -129,8 +129,8 @@ public class CraftSign<T extends SignBlockEntity> extends CraftBlockEntityState<
     public Player getAllowedEditor() {
         this.ensureNoWorldGeneration();
 
-        // getPlayerWhoMayEdit is always null for the snapshot, so we use the wrapped BlockEntity
-        UUID id = this.getBlockEntity().getPlayerWhoMayEdit();
+        // getPlayerWhoMayEdit is always null for the snapshot, so we use the wrapped TileEntity
+        UUID id = this.getTileEntity().getPlayerWhoMayEdit();
         return (id == null) ? null : Bukkit.getPlayer(id);
     }
 
@@ -145,11 +145,11 @@ public class CraftSign<T extends SignBlockEntity> extends CraftBlockEntityState<
     }
 
     @Override
-    public void applyTo(T blockEntity) {
+    public void applyTo(T sign) {
         this.getSnapshot().setText(this.front.applyLegacyStringToSignSide(), true);
         this.getSnapshot().setText(this.back.applyLegacyStringToSignSide(), false);
 
-        super.applyTo(blockEntity);
+        super.applyTo(sign);
     }
 
     @Override
@@ -178,10 +178,10 @@ public class CraftSign<T extends SignBlockEntity> extends CraftBlockEntityState<
         }
         } // Paper - Add PlayerOpenSignEvent
 
-        SignBlockEntity blockEntity = ((CraftSign<?>) sign).getBlockEntity();
-        blockEntity.setAllowedPlayerEditor(player.getUniqueId());
+        SignBlockEntity handle = ((CraftSign<?>) sign).getTileEntity();
+        handle.setAllowedPlayerEditor(player.getUniqueId());
 
-        ((CraftPlayer) player).getHandle().openTextEdit(blockEntity, Side.FRONT == side);
+        ((CraftPlayer) player).getHandle().openTextEdit(handle, Side.FRONT == side);
     }
 
     // Paper start
@@ -202,13 +202,13 @@ public class CraftSign<T extends SignBlockEntity> extends CraftBlockEntityState<
     @Override
     public java.util.UUID getAllowedEditorUniqueId() {
         this.ensureNoWorldGeneration();
-        return this.getBlockEntity().getPlayerWhoMayEdit();
+        return this.getTileEntity().getPlayerWhoMayEdit();
     }
 
     @Override
     public void setAllowedEditorUniqueId(java.util.UUID uuid) {
         this.ensureNoWorldGeneration();
-        this.getBlockEntity().setAllowedPlayerEditor(uuid);
+        this.getTileEntity().setAllowedPlayerEditor(uuid);
     }
 
     @Override

@@ -22,8 +22,8 @@ import org.jspecify.annotations.NullMarked;
         "unused",
         "SpellCheckingInspection"
 })
+@GeneratedFrom("1.21.4")
 @NullMarked
-@GeneratedFrom("1.21.8")
 public final class AttributeKeys {
     /**
      * {@code minecraft:armor}
@@ -80,13 +80,6 @@ public final class AttributeKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<Attribute> BURNING_TIME = create(key("burning_time"));
-
-    /**
-     * {@code minecraft:camera_distance}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Attribute> CAMERA_DISTANCE = create(key("camera_distance"));
 
     /**
      * {@code minecraft:entity_interaction_range}
@@ -255,20 +248,6 @@ public final class AttributeKeys {
      * @apiNote This field is version-dependant and may be removed in future Minecraft versions
      */
     public static final TypedKey<Attribute> WATER_MOVEMENT_EFFICIENCY = create(key("water_movement_efficiency"));
-
-    /**
-     * {@code minecraft:waypoint_receive_range}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Attribute> WAYPOINT_RECEIVE_RANGE = create(key("waypoint_receive_range"));
-
-    /**
-     * {@code minecraft:waypoint_transmit_range}
-     *
-     * @apiNote This field is version-dependant and may be removed in future Minecraft versions
-     */
-    public static final TypedKey<Attribute> WAYPOINT_TRANSMIT_RANGE = create(key("waypoint_transmit_range"));
 
     private AttributeKeys() {
     }

@@ -15,29 +15,40 @@ import org.jetbrains.annotations.Nullable;
  * Called when a LivingEntity shoots a bow firing an arrow
  */
 public class EntityShootBowEvent extends EntityEvent implements Cancellable {
-
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
     private final ItemStack bow;
     private final ItemStack consumable;
     private Entity projectile;
     private final EquipmentSlot hand;
     private final float force;
     private boolean consumeItem;
-
     private boolean cancelled;
+    // Paper start
+    @Deprecated
+    public void setConsumeArrow(boolean consumeArrow) {
+        this.setConsumeItem(consumeArrow);
+    }
 
-    @ApiStatus.Internal
+    @Deprecated
+    public boolean getConsumeArrow() {
+        return this.shouldConsumeItem();
+    }
+
+    @Nullable @Deprecated
+    public ItemStack getArrowItem() {
+        return this.getConsumable();
+    }
+
     @Deprecated(forRemoval = true)
     public EntityShootBowEvent(@NotNull final LivingEntity shooter, @Nullable final ItemStack bow, @NotNull final Entity projectile, final float force) {
         this(shooter, bow, new ItemStack(org.bukkit.Material.AIR), projectile, force);
     }
 
-    @ApiStatus.Internal
     @Deprecated(forRemoval = true)
     public EntityShootBowEvent(@NotNull final LivingEntity shooter, @Nullable final ItemStack bow, @NotNull ItemStack arrowItem, @NotNull final Entity projectile, final float force) {
         this(shooter, bow, arrowItem, projectile, EquipmentSlot.HAND, force, true);
     }
+    // Paper end
 
     @ApiStatus.Internal
     public EntityShootBowEvent(@NotNull final LivingEntity shooter, @Nullable final ItemStack bow, @Nullable final ItemStack consumable, @NotNull final Entity projectile, @NotNull final EquipmentSlot hand, final float force, final boolean consumeItem) {
@@ -53,7 +64,7 @@ public class EntityShootBowEvent extends EntityEvent implements Cancellable {
     @NotNull
     @Override
     public LivingEntity getEntity() {
-        return (LivingEntity) this.entity;
+        return (LivingEntity) entity;
     }
 
     /**
@@ -63,12 +74,12 @@ public class EntityShootBowEvent extends EntityEvent implements Cancellable {
      */
     @Nullable
     public ItemStack getBow() {
-        return this.bow;
+        return bow;
     }
 
     /**
      * Get the ItemStack to be consumed in this event (if any).
-     * <br>
+     *
      * For instance, bows will consume an arrow ItemStack in a player's
      * inventory.
      *
@@ -76,7 +87,7 @@ public class EntityShootBowEvent extends EntityEvent implements Cancellable {
      */
     @Nullable
     public ItemStack getConsumable() {
-        return this.consumable;
+        return consumable;
     }
 
     /**
@@ -86,7 +97,7 @@ public class EntityShootBowEvent extends EntityEvent implements Cancellable {
      */
     @NotNull
     public Entity getProjectile() {
-        return this.projectile;
+        return projectile;
     }
 
     /**
@@ -105,7 +116,7 @@ public class EntityShootBowEvent extends EntityEvent implements Cancellable {
      */
     @NotNull
     public EquipmentSlot getHand() {
-        return this.hand;
+        return hand;
     }
 
     /**
@@ -114,13 +125,13 @@ public class EntityShootBowEvent extends EntityEvent implements Cancellable {
      * @return bow shooting force, up to 1.0
      */
     public float getForce() {
-        return this.force;
+        return force;
     }
 
     /**
-     * Set whether the consumable item should be consumed in this event.
-     * <p>
-     * If set to {@code false}, it is recommended that a call to
+     * Set whether or not the consumable item should be consumed in this event.
+     *
+     * If set to false, it is recommended that a call to
      * {@link Player#updateInventory()} is made as the client may disagree with
      * the server's decision to not consume a consumable item.
      * <p>
@@ -128,7 +139,7 @@ public class EntityShootBowEvent extends EntityEvent implements Cancellable {
      * (skeletons, pillagers, etc.) or with crossbows (as no item is being
      * consumed).
      *
-     * @param consumeItem whether to consume the item
+     * @param consumeItem whether or not to consume the item
      * @deprecated not currently functional
      */
     @Deprecated(since = "1.20.5")
@@ -137,47 +148,32 @@ public class EntityShootBowEvent extends EntityEvent implements Cancellable {
     }
 
     /**
-     * Get whether the consumable item should be consumed in this event.
+     * Get whether or not the consumable item should be consumed in this event.
      *
-     * @return {@code true} if consumed, {@code false} otherwise
+     * @return true if consumed, false otherwise
      */
     public boolean shouldConsumeItem() {
-        return this.consumeItem;
-    }
-
-    @Nullable @Deprecated
-    public ItemStack getArrowItem() {
-        return this.getConsumable();
-    }
-
-    @Deprecated
-    public void setConsumeArrow(boolean consumeArrow) {
-        this.setConsumeItem(consumeArrow);
-    }
-
-    @Deprecated
-    public boolean getConsumeArrow() {
-        return this.shouldConsumeItem();
+        return consumeItem;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
     public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        cancelled = cancel;
     }
 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

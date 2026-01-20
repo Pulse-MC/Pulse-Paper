@@ -7,10 +7,11 @@ import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.tag.TagKey;
 import net.kyori.adventure.key.Key;
 import org.bukkit.MusicInstrument;
+import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * Vanilla tag keys for {@link RegistryKey#INSTRUMENT}.
+ * Vanilla keys for {@link RegistryKey#INSTRUMENT}.
  *
  * @apiNote The fields provided here are a direct representation of
  * what is available from the vanilla game source. They may be
@@ -22,8 +23,9 @@ import org.jspecify.annotations.NullMarked;
         "unused",
         "SpellCheckingInspection"
 })
+@GeneratedFrom("1.21.4")
 @NullMarked
-@GeneratedFrom("1.21.8")
+@ApiStatus.Experimental
 public final class InstrumentTagKeys {
     /**
      * {@code #minecraft:goat_horns}
@@ -55,6 +57,7 @@ public final class InstrumentTagKeys {
      * @param key the tag key's key
      * @return a new tag key
      */
+    @ApiStatus.Experimental
     public static TagKey<MusicInstrument> create(final Key key) {
         return TagKey.create(RegistryKey.INSTRUMENT, key);
     }

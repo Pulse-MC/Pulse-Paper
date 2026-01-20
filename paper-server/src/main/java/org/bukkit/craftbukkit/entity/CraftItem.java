@@ -1,9 +1,6 @@
 package org.bukkit.craftbukkit.entity;
 
-import com.google.common.base.Preconditions;
 import java.util.UUID;
-import net.minecraft.Optionull;
-import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.item.ItemEntity;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
@@ -12,8 +9,10 @@ import org.bukkit.inventory.ItemStack;
 
 public class CraftItem extends CraftEntity implements Item {
 
-    private final static int NO_AGE_TIME = Short.MIN_VALUE; // ItemEntity#INFINITE_LIFETIME
-    private final static int NO_PICKUP_TIME = Short.MAX_VALUE; // ItemEntity#INFINITE_PICKUP_DELAY
+    // Paper start
+    private final static int NO_AGE_TIME = Short.MIN_VALUE;
+    private final static int NO_PICKUP_TIME = Short.MAX_VALUE;
+    // Paper end
 
     public CraftItem(CraftServer server, ItemEntity entity) {
         super(server, entity);
@@ -69,6 +68,7 @@ public class CraftItem extends CraftEntity implements Item {
         }
     }
 
+    // Paper start
     @Override
     public boolean canMobPickup() {
         return this.getHandle().canMobPickup;
@@ -107,7 +107,7 @@ public class CraftItem extends CraftEntity implements Item {
 
      @Override
      public void setFrictionState(@org.jetbrains.annotations.NotNull net.kyori.adventure.util.TriState state) {
-         Preconditions.checkArgument(state != null, "state may not be null");
+         java.util.Objects.requireNonNull(state, "state may not be null");
          this.getHandle().frictionState = state;
      }
 
@@ -125,6 +125,7 @@ public class CraftItem extends CraftEntity implements Item {
             this.getHandle().health = health;
         }
     }
+    // Paper end
 
     @Override
     public void setOwner(UUID uuid) {
@@ -138,11 +139,16 @@ public class CraftItem extends CraftEntity implements Item {
 
     @Override
     public void setThrower(UUID uuid) {
-        this.getHandle().thrower = uuid == null ? null : new EntityReference<>(uuid);
+        this.getHandle().thrower = uuid;
     }
 
     @Override
     public UUID getThrower() {
-        return Optionull.map(this.getHandle().thrower, EntityReference::getUUID);
+        return this.getHandle().thrower;
+    }
+
+    @Override
+    public String toString() {
+        return "CraftItem";
     }
 }

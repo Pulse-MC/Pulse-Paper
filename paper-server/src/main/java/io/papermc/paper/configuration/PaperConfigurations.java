@@ -5,25 +5,21 @@ import com.google.common.collect.Table;
 import com.mojang.logging.LogUtils;
 import io.leangen.geantyref.TypeToken;
 import io.papermc.paper.configuration.legacy.RequiresSpigotInitialization;
-import io.papermc.paper.configuration.mapping.Definition;
-import io.papermc.paper.configuration.mapping.FieldProcessor;
 import io.papermc.paper.configuration.mapping.InnerClassFieldDiscoverer;
-import io.papermc.paper.configuration.mapping.MergeMap;
 import io.papermc.paper.configuration.serializer.ComponentSerializer;
 import io.papermc.paper.configuration.serializer.EnumValueSerializer;
 import io.papermc.paper.configuration.serializer.NbtPathSerializer;
-import io.papermc.paper.configuration.serializer.ServerboundPacketClassSerializer;
+import io.papermc.paper.configuration.serializer.PacketClassSerializer;
 import io.papermc.paper.configuration.serializer.ResourceLocationSerializer;
 import io.papermc.paper.configuration.serializer.StringRepresentableSerializer;
-import io.papermc.paper.configuration.serializer.collection.TableSerializer;
-import io.papermc.paper.configuration.serializer.collection.map.FastutilMapSerializer;
-import io.papermc.paper.configuration.serializer.collection.map.MapSerializer;
+import io.papermc.paper.configuration.serializer.collections.FastutilMapSerializer;
+import io.papermc.paper.configuration.serializer.collections.MapSerializer;
+import io.papermc.paper.configuration.serializer.collections.TableSerializer;
 import io.papermc.paper.configuration.serializer.registry.RegistryHolderSerializer;
 import io.papermc.paper.configuration.serializer.registry.RegistryValueSerializer;
 import io.papermc.paper.configuration.transformation.Transformations;
 import io.papermc.paper.configuration.transformation.global.LegacyPaperConfig;
 import io.papermc.paper.configuration.transformation.global.versioned.V29_LogIPs;
-import io.papermc.paper.configuration.transformation.global.versioned.V30_PacketIds;
 import io.papermc.paper.configuration.transformation.world.FeatureSeedsGeneration;
 import io.papermc.paper.configuration.transformation.world.LegacyPaperWorldConfig;
 import io.papermc.paper.configuration.transformation.world.versioned.V29_ZeroWorldHeight;
@@ -45,12 +41,10 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import java.io.File;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -107,7 +101,6 @@ public class PaperConfigurations extends Configurations<GlobalConfiguration, Wor
             The world configuration options have been moved inside
             their respective world folder. The files are named %s
 
-            File Reference: https://docs.papermc.io/paper/reference/global-configuration/
             Docs: https://docs.papermc.io/
             Discord: https://discord.gg/papermc
             Website: https://papermc.io/""", WORLD_CONFIG_FILE_NAME);
@@ -123,7 +116,6 @@ public class PaperConfigurations extends Configurations<GlobalConfiguration, Wor
             Configuration options here apply to all worlds, unless you specify overrides inside
             the world-specific config file inside each world folder.
 
-            File Reference: https://docs.papermc.io/paper/reference/world-configuration/
             Docs: https://docs.papermc.io/
             Discord: https://discord.gg/papermc
             Website: https://papermc.io/""";
@@ -131,8 +123,6 @@ public class PaperConfigurations extends Configurations<GlobalConfiguration, Wor
     private static final Function<ContextMap, String> WORLD_HEADER = map -> String.format("""
         This is a world configuration file for Paper.
         This file may start empty but can be filled with settings to override ones in the %s/%s
-        
-        For more information, see https://docs.papermc.io/paper/reference/configuration/#per-world-configuration
         
         World: %s (%s)""",
         PaperConfigurations.CONFIG_DIR,
@@ -202,7 +192,7 @@ public class PaperConfigurations extends Configurations<GlobalConfiguration, Wor
     }
 
     private static ObjectMapper.Factory.Builder defaultGlobalFactoryBuilder(ObjectMapper.Factory.Builder builder) {
-        return builder.addDiscoverer(InnerClassFieldDiscoverer.globalConfig(defaultFieldProcessors()));
+        return builder.addDiscoverer(InnerClassFieldDiscoverer.globalConfig());
     }
 
     @Override
@@ -215,7 +205,7 @@ public class PaperConfigurations extends Configurations<GlobalConfiguration, Wor
         return options
             .header(GLOBAL_HEADER)
             .serializers(builder -> builder
-                .register(new ServerboundPacketClassSerializer())
+                .register(new PacketClassSerializer())
                 .register(new RegistryValueSerializer<>(new TypeToken<DataComponentType<?>>() {}, registryAccess, Registries.DATA_COMPONENT_TYPE, false))
             );
     }
@@ -238,7 +228,7 @@ public class PaperConfigurations extends Configurations<GlobalConfiguration, Wor
         return super.createWorldObjectMapperFactoryBuilder(contextMap)
             .addNodeResolver(new RequiresSpigotInitialization.Factory(contextMap.require(SPIGOT_WORLD_CONFIG_CONTEXT_KEY).get()))
             .addNodeResolver(new NestedSetting.Factory())
-            .addDiscoverer(InnerClassFieldDiscoverer.worldConfig(createWorldConfigInstance(contextMap), defaultFieldProcessors()));
+            .addDiscoverer(InnerClassFieldDiscoverer.worldConfig(createWorldConfigInstance(contextMap)));
     }
 
     private static WorldConfiguration createWorldConfigInstance(ContextMap contextMap) {
@@ -297,7 +287,6 @@ public class PaperConfigurations extends Configurations<GlobalConfiguration, Wor
 
         final ConfigurationTransformation.VersionedBuilder versionedBuilder = Transformations.versionedBuilder();
         V29_LogIPs.apply(versionedBuilder);
-        V30_PacketIds.apply(versionedBuilder);
         // ADD FUTURE VERSIONED TRANSFORMS TO versionedBuilder HERE
         versionedBuilder.build().apply(node);
     }
@@ -339,12 +328,6 @@ public class PaperConfigurations extends Configurations<GlobalConfiguration, Wor
         } catch (Exception ex) {
             throw new RuntimeException("Could not reload paper configuration files", ex);
         }
-    }
-
-    private static List<Definition<? extends Annotation, ?, ? extends FieldProcessor.Factory<?, ?>>> defaultFieldProcessors() {
-        return List.of(
-            MergeMap.DEFINITION
-        );
     }
 
     private static ContextMap createWorldContextMap(ServerLevel level) {

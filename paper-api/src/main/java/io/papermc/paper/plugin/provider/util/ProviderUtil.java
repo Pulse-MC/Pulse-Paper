@@ -4,8 +4,6 @@ import com.destroystokyo.paper.util.SneakyThrow;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InaccessibleObjectException;
 
 /**
  * An <b>internal</b> utility type that holds logic for loading a provider-like type from a classloaders.
@@ -58,14 +56,7 @@ public final class ProviderUtil {
                     throw new ClassCastException("class '%s' does not extend '%s'".formatted(clazz, classType));
                 }
 
-                final Constructor<? extends T> constructor = pluginClass.getDeclaredConstructor();
-                try {
-                    constructor.setAccessible(true); // Allow non-public constructors
-                } catch (final InaccessibleObjectException | SecurityException ex) {
-                    throw new RuntimeException("Inaccessible constructor");
-                }
-
-                clazzInstance = constructor.newInstance();
+                clazzInstance = pluginClass.getDeclaredConstructor().newInstance();
             } catch (final IllegalAccessException exception) {
                 throw new RuntimeException("No public constructor");
             } catch (final InstantiationException exception) {

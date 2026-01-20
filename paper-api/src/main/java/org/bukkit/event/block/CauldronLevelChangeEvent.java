@@ -9,21 +9,18 @@ import org.bukkit.block.data.Levelled;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CauldronLevelChangeEvent extends BlockEvent implements Cancellable {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private static final HandlerList handlers = new HandlerList();
+    private boolean cancelled;
+    //
     private final Entity entity;
     private final ChangeReason reason;
     private final BlockState newState;
 
-    private boolean cancelled;
-
-    @ApiStatus.Internal
     public CauldronLevelChangeEvent(@NotNull Block block, @Nullable Entity entity, @NotNull ChangeReason reason, @NotNull BlockState newBlock) {
         super(block);
         this.entity = entity;
@@ -32,18 +29,18 @@ public class CauldronLevelChangeEvent extends BlockEvent implements Cancellable 
     }
 
     /**
-     * Get entity which did this. May be {@code null}.
+     * Get entity which did this. May be null.
      *
      * @return acting entity
      */
     @Nullable
     public Entity getEntity() {
-        return this.entity;
+        return entity;
     }
 
     @NotNull
     public ChangeReason getReason() {
-        return this.reason;
+        return reason;
     }
 
     /**
@@ -53,7 +50,7 @@ public class CauldronLevelChangeEvent extends BlockEvent implements Cancellable 
      */
     @NotNull
     public BlockState getNewState() {
-        return this.newState;
+        return newState;
     }
 
     /**
@@ -65,7 +62,7 @@ public class CauldronLevelChangeEvent extends BlockEvent implements Cancellable 
      */
     @Deprecated(since = "1.17")
     public int getOldLevel() {
-        BlockData oldBlock = this.getBlock().getBlockData();
+        BlockData oldBlock = getBlock().getBlockData();
         return (oldBlock instanceof Levelled) ? ((Levelled) oldBlock).getLevel() : ((oldBlock.getMaterial() == Material.CAULDRON) ? 0 : 3);
     }
 
@@ -78,7 +75,7 @@ public class CauldronLevelChangeEvent extends BlockEvent implements Cancellable 
      */
     @Deprecated(since = "1.17")
     public int getNewLevel() {
-        BlockData newBlock = this.newState.getBlockData();
+        BlockData newBlock = newState.getBlockData();
         return (newBlock instanceof Levelled) ? ((Levelled) newBlock).getLevel() : ((newBlock.getMaterial() == Material.CAULDRON) ? 0 : 3);
     }
 
@@ -93,9 +90,9 @@ public class CauldronLevelChangeEvent extends BlockEvent implements Cancellable 
     public void setNewLevel(int newLevel) {
         Preconditions.checkArgument(0 <= newLevel && newLevel <= 3, "Cauldron level out of bounds 0 <= %s <= 3", newLevel);
         if (newLevel == 0) {
-            this.newState.setType(Material.CAULDRON);
-        } else if (this.newState.getBlockData() instanceof Levelled) {
-            ((Levelled) this.newState.getBlockData()).setLevel(newLevel);
+            newState.setType(Material.CAULDRON);
+        } else if (newState.getBlockData() instanceof Levelled) {
+            ((Levelled) newState.getBlockData()).setLevel(newLevel);
         } else {
             // Error, non-levellable block
         }
@@ -103,7 +100,7 @@ public class CauldronLevelChangeEvent extends BlockEvent implements Cancellable 
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
@@ -114,12 +111,12 @@ public class CauldronLevelChangeEvent extends BlockEvent implements Cancellable 
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     @NotNull
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     public enum ChangeReason {
@@ -160,7 +157,7 @@ public class CauldronLevelChangeEvent extends BlockEvent implements Cancellable 
          */
         EVAPORATE,
         /**
-         * Filling due to natural fluid sources, e.g. rain or dripstone.
+         * Filling due to natural fluid sources, eg rain or dripstone.
          */
         NATURAL_FILL,
         /**
