@@ -2,7 +2,7 @@ name: PulseMC Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "version/1.21.10" ]
 
 jobs:
   build:
