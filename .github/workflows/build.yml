@@ -22,7 +22,7 @@ jobs:
           MSG="${{ github.event.head_commit.message }}"
           
           MODE="none"
-          VERSION="1.21.11"
+          VERSION="1.21.10"
 
           if [[ "$MSG" == *"[pulse:devbuild"* ]]; then
             MODE="devbuild"
