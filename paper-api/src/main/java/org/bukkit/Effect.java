@@ -1,6 +1,5 @@
 package org.bukkit;
 
-import com.google.common.base.Enums;
 import com.google.common.collect.Maps;
 import java.util.Map;
 import org.bukkit.block.BlockFace;
@@ -443,6 +442,7 @@ public enum Effect {
 
     SOUND_WITH_CHARGE_SHOT(1051, Type.SOUND),
     ;
+    private static final org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger();
     // Paper end
 
     private final int id;
@@ -512,12 +512,21 @@ public enum Effect {
 
     static {
         for (Effect effect : values()) {
-            if (Enums.getField(effect).isAnnotationPresent(Deprecated.class)) {
-                continue;
-            }
+            if (!isDeprecated(effect)) // Paper
             BY_ID.put(effect.id, effect);
         }
     }
+
+    // Paper start
+    private static boolean isDeprecated(Effect effect) {
+        try {
+            return Effect.class.getDeclaredField(effect.name()).isAnnotationPresent(Deprecated.class);
+        } catch (NoSuchFieldException e) {
+            LOGGER.error("Error getting effect enum field {}", effect.name(), e);
+            return false;
+        }
+    }
+    // Paper end
 
     /**
      * Represents the type of an effect.

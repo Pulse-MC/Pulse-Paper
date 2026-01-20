@@ -22,9 +22,9 @@
 +                            }
 +                            ThrownTrident thrownTrident = tridentDelayed.projectile(); // Paper - PlayerLaunchProjectileEvent
 +                            if (event.shouldConsume()) {
-+                                itemStack.hurtWithoutBreaking(1, player); // Paper - PlayerLaunchProjectileEvent - use itemStack; pickup item damage
++                                stack.hurtWithoutBreaking(1, player); // Paper - PlayerLaunchProjectileEvent
 +                            }
-+                            thrownTrident.pickupItemStack = itemStack.copy(); // SPIGOT-4511 update since damage call moved - use itemStack; count = 1
++                            thrownTrident.pickupItemStack = stack.copy(); // SPIGOT-4511 update since damage call moved
 +                            if (event.shouldConsume()) {
 +                                stack.consume(1, player);
 +                            }

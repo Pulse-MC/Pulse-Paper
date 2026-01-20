@@ -1,6 +1,23 @@
 --- a/net/minecraft/network/Connection.java
 +++ b/net/minecraft/network/Connection.java
-@@ -68,6 +_,11 @@
+@@ -73,13 +_,13 @@
+     public static final Marker PACKET_RECEIVED_MARKER = Util.make(MarkerFactory.getMarker("PACKET_RECEIVED"), marker -> marker.add(PACKET_MARKER));
+     public static final Marker PACKET_SENT_MARKER = Util.make(MarkerFactory.getMarker("PACKET_SENT"), marker -> marker.add(PACKET_MARKER));
+     public static final Supplier<NioEventLoopGroup> NETWORK_WORKER_GROUP = Suppliers.memoize(
+-        () -> new NioEventLoopGroup(0, new ThreadFactoryBuilder().setNameFormat("Netty Client IO #%d").setDaemon(true).build())
++        () -> new NioEventLoopGroup(0, new ThreadFactoryBuilder().setNameFormat("Netty Client IO #%d").setDaemon(true).setUncaughtExceptionHandler(new net.minecraft.DefaultUncaughtExceptionHandlerWithName(LOGGER)).build()) // Paper
+     );
+     public static final Supplier<EpollEventLoopGroup> NETWORK_EPOLL_WORKER_GROUP = Suppliers.memoize(
+-        () -> new EpollEventLoopGroup(0, new ThreadFactoryBuilder().setNameFormat("Netty Epoll Client IO #%d").setDaemon(true).build())
++        () -> new EpollEventLoopGroup(0, new ThreadFactoryBuilder().setNameFormat("Netty Epoll Client IO #%d").setDaemon(true).setUncaughtExceptionHandler(new net.minecraft.DefaultUncaughtExceptionHandlerWithName(LOGGER)).build()) // Paper
+     );
+     public static final Supplier<DefaultEventLoopGroup> LOCAL_WORKER_GROUP = Suppliers.memoize(
+-        () -> new DefaultEventLoopGroup(0, new ThreadFactoryBuilder().setNameFormat("Netty Local Client IO #%d").setDaemon(true).build())
++        () -> new DefaultEventLoopGroup(0, new ThreadFactoryBuilder().setNameFormat("Netty Local Client IO #%d").setDaemon(true).setUncaughtExceptionHandler(new net.minecraft.DefaultUncaughtExceptionHandlerWithName(LOGGER)).build()) // Paper
+     );
+     private static final ProtocolInfo<ServerHandshakePacketListener> INITIAL_PROTOCOL = HandshakeProtocols.SERVERBOUND;
+     private final PacketFlow receiving;
+@@ -87,6 +_,11 @@
      private final Queue<Consumer<Connection>> pendingActions = Queues.newConcurrentLinkedQueue();
      public Channel channel;
      public SocketAddress address;
@@ -9,13 +26,13 @@
 +    public com.mojang.authlib.properties.Property[] spoofedProfile;
 +    public boolean preparing = true;
 +    // Spigot end
-     private volatile @Nullable PacketListener disconnectListener;
-     private volatile @Nullable PacketListener packetListener;
-     private @Nullable DisconnectionDetails disconnectionDetails;
-@@ -81,6 +_,43 @@
-     private boolean handlingFault;
-     private volatile @Nullable DisconnectionDetails delayedDisconnect;
-     @Nullable BandwidthDebugMonitor bandwidthDebugMonitor;
+     @Nullable
+     private volatile PacketListener disconnectListener;
+     @Nullable
+@@ -105,6 +_,43 @@
+     private volatile DisconnectionDetails delayedDisconnect;
+     @Nullable
+     BandwidthDebugMonitor bandwidthDebugMonitor;
 +    public String hostname = ""; // CraftBukkit - add field
 +    // Paper start - NetworkClient implementation
 +    public int protocolVersion;
@@ -34,7 +51,7 @@
 +    // Paper end - add utility methods
 +    // Paper start - packet limiter
 +    protected final Object PACKET_LIMIT_LOCK = new Object();
-+    protected final io.papermc.paper.util.@Nullable IntervalledCounter allPacketCounts = io.papermc.paper.configuration.GlobalConfiguration.get().packetLimiter.allPackets.isEnabled() ? new io.papermc.paper.util.IntervalledCounter(
++    protected final @Nullable io.papermc.paper.util.IntervalledCounter allPacketCounts = io.papermc.paper.configuration.GlobalConfiguration.get().packetLimiter.allPackets.isEnabled() ? new io.papermc.paper.util.IntervalledCounter(
 +        (long)(io.papermc.paper.configuration.GlobalConfiguration.get().packetLimiter.allPackets.interval() * 1.0e9)
 +    ) : null;
 +    protected final java.util.Map<Class<? extends net.minecraft.network.protocol.Packet<?>>, io.papermc.paper.util.IntervalledCounter> packetSpecificLimits = new java.util.HashMap<>();
@@ -49,14 +66,14 @@
 +    }
 +    // Paper end - packet limiter
 +    @Nullable public SocketAddress haProxyAddress; // Paper - Add API to get player's proxy address
-+    public java.util.@Nullable Optional<net.minecraft.network.chat.Component> legacySavedLoginEventResultOverride; // Paper - playerloginevent
++    public @Nullable java.util.Optional<net.minecraft.network.chat.Component> legacySavedLoginEventResultOverride; // Paper - playerloginevent
 +    public boolean handledLegacyLoginEvent; // Paper - playerloginevent
-+    public net.minecraft.server.level.@Nullable ServerPlayer savedPlayerForLegacyEvents; // Paper - playerloginevent & PlayerSpawnLocationEvent
-+    public org.bukkit.event.player.PlayerResourcePackStatusEvent.@Nullable Status resourcePackStatus; // Paper
++    public @Nullable net.minecraft.server.level.ServerPlayer savedPlayerForLegacyEvents; // Paper - playerloginevent & PlayerSpawnLocationEvent
++    public @Nullable org.bukkit.event.player.PlayerResourcePackStatusEvent.Status resourcePackStatus; // Paper
  
      public Connection(PacketFlow receiving) {
          this.receiving = receiving;
-@@ -91,6 +_,7 @@
+@@ -115,6 +_,7 @@
          super.channelActive(ctx);
          this.channel = ctx.channel();
          this.address = this.channel.remoteAddress();
@@ -64,7 +81,7 @@
          if (this.delayedDisconnect != null) {
              this.disconnect(this.delayedDisconnect);
          }
-@@ -103,14 +_,31 @@
+@@ -127,14 +_,31 @@
  
      @Override
      public void exceptionCaught(ChannelHandlerContext ctx, Throwable exception) {
@@ -96,7 +113,7 @@
                      this.disconnect(Component.translatable("disconnect.timeout"));
                  } else {
                      Component component = Component.translatable("disconnect.genericReason", "Internal Exception: " + exception);
-@@ -122,9 +_,11 @@
+@@ -146,9 +_,11 @@
                          disconnectionDetails = new DisconnectionDetails(component);
                      }
  
@@ -109,7 +126,7 @@
                              Packet<?> packet = (Packet<?>)(this.sendLoginDisconnect
                                  ? new ClientboundLoginDisconnectPacket(component)
                                  : new ClientboundDisconnectPacket(component));
-@@ -141,6 +_,7 @@
+@@ -165,6 +_,7 @@
                  }
              }
          }
@@ -117,7 +134,7 @@
      }
  
      @Override
-@@ -150,10 +_,60 @@
+@@ -174,10 +_,60 @@
              if (packetListener == null) {
                  throw new IllegalStateException("Received a packet before the packet listener was initialized");
              } else {
@@ -178,7 +195,7 @@
                      } catch (RejectedExecutionException var6) {
                          this.disconnect(Component.translatable("multiplayer.disconnect.server_shutdown"));
                      } catch (ClassCastException var7) {
-@@ -346,10 +_,30 @@
+@@ -370,10 +_,30 @@
          }
      }
  
@@ -209,7 +226,7 @@
          }
  
          if (!this.isConnected() && !this.disconnectionHandled) {
-@@ -357,7 +_,7 @@
+@@ -381,7 +_,7 @@
          }
  
          if (this.channel != null) {
@@ -218,7 +235,7 @@
          }
  
          if (this.tickCount++ % 20 == 0) {
-@@ -393,12 +_,13 @@
+@@ -417,12 +_,13 @@
      }
  
      public void disconnect(DisconnectionDetails disconnectionDetails) {
@@ -233,7 +250,7 @@
              this.disconnectionDetails = disconnectionDetails;
          }
      }
-@@ -533,6 +_,13 @@
+@@ -569,6 +_,13 @@
          }
      }
  
@@ -247,7 +264,7 @@
      public void setupCompression(int threshold, boolean validateDecompressed) {
          if (threshold >= 0) {
              if (this.channel.pipeline().get("decompress") instanceof CompressionDecoder compressionDecoder) {
-@@ -546,6 +_,7 @@
+@@ -582,6 +_,7 @@
              } else {
                  this.channel.pipeline().addAfter("prepender", "compress", new CompressionEncoder(threshold));
              }
@@ -255,7 +272,7 @@
          } else {
              if (this.channel.pipeline().get("decompress") instanceof CompressionDecoder) {
                  this.channel.pipeline().remove("decompress");
-@@ -554,6 +_,7 @@
+@@ -590,6 +_,7 @@
              if (this.channel.pipeline().get("compress") instanceof CompressionEncoder) {
                  this.channel.pipeline().remove("compress");
              }
@@ -263,7 +280,7 @@
          }
      }
  
-@@ -571,6 +_,26 @@
+@@ -607,6 +_,26 @@
                      );
                      packetListener1.onDisconnect(disconnectionDetails);
                  }

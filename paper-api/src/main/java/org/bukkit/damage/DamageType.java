@@ -93,8 +93,6 @@ public interface DamageType extends Keyed, Translatable {
 
     DamageType SONIC_BOOM = getDamageType("sonic_boom");
 
-    DamageType SPEAR = getDamageType("spear");
-
     DamageType SPIT = getDamageType("spit");
 
     DamageType STALAGMITE = getDamageType("stalagmite");

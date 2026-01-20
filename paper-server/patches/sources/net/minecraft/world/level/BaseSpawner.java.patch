@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/level/BaseSpawner.java
 +++ b/net/minecraft/world/level/BaseSpawner.java
-@@ -52,13 +_,15 @@
+@@ -54,13 +_,15 @@
      public int maxNearbyEntities = 6;
      public int requiredPlayerRange = 16;
      public int spawnRange = 4;
@@ -17,18 +17,19 @@
      }
  
      public void clientTick(Level level, BlockPos pos) {
-@@ -81,13 +_,19 @@
+@@ -83,13 +_,19 @@
      }
  
      public void serverTick(ServerLevel level, BlockPos pos) {
+-        if (this.isNearPlayer(level, pos) && level.getServer().isSpawnerBlockEnabled()) {
+-            if (this.spawnDelay == -1) {
 +        if (spawnCount <= 0 || maxNearbyEntities <= 0) return; // Paper - Ignore impossible spawn tick
 +        // Paper start - Configurable mob spawner tick rate
 +        if (spawnDelay > 0 && --tickDelay > 0) return;
 +        tickDelay = level.paperConfig().tickRates.mobSpawner;
 +        if (tickDelay == -1) { return; } // If disabled
 +        // Paper end - Configurable mob spawner tick rate
-         if (this.isNearPlayer(level, pos) && level.isSpawnerBlockEnabled()) {
--            if (this.spawnDelay == -1) {
++        if (this.isNearPlayer(level, pos) && level.isSpawnerBlockEnabled()) { // Paper - per level game rules - spawner block enabled
 +            if (this.spawnDelay < -tickDelay) { // Paper - Configurable mob spawner tick rate
                  this.delay(level, pos);
              }
@@ -39,7 +40,7 @@
              } else {
                  boolean flag = false;
                  RandomSource random = level.getRandom();
-@@ -125,6 +_,21 @@
+@@ -127,6 +_,21 @@
                                  continue;
                              }
  
@@ -61,7 +62,7 @@
                              Entity entity = EntityType.loadEntityRecursive(valueInput, level, EntitySpawnReason.SPAWNER, entity1 -> {
                                  entity1.snapTo(vec3.x, vec3.y, vec3.z, entity1.getYRot(), entity1.getXRot());
                                  return entity1;
-@@ -158,9 +_,22 @@
+@@ -160,9 +_,22 @@
                                  }
  
                                  nextSpawnData.getEquipment().ifPresent(mob::equip);
@@ -85,7 +86,7 @@
                                  this.delay(level, pos);
                                  return;
                              }
-@@ -171,7 +_,7 @@
+@@ -173,7 +_,7 @@
                                  ((Mob)entity).spawnAnim();
                              }
  
@@ -94,7 +95,7 @@
                          }
                      }
                  }
-@@ -198,12 +_,14 @@
+@@ -200,12 +_,14 @@
      }
  
      public void load(@Nullable Level level, BlockPos pos, ValueInput input) {
@@ -112,7 +113,7 @@
          this.spawnCount = input.getIntOr("SpawnCount", 4);
          this.maxNearbyEntities = input.getIntOr("MaxNearbyEntities", 6);
          this.requiredPlayerRange = input.getIntOr("RequiredPlayerRange", 16);
-@@ -212,9 +_,19 @@
+@@ -214,9 +_,19 @@
      }
  
      public void save(ValueOutput output) {

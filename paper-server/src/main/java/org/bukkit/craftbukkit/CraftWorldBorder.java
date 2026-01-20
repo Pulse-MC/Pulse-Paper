@@ -1,6 +1,7 @@
 package org.bukkit.craftbukkit;
 
 import com.google.common.base.Preconditions;
+import java.util.concurrent.TimeUnit;
 import net.minecraft.core.BlockPos;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -38,18 +39,22 @@ public class CraftWorldBorder implements WorldBorder {
 
     @Override
     public void setSize(double newSize) {
-        Preconditions.checkArgument(newSize >= 1.0D && newSize <= this.getMaxSize(), "newSize must be between 1.0D and %s", this.getMaxSize());
-        this.handle.setSize(newSize);
+        this.setSize(newSize, 0L);
     }
 
     @Override
-    public void changeSize(double newSize, long ticks) {
-        Preconditions.checkArgument(ticks >= 0 && ticks <= Integer.MAX_VALUE, "ticks must be between 0-%s", Integer.MAX_VALUE);
+    public void setSize(double newSize, long time) {
+        this.setSize(Math.min(this.getMaxSize(), Math.max(1.0D, newSize)), TimeUnit.SECONDS, Math.min(9223372036854775L, Math.max(0L, time)));
+    }
+
+    @Override
+    public void setSize(double newSize, TimeUnit unit, long time) {
+        Preconditions.checkArgument(unit != null, "TimeUnit cannot be null.");
+        Preconditions.checkArgument(time >= 0, "time cannot be lower than 0");
         Preconditions.checkArgument(newSize >= 1.0D && newSize <= this.getMaxSize(), "newSize must be between 1.0D and %s", this.getMaxSize());
 
-        if (ticks > 0L) {
-            final long startTime = (this.getWorld() != null) ? this.getWorld().getGameTime() : 0; // Virtual Borders don't have a World
-            this.handle.lerpSizeBetween(this.handle.getSize(), newSize, ticks, startTime);
+        if (time > 0L) {
+            this.handle.lerpSizeBetween(this.handle.getSize(), newSize, unit.toMillis(time));
         } else {
             this.handle.setSize(newSize);
         }
@@ -97,15 +102,13 @@ public class CraftWorldBorder implements WorldBorder {
     }
 
     @Override
-    public int getWarningTimeTicks() {
+    public int getWarningTime() {
         return this.handle.getWarningTime();
     }
 
     @Override
-    public void setWarningTimeTicks(final int ticks) {
-        Preconditions.checkArgument(ticks >= 0, "ticks cannot be lower than 0");
-
-        this.handle.setWarningTime(ticks);
+    public void setWarningTime(int time) {
+        this.handle.setWarningTime(time);
     }
 
     @Override

@@ -12,7 +12,6 @@ import net.minecraft.resources.RegistryOps;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.craftbukkit.CraftRegistry;
-import org.bukkit.craftbukkit.util.CraftNamespacedKey;
 import org.bukkit.craftbukkit.util.Handleable;
 import org.intellij.lang.annotations.Subst;
 import org.jspecify.annotations.NullMarked;
@@ -55,7 +54,7 @@ public interface Holderable<M> extends Handleable<M> {
                 final RegistryOps<JsonElement> ops = CraftRegistry.getMinecraftRegistry().createSerializationContext(JsonOps.INSTANCE);
                 yield new JsonObjectWrapper(directCodec.encodeStart(ops, direct.value()).getOrThrow().getAsJsonObject());
             }
-            case final Holder.Reference<M> reference -> reference.key().identifier().toString();
+            case final Holder.Reference<M> reference -> reference.key().location().toString();
             default -> throw new IllegalArgumentException("Cannot serialize " + this.getHolder());
         };
     }
@@ -81,10 +80,10 @@ public interface Holderable<M> extends Handleable<M> {
     }
 
     default @Nullable NamespacedKey getKeyOrNull() {
-        return this.getHolder().unwrapKey().map(CraftNamespacedKey::fromResourceKey).orElse(null);
+        return this.getHolder().unwrapKey().map(MCUtil::fromResourceKey).orElse(null);
     }
 
     default NamespacedKey getKey() {
-        return CraftNamespacedKey.fromResourceKey(this.getHolder().unwrapKey().orElseThrow(() -> new IllegalStateException("Cannot get key for this registry item, because it is not registered.")));
+        return MCUtil.fromResourceKey(this.getHolder().unwrapKey().orElseThrow(() -> new IllegalStateException("Cannot get key for this registry item, because it is not registered.")));
     }
 }

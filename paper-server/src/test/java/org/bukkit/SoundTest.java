@@ -1,11 +1,11 @@
 package org.bukkit;
 
-import org.bukkit.support.environment.Normal;
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.bukkit.support.environment.AllFeatures;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-@Normal
+@AllFeatures
 public class SoundTest {
 
     @Test

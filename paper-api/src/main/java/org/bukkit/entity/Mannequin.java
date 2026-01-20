@@ -3,7 +3,6 @@ package org.bukkit.entity;
 import com.destroystokyo.paper.SkinParts;
 import io.papermc.paper.InternalAPIBridge;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
-import java.util.Set;
 import net.kyori.adventure.text.Component;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.MainHand;
@@ -12,15 +11,6 @@ import org.jspecify.annotations.Nullable;
 
 @NullMarked
 public interface Mannequin extends LivingEntity {
-
-    /**
-     * Returns the valid poses for a mannequin.
-     *
-     * @return the valid poses
-     */
-    static Set<Pose> validPoses() {
-        return InternalAPIBridge.get().validMannequinPoses();
-    }
 
     /**
      * Returns the default mannequin profile.

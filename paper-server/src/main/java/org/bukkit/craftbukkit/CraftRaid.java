@@ -6,15 +6,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import org.bukkit.Location;
 import org.bukkit.Raid;
-import org.bukkit.boss.BossBar;
-import org.bukkit.craftbukkit.boss.CraftBossBar;
 import org.bukkit.craftbukkit.util.CraftLocation;
 import org.bukkit.entity.Raider;
-import org.bukkit.persistence.PersistentDataContainer;
 
 public final class CraftRaid implements Raid {
 
@@ -83,14 +81,6 @@ public final class CraftRaid implements Raid {
     }
 
     @Override
-    public void setTotalWaves(int waves) {
-        Preconditions.checkArgument(waves > 0, "Total waves must be greater than 0");
-        Preconditions.checkArgument(waves <= 7, "Total waves must not be greater than 7");
-        Preconditions.checkArgument(waves >= this.getSpawnedGroups(), "Total waves must be greater than or equal to the current spawned groups (%s)", this.getSpawnedGroups());
-        this.handle.numGroups = waves;
-    }
-
-    @Override
     public float getTotalHealth() {
         return this.handle.getHealthOfLivingRaiders();
     }
@@ -102,7 +92,12 @@ public final class CraftRaid implements Raid {
 
     @Override
     public List<Raider> getRaiders() {
-        return this.handle.getRaiders().stream().map(entityRaider -> (Raider) entityRaider.getBukkitEntity()).collect(ImmutableList.toImmutableList());
+        return this.handle.getRaiders().stream().map(new Function<net.minecraft.world.entity.raid.Raider, Raider>() {
+            @Override
+            public Raider apply(net.minecraft.world.entity.raid.Raider entityRaider) {
+                return (Raider) entityRaider.getBukkitEntity();
+            }
+        }).collect(ImmutableList.toImmutableList());
     }
 
     public net.minecraft.world.entity.raid.Raid getHandle() {
@@ -115,12 +110,12 @@ public final class CraftRaid implements Raid {
     }
 
     @Override
-    public BossBar getBossBar() {
-        return new CraftBossBar(this.handle.raidEvent);
+    public org.bukkit.boss.BossBar getBossBar() {
+        return new org.bukkit.craftbukkit.boss.CraftBossBar(this.handle.raidEvent);
     }
 
     @Override
-    public PersistentDataContainer getPersistentDataContainer() {
+    public org.bukkit.persistence.PersistentDataContainer getPersistentDataContainer() {
         return this.handle.persistentDataContainer;
     }
 
@@ -128,7 +123,7 @@ public final class CraftRaid implements Raid {
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || this.getClass() != o.getClass()) return false;
-        final CraftRaid craftRaid = (CraftRaid) o;
+        final org.bukkit.craftbukkit.CraftRaid craftRaid = (org.bukkit.craftbukkit.CraftRaid) o;
         return this.handle.equals(craftRaid.handle);
     }
 

@@ -83,7 +83,7 @@
          UPDATE_GAME_MODE(
              (entryBuilder, buffer) -> entryBuilder.gameMode = GameType.byId(buffer.readVarInt()),
 @@ -161,10 +_,15 @@
-         RemoteChatSession.@Nullable Data chatSession
+         @Nullable RemoteChatSession.Data chatSession
      ) {
          Entry(ServerPlayer player) {
 +        // Paper start - Add Listing API for Player

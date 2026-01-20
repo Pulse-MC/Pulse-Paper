@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
 import org.bukkit.map.MapPalette;
 
 public class CraftMapColorCache implements MapPalette.MapColorCache {

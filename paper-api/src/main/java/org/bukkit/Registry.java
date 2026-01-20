@@ -348,13 +348,7 @@ public interface Registry<T extends Keyed> extends Iterable<T> {
      *
      * @see DataComponentType
      */
-    Registry<DataComponentType> DATA_COMPONENT_TYPE = registryFor(RegistryKey.DATA_COMPONENT_TYPE);
-    /**
-     * Game rules.
-     *
-     * @see GameRule
-     */
-    Registry<GameRule<?>> GAME_RULE = registryFor(RegistryKey.GAME_RULE);
+    Registry<DataComponentType> DATA_COMPONENT_TYPE = registryFor(RegistryKey.DATA_COMPONENT_TYPE); // Paper
 
     //<editor-fold desc="renames" defaultstate="collapsed">
     /**
@@ -563,6 +557,7 @@ public interface Registry<T extends Keyed> extends Iterable<T> {
      * @deprecated this method's behavior is broken and not useful. If you want to get an object
      * based on its vanilla name, or a key, wrap it in a {@link NamespacedKey} object and use {@link #get(NamespacedKey)}
      */
+    // Paper
     @Deprecated(forRemoval = true)
     default @Nullable T match(final String input) {
         Preconditions.checkArgument(input != null, "input must not be null");

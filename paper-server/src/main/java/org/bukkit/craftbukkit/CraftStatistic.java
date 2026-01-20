@@ -5,7 +5,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.ServerStatsCounter;
 import net.minecraft.stats.Stats;
@@ -70,7 +70,6 @@ public enum CraftStatistic {
     LEAVE_GAME(Stats.LEAVE_GAME),
     MINECART_ONE_CM(Stats.MINECART_ONE_CM),
     MOB_KILLS(Stats.MOB_KILLS),
-    NAUTILUS_ONE_CM(Stats.NAUTILUS_ONE_CM),
     OPEN_BARREL(Stats.OPEN_BARREL),
     CHEST_OPENED(Stats.OPEN_CHEST),
     ENDERCHEST_OPENED(Stats.OPEN_ENDERCHEST),
@@ -102,21 +101,21 @@ public enum CraftStatistic {
     WALK_UNDER_WATER_ONE_CM(Stats.WALK_UNDER_WATER_ONE_CM),
     // End generate - CraftStatisticCustom
     // Start generate - CraftStatisticType
-    BREAK_ITEM(Identifier.withDefaultNamespace("broken")),
-    CRAFT_ITEM(Identifier.withDefaultNamespace("crafted")),
-    DROP(Identifier.withDefaultNamespace("dropped")),
-    KILL_ENTITY(Identifier.withDefaultNamespace("killed")),
-    ENTITY_KILLED_BY(Identifier.withDefaultNamespace("killed_by")),
-    MINE_BLOCK(Identifier.withDefaultNamespace("mined")),
-    PICKUP(Identifier.withDefaultNamespace("picked_up")),
-    USE_ITEM(Identifier.withDefaultNamespace("used"));
+    BREAK_ITEM(ResourceLocation.withDefaultNamespace("broken")),
+    CRAFT_ITEM(ResourceLocation.withDefaultNamespace("crafted")),
+    DROP(ResourceLocation.withDefaultNamespace("dropped")),
+    KILL_ENTITY(ResourceLocation.withDefaultNamespace("killed")),
+    ENTITY_KILLED_BY(ResourceLocation.withDefaultNamespace("killed_by")),
+    MINE_BLOCK(ResourceLocation.withDefaultNamespace("mined")),
+    PICKUP(ResourceLocation.withDefaultNamespace("picked_up")),
+    USE_ITEM(ResourceLocation.withDefaultNamespace("used"));
     // End generate - CraftStatisticType
-    private final Identifier minecraftKey;
+    private final ResourceLocation minecraftKey;
     private final org.bukkit.Statistic bukkit;
-    private static final BiMap<Identifier, org.bukkit.Statistic> statistics;
+    private static final BiMap<ResourceLocation, org.bukkit.Statistic> statistics;
 
     static {
-        ImmutableBiMap.Builder<Identifier, org.bukkit.Statistic> statisticBuilder = ImmutableBiMap.builder();
+        ImmutableBiMap.Builder<ResourceLocation, org.bukkit.Statistic> statisticBuilder = ImmutableBiMap.builder();
         for (CraftStatistic statistic : CraftStatistic.values()) {
             statisticBuilder.put(statistic.minecraftKey, statistic.bukkit);
         }
@@ -124,7 +123,7 @@ public enum CraftStatistic {
         statistics = statisticBuilder.build();
     }
 
-    private CraftStatistic(Identifier minecraftKey) {
+    private CraftStatistic(ResourceLocation minecraftKey) {
         this.minecraftKey = minecraftKey;
 
         this.bukkit = org.bukkit.Statistic.valueOf(this.name());
@@ -134,10 +133,10 @@ public enum CraftStatistic {
     public static org.bukkit.Statistic getBukkitStatistic(net.minecraft.stats.Stat<?> statistic) {
         Preconditions.checkArgument(statistic != null, "NMS Statistic cannot be null");
         Registry statRegistry = statistic.getType().getRegistry();
-        Identifier nmsKey = BuiltInRegistries.STAT_TYPE.getKey(statistic.getType());
+        ResourceLocation nmsKey = BuiltInRegistries.STAT_TYPE.getKey(statistic.getType());
 
         if (statRegistry == BuiltInRegistries.CUSTOM_STAT) {
-            nmsKey = (Identifier) statistic.getValue();
+            nmsKey = (ResourceLocation) statistic.getValue();
         }
 
         return statistics.get(nmsKey);
@@ -146,7 +145,7 @@ public enum CraftStatistic {
     public static net.minecraft.stats.Stat getNMSStatistic(org.bukkit.Statistic bukkit) {
         Preconditions.checkArgument(bukkit.getType() == Statistic.Type.UNTYPED, "This method only accepts untyped statistics");
 
-        net.minecraft.stats.Stat<Identifier> nms = Stats.CUSTOM.get(statistics.inverse().get(bukkit));
+        net.minecraft.stats.Stat<ResourceLocation> nms = Stats.CUSTOM.get(statistics.inverse().get(bukkit));
         Preconditions.checkArgument(nms != null, "NMS Statistic %s does not exist", bukkit);
 
         return nms;

@@ -23,6 +23,7 @@ public final class CraftScoreboardManager implements ScoreboardManager {
     private final CraftScoreboard mainScoreboard;
     private final MinecraftServer server;
     private final Collection<CraftScoreboard> scoreboards = new WeakCollection<>();
+    private final Map<CraftPlayer, CraftScoreboard> playerBoards = new HashMap<>();
 
     public CraftScoreboardManager(MinecraftServer server, net.minecraft.world.scores.Scoreboard scoreboard) {
         this.mainScoreboard = new CraftScoreboard(scoreboard);
@@ -53,7 +54,7 @@ public final class CraftScoreboardManager implements ScoreboardManager {
     }
 
     public CraftScoreboard getPlayerBoard(CraftPlayer player) {
-        CraftScoreboard board = player.getScoreboardOverride();
+        CraftScoreboard board = this.playerBoards.get(player);
         return board == null ? this.getMainScoreboard() : board;
     }
 
@@ -65,9 +66,9 @@ public final class CraftScoreboardManager implements ScoreboardManager {
         }
 
         if (scoreboard == this.mainScoreboard) {
-            player.setScoreboardOverride(null);
+            this.playerBoards.remove(player);
         } else {
-            player.setScoreboardOverride(scoreboard);
+            this.playerBoards.put(player, scoreboard);
         }
 
         ServerPlayer serverPlayer = player.getHandle();
@@ -77,7 +78,7 @@ public final class CraftScoreboardManager implements ScoreboardManager {
         for (net.minecraft.world.scores.DisplaySlot displaySlot : net.minecraft.world.scores.DisplaySlot.values()) { // Paper - clear all display slots
             Objective objective = oldBoard.getDisplayObjective(displaySlot); // Paper - clear all display slots
             if (objective != null && !removed.contains(objective)) {
-                serverPlayer.connection.send(new ClientboundSetObjectivePacket(objective, ClientboundSetObjectivePacket.METHOD_REMOVE));
+                serverPlayer.connection.send(new ClientboundSetObjectivePacket(objective, 1));
                 removed.add(objective);
             }
         }
@@ -93,7 +94,7 @@ public final class CraftScoreboardManager implements ScoreboardManager {
 
     // CraftBukkit method
     public void removePlayer(CraftPlayer player) {
-        player.setScoreboardOverride(null);
+        this.playerBoards.remove(player);
     }
 
     // CraftBukkit method

@@ -57,7 +57,7 @@ public record PaperWorldLoader(MinecraftServer server, String levelId) {
             dimension = -999;
         }
         String worldType = dimension == -999
-            ? stemKey.identifier().getNamespace() + "_" + stemKey.identifier().getPath()
+            ? stemKey.location().getNamespace() + "_" + stemKey.location().getPath()
             : World.Environment.getEnvironment(dimension).toString().toLowerCase(Locale.ROOT);
         String name = stemKey == LevelStem.OVERWORLD
             ? levelId

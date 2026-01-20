@@ -1,15 +1,18 @@
 --- a/net/minecraft/world/damagesource/DamageSource.java
 +++ b/net/minecraft/world/damagesource/DamageSource.java
-@@ -17,6 +_,86 @@
-     private final @Nullable Entity causingEntity;
-     private final @Nullable Entity directEntity;
-     private final @Nullable Vec3 damageSourcePosition;
+@@ -20,6 +_,92 @@
+     private final Entity directEntity;
+     @Nullable
+     private final Vec3 damageSourcePosition;
 +    // CraftBukkit start
-+    private org.bukkit.event.entity.EntityDamageEvent.@Nullable DamageCause knownCause; // When the damage event cause is known by the context of the call rather than the damage source data
++    @Nullable
++    private org.bukkit.event.entity.EntityDamageEvent.DamageCause knownCause; // When the damage event cause is known by the context of the call rather than the damage source data
 +    @Nullable
 +    private Entity eventEntityDamager = null; // Relevant entity set when the game doesn't normally set a causingEntity/directEntity
-+    private org.bukkit.block.@Nullable Block eventBlockDamager; // Relevant block set. damageSourcePosition is only used for bad respawn point explosion or custom damage
-+    private org.bukkit.block.@Nullable BlockState fromBlockSnapshot; // Captured block snapshot when the eventBlockDamager is not relevant (e.g. for bad respawn point explosions the block is already removed)
++    @Nullable
++    private org.bukkit.block.Block eventBlockDamager; // Relevant block set. damageSourcePosition is only used for bad respawn point explosion or custom damage
++    @Nullable
++    private org.bukkit.block.BlockState fromBlockSnapshot; // Captured block snapshot when the eventBlockDamager is not relevant (e.g. for bad respawn point explosions the block is already removed)
 +    private boolean critical; // Supports arrows and sweeping damage
 +
 +    public DamageSource knownCause(final org.bukkit.event.entity.EntityDamageEvent.DamageCause cause) {
@@ -18,7 +21,8 @@
 +        return damageSource;
 +    }
 +
-+    public org.bukkit.event.entity.EntityDamageEvent.@Nullable DamageCause knownCause() {
++    @Nullable
++    public org.bukkit.event.entity.EntityDamageEvent.DamageCause knownCause() {
 +        return this.knownCause;
 +    }
 +
@@ -36,11 +40,12 @@
 +        return damageSource;
 +    }
 +
-+    public org.bukkit.block.@Nullable Block eventBlockDamager() {
++    @Nullable
++    public org.bukkit.block.Block eventBlockDamager() {
 +        return this.eventBlockDamager;
 +    }
 +
-+    public DamageSource eventBlockDamager(final net.minecraft.world.level.LevelAccessor level, final net.minecraft.core.@Nullable BlockPos pos) {
++    public DamageSource eventBlockDamager(final net.minecraft.world.level.LevelAccessor level, final @Nullable net.minecraft.core.BlockPos pos) {
 +        if (pos == null) {
 +            return this;
 +        }
@@ -50,7 +55,8 @@
 +        return damageSource;
 +    }
 +
-+    public org.bukkit.block.@Nullable BlockState causingBlockSnapshot() {
++    @Nullable
++    public org.bukkit.block.BlockState causingBlockSnapshot() {
 +        return this.fromBlockSnapshot;
 +    }
 +

@@ -82,12 +82,12 @@ public enum EnchantmentTarget {
     },
 
     /**
-     * Allows the Enchantment to be placed on weapons (swords, spears)
+     * Allows the Enchantment to be placed on weapons (swords)
      */
     WEAPON {
         @Override
         public boolean includes(@NotNull Material item) {
-            return Tag.ITEMS_ENCHANTABLE_SHARP_WEAPON.isTagged(item);
+            return Tag.ITEMS_ENCHANTABLE_SWORD.isTagged(item);
         }
     },
 

@@ -1,6 +1,6 @@
 --- a/net/minecraft/advancements/AdvancementTree.java
 +++ b/net/minecraft/advancements/AdvancementTree.java
-@@ -25,7 +_,7 @@
+@@ -26,7 +_,7 @@
              this.remove(advancementNode);
          }
  
@@ -9,7 +9,7 @@
          this.nodes.remove(node.holder().id());
          if (node.parent() == null) {
              this.roots.remove(node);
-@@ -61,7 +_,7 @@
+@@ -62,7 +_,7 @@
              }
          }
  

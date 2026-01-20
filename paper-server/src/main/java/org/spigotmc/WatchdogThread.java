@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 import net.minecraft.server.MinecraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.CraftServer;
-// PULSE_MODIFIED
+
 public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThread { // Paper - rewrite chunk system
 
     public static final boolean DISABLE_WATCHDOG = Boolean.getBoolean("disable.watchdog"); // Paper - Improved watchdog support
@@ -25,7 +25,7 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
     private volatile boolean stopping;
 
     private WatchdogThread(long timeoutTime, boolean restart) {
-        super("Pulse Watchdog Thread");
+        super("Paper Watchdog Thread");
         this.timeoutTime = timeoutTime;
         this.restart = restart;
         this.earlyWarningEvery = Math.min(GlobalConfiguration.get().watchdog.earlyWarningEvery, timeoutTime);
@@ -75,14 +75,14 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
                 this.lastEarlyWarning = currentTime;
                 if (isLongTimeout) {
                     logger.log(Level.SEVERE, "------------------------------");
-                    logger.log(Level.SEVERE, "The server has stopped responding! This is (probably) not a Pulse bug."); // Paper // Pulse
+                    logger.log(Level.SEVERE, "The server has stopped responding! This is (probably) not a Paper bug."); // Paper
                     logger.log(Level.SEVERE, "If you see a plugin in the Server thread dump below, then please report it to that author");
                     logger.log(Level.SEVERE, "\t *Especially* if it looks like HTTP or MySQL operations are occurring");
                     logger.log(Level.SEVERE, "If you see a world save or edit, then it means you did far more than your server can handle at once");
                     logger.log(Level.SEVERE, "\t If this is the case, consider increasing timeout-time in spigot.yml but note that this will replace the crash with LARGE lag spikes");
-                    logger.log(Level.SEVERE, "If you are unsure or still think this is a Pulse bug, please report this to https://github.com/Pulse-MC/Pulse-Paper/issues"); // Pulse
+                    logger.log(Level.SEVERE, "If you are unsure or still think this is a Paper bug, please report this to https://github.com/PaperMC/Paper/issues");
                     logger.log(Level.SEVERE, "Be sure to include ALL relevant console errors and Minecraft crash reports");
-                    logger.log(Level.SEVERE, "Pulse version: " + Bukkit.getServer().getVersion()); // Pulse
+                    logger.log(Level.SEVERE, "Paper version: " + Bukkit.getServer().getVersion());
 
                     if (net.minecraft.world.level.Level.lastPhysicsProblem != null) {
                         logger.log(Level.SEVERE, "------------------------------");
@@ -102,12 +102,12 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
                     }
                     // Paper end
                 } else {
-                    logger.log(Level.SEVERE, "--- DO NOT REPORT THIS TO PULSE - THIS IS NOT A BUG OR A CRASH  - " + Bukkit.getServer().getVersion() + " ---"); // Pulse
+                    logger.log(Level.SEVERE, "--- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH  - " + Bukkit.getServer().getVersion() + " ---");
                     logger.log(Level.SEVERE, "The server has not responded for " + (currentTime - lastTick) / 1000 + " seconds! Creating thread dump");
                 }
                 // Paper end - Different message for short timeout
                 logger.log(Level.SEVERE, "------------------------------");
-                logger.log(Level.SEVERE, "Server thread dump (Look for plugins here before reporting to Pulse!):"); // Paper // Pulse
+                logger.log(Level.SEVERE, "Server thread dump (Look for plugins here before reporting to Paper!):"); // Paper
                 FeatureHooks.dumpAllChunkLoadInfo(MinecraftServer.getServer(), isLongTimeout); // Paper - log detailed tick information
                 WatchdogThread.dumpThread(ManagementFactory.getThreadMXBean().getThreadInfo(MinecraftServer.getServer().serverThread.threadId(), Integer.MAX_VALUE), logger);
                 logger.log(Level.SEVERE, "------------------------------");
@@ -120,7 +120,7 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
                         WatchdogThread.dumpThread(thread, logger);
                     }
                 } else {
-                    logger.log(Level.SEVERE, "--- DO NOT REPORT THIS TO PULSE - THIS IS NOT A BUG OR A CRASH ---"); // Pulse
+                    logger.log(Level.SEVERE, "--- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH ---");
                 }
 
                 logger.log(Level.SEVERE, "------------------------------");

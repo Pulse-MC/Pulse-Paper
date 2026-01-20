@@ -6,8 +6,6 @@ import com.google.common.base.Preconditions;
 import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.datacomponent.item.PaperResolvableProfile;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
-import java.util.Set;
-import java.util.stream.Collectors;
 import net.kyori.adventure.text.Component;
 import net.minecraft.Optionull;
 import net.minecraft.world.entity.Avatar;
@@ -21,10 +19,6 @@ import org.jspecify.annotations.Nullable;
 
 @NullMarked
 public class CraftMannequin extends CraftLivingEntity implements Mannequin {
-
-    public static final Set<Pose> VALID_POSES = net.minecraft.world.entity.decoration.Mannequin.VALID_POSES.stream()
-        .map(pose -> Pose.values()[pose.ordinal()]).collect(Collectors.toUnmodifiableSet());
-
     public CraftMannequin(final CraftServer server, final net.minecraft.world.entity.decoration.Mannequin entity) {
         super(server, entity);
     }
@@ -37,11 +31,15 @@ public class CraftMannequin extends CraftLivingEntity implements Mannequin {
     @Override
     public void setPose(Pose pose, boolean fixed) {
         Preconditions.checkArgument(pose != null, "pose cannot be null");
-        if (!VALID_POSES.contains(pose)) {
-            throw new IllegalArgumentException("Invalid pose '%s', expected one of: %s".formatted(pose.name(), VALID_POSES));
+        net.minecraft.world.entity.Pose internalPose = net.minecraft.world.entity.Pose.values()[pose.ordinal()];
+        if (!net.minecraft.world.entity.decoration.Mannequin.VALID_POSES.contains(internalPose)) {
+            throw new IllegalArgumentException("Invalid pose '%s', expected one of: %s".formatted(
+                pose.name(),
+                net.minecraft.world.entity.decoration.Mannequin.VALID_POSES.stream().map(p -> Pose.values()[p.ordinal()]).toList() // name doesn't match
+            ));
         }
 
-        this.setPose0(net.minecraft.world.entity.Pose.values()[pose.ordinal()], fixed);
+        this.setPose0(internalPose, fixed);
     }
 
     @Override

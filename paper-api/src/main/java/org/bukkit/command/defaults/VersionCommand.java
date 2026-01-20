@@ -214,7 +214,7 @@ public class VersionCommand extends BukkitCommand {
         String version = Bukkit.getVersion();
         // Paper start
         if (version.startsWith("null")) { // running from ide?
-            setVersionMessage(Component.text("Pulse", NamedTextColor.YELLOW));
+            setVersionMessage(Component.text("Unknown version, custom build?", NamedTextColor.YELLOW));
             return;
         }
         setVersionMessage(getVersionFetcher().getVersionMessage(version));

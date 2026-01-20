@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/level/chunk/EmptyLevelChunk.java
 +++ b/net/minecraft/world/level/chunk/EmptyLevelChunk.java
-@@ -27,6 +_,13 @@
+@@ -26,6 +_,13 @@
          return Blocks.VOID_AIR.defaultBlockState();
      }
  
@@ -11,6 +11,6 @@
 +    }
 +    // Paper end
 +
+     @Nullable
      @Override
-     public @Nullable BlockState setBlockState(BlockPos pos, BlockState state, @Block.UpdateFlags int flags) {
-         return null;
+     public BlockState setBlockState(BlockPos pos, BlockState state, int flags) {

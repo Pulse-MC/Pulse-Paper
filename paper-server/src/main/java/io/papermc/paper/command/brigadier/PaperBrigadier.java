@@ -9,7 +9,6 @@ import java.util.Map;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.CommonComponents;
-import net.minecraft.server.permissions.LevelBasedPermissionSet;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.command.Command;
@@ -23,7 +22,7 @@ public final class PaperBrigadier {
         Vec3.ZERO,
         Vec2.ZERO,
         null,
-        LevelBasedPermissionSet.OWNER,
+        4,
         "",
         CommonComponents.EMPTY,
         null,

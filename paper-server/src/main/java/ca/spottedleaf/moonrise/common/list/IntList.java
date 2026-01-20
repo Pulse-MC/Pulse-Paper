@@ -20,14 +20,10 @@ public final class IntList {
     }
 
     public void setMinCapacity(final int len) {
-        if (len <= 0) {
-            return;
-        }
         final int[] byIndex = this.byIndex;
         if (byIndex.length < len) {
             this.byIndex = Arrays.copyOf(byIndex, len);
         }
-        this.map.ensureCapacity(len);
     }
 
     public int getRaw(final int index) {

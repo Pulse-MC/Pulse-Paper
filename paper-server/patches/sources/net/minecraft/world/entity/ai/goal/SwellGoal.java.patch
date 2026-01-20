@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/entity/ai/goal/SwellGoal.java
 +++ b/net/minecraft/world/entity/ai/goal/SwellGoal.java
-@@ -20,6 +_,7 @@
+@@ -21,6 +_,7 @@
          return this.creeper.getSwellDir() > 0 || target != null && this.creeper.distanceToSqr(target) < 9.0;
      }
  
@@ -8,7 +8,7 @@
      @Override
      public void start() {
          this.creeper.getNavigation().stop();
-@@ -40,7 +_,7 @@
+@@ -41,7 +_,7 @@
      public void tick() {
          if (this.target == null) {
              this.creeper.setSwellDir(-1);

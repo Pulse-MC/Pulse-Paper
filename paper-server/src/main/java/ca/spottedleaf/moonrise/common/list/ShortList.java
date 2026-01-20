@@ -24,14 +24,10 @@ public final class ShortList {
     }
 
     public void setMinCapacity(final int len) {
-        if (len <= 0) {
-            return;
-        }
         final short[] byIndex = this.byIndex;
         if (byIndex.length < len) {
             this.byIndex = Arrays.copyOf(byIndex, len);
         }
-        this.map.ensureCapacity(len);
     }
 
     public boolean add(final short value) {

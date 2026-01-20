@@ -18,7 +18,7 @@
      }
  
      @Override
-@@ -400,9 +_,16 @@
+@@ -402,9 +_,16 @@
  
      @Override
      public CompoundTag copy() {
@@ -38,7 +38,7 @@
      }
  
      @Override
-@@ -523,22 +_,47 @@
+@@ -525,22 +_,47 @@
          this.merge((CompoundTag)mapCodec.encoder().encodeStart(ops, data).getOrThrow());
      }
  

@@ -1,14 +1,14 @@
 --- a/net/minecraft/world/entity/monster/Guardian.java
 +++ b/net/minecraft/world/entity/monster/Guardian.java
-@@ -58,6 +_,7 @@
-     private int clientSideAttackTime;
+@@ -60,6 +_,7 @@
      private boolean clientSideTouchedGround;
-     public @Nullable RandomStrollGoal randomStrollGoal;
+     @Nullable
+     public RandomStrollGoal randomStrollGoal;
 +    public Guardian.GuardianAttackGoal guardianAttackGoal; // CraftBukkit - add field
  
      public Guardian(EntityType<? extends Guardian> type, Level level) {
          super(type, level);
-@@ -72,7 +_,7 @@
+@@ -74,7 +_,7 @@
      protected void registerGoals() {
          MoveTowardsRestrictionGoal moveTowardsRestrictionGoal = new MoveTowardsRestrictionGoal(this, 1.0);
          this.randomStrollGoal = new RandomStrollGoal(this, 1.0, 80);

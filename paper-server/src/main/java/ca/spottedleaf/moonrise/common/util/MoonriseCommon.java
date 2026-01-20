@@ -1,7 +1,6 @@
 package ca.spottedleaf.moonrise.common.util;
 
 import ca.spottedleaf.concurrentutil.executor.thread.BalancedPrioritisedThreadPool;
-import ca.spottedleaf.concurrentutil.numa.OSNuma;
 import ca.spottedleaf.moonrise.common.PlatformHooks;
 import com.mojang.logging.LogUtils;
 import org.slf4j.Logger;
@@ -36,7 +35,7 @@ public final class MoonriseCommon {
     public static final BalancedPrioritisedThreadPool.OrderedStreamGroup SERVER_GROUP = MoonriseCommon.WORKER_POOL.createOrderedStreamGroup();
 
     public static void adjustWorkerThreads(final int configWorkerThreads, final int configIoThreads) {
-        int defaultWorkerThreads = OSNuma.getNativeInstance().getTotalCores()  / 2;
+        int defaultWorkerThreads = Runtime.getRuntime().availableProcessors() / 2;
         if (defaultWorkerThreads <= 4) {
             defaultWorkerThreads = defaultWorkerThreads <= 3 ? 1 : 2;
         } else {

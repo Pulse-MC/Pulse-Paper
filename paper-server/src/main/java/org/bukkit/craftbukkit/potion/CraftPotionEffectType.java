@@ -26,7 +26,7 @@ import org.jspecify.annotations.NullMarked;
 public class CraftPotionEffectType extends PotionEffectType implements Holderable<MobEffect>, io.papermc.paper.world.flag.PaperFeatureDependent<MobEffect> {
 
     public static PotionEffectType minecraftHolderToBukkit(Holder<MobEffect> minecraft) {
-        return CraftRegistry.minecraftHolderToBukkit(minecraft, Registries.MOB_EFFECT);
+        return CraftPotionEffectType.minecraftToBukkit(minecraft.value());
     }
 
     public static PotionEffectType minecraftToBukkit(MobEffect minecraft) {

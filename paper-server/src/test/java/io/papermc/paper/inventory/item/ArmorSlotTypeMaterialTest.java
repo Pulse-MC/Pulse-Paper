@@ -3,6 +3,7 @@ package io.papermc.paper.inventory.item;
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
@@ -11,7 +12,6 @@ import org.bukkit.Material;
 import org.bukkit.craftbukkit.util.CraftMagicNumbers;
 import org.bukkit.support.environment.AllFeatures;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,14 +21,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @AllFeatures
 public class ArmorSlotTypeMaterialTest {
 
-    public static List<Arguments> slotTypeParams() {
-        final List<Arguments> parameters = new ArrayList<>();
+    public static Stream<Object[]> slotTypeParams() {
+        final List<Object[]> parameters = new ArrayList<>();
         for (final PlayerArmorChangeEvent.SlotType slotType : PlayerArmorChangeEvent.SlotType.values()) {
             for (final Material item : slotType.getTypes()) {
-                parameters.add(Arguments.of(slotType, item));
+                parameters.add(new Object[]{ slotType, item });
             }
         }
-        return parameters;
+        return parameters.stream();
     }
 
     @ParameterizedTest(name = "{argumentsWithNames}")
@@ -46,15 +46,15 @@ public class ArmorSlotTypeMaterialTest {
         assertEquals(equippable.slot(), slot, item + " isn't set to the right slot");
     }
 
-    public static List<Arguments> equipableParams() {
-        final List<Arguments> parameters = new ArrayList<>();
+    public static Stream<Object[]> equipableParams() {
+        final List<Object[]> parameters = new ArrayList<>();
         for (final Item item : net.minecraft.core.registries.BuiltInRegistries.ITEM) {
             final Equippable equippable = item.components().get(DataComponents.EQUIPPABLE);
             if (equippable != null) {
-                parameters.add(Arguments.of(equippable, item));
+                parameters.add(new Object[]{equippable, item});
             }
         }
-        return parameters;
+        return parameters.stream();
     }
 
     @ParameterizedTest(name = "{argumentsWithNames}")

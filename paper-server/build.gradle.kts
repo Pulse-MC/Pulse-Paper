@@ -14,8 +14,9 @@ plugins {
 val paperMavenPublicUrl = "https://repo.papermc.io/repository/maven-public/"
 
 dependencies {
-    mache("io.papermc:mache:1.21.11+build.1")
+    mache("io.papermc:mache:1.21.10+build.9")
     paperclip("io.papermc:paperclip:3.0.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 paperweight {
@@ -24,8 +25,8 @@ paperweight {
 
     spigot {
         enabled = true
-        buildDataRef = "17f77cee7117ab9d6175f088ae8962bfd04e61a9"
-        packageVersion = "v1_21_R7" // also needs to be updated in MappingEnvironment
+        buildDataRef = "42d18d4c4653ffc549778dbe223f6994a031d69e"
+        packageVersion = "v1_21_R6" // also needs to be updated in MappingEnvironment
     }
 
     reobfPackagesToFix.addAll(
@@ -39,10 +40,6 @@ paperweight {
         "org.bukkit.craftbukkit",
         "org.spigotmc",
     )
-
-    updatingMinecraft {
-        // oldPaperCommit = "c82b438b5b4ea0b230439b8e690e34708cd11ab3"
-    }
 }
 
 tasks.generateDevelopmentBundle {
@@ -54,26 +51,29 @@ tasks.generateDevelopmentBundle {
 
 abstract class Services {
     @get:Inject
+    abstract val softwareComponentFactory: SoftwareComponentFactory
+
+    @get:Inject
     abstract val archiveOperations: ArchiveOperations
 }
 val services = objects.newInstance<Services>()
 
 if (project.providers.gradleProperty("publishDevBundle").isPresent) {
-    val devBundleComponent = publishing.softwareComponentFactory.adhoc("devBundle")
+    val devBundleComponent = services.softwareComponentFactory.adhoc("devBundle")
     components.add(devBundleComponent)
 
     val devBundle = configurations.consumable("devBundle") {
         attributes.attribute(DevBundleOutput.ATTRIBUTE, objects.named(DevBundleOutput.ZIP))
         outgoing.artifact(tasks.generateDevelopmentBundle.flatMap { it.devBundleFile })
     }
-    devBundleComponent.addVariantsFromConfiguration(devBundle) {}
+    devBundleComponent.addVariantsFromConfiguration(devBundle.get()) {}
 
     val runtime = configurations.consumable("serverRuntimeClasspath") {
         attributes.attribute(DevBundleOutput.ATTRIBUTE, objects.named(DevBundleOutput.SERVER_DEPENDENCIES))
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
         extendsFrom(configurations.runtimeClasspath.get())
     }
-    devBundleComponent.addVariantsFromConfiguration(runtime) {
+    devBundleComponent.addVariantsFromConfiguration(runtime.get()) {
         mapToMavenScope("runtime")
     }
 
@@ -82,7 +82,7 @@ if (project.providers.gradleProperty("publishDevBundle").isPresent) {
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_API))
         extendsFrom(configurations.compileClasspath.get())
     }
-    devBundleComponent.addVariantsFromConfiguration(compile) {
+    devBundleComponent.addVariantsFromConfiguration(compile.get()) {
         mapToMavenScope("compile")
     }
 
@@ -128,7 +128,7 @@ abstract class MockitoAgentProvider : CommandLineArgumentProvider {
 
 dependencies {
     implementation(project(":paper-api"))
-    implementation("ca.spottedleaf:concurrentutil:0.0.8")
+    implementation("ca.spottedleaf:concurrentutil:0.0.7")
     implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
     implementation("org.jline:jline-terminal-jni:3.27.1") // fall back to jni on java 21
     implementation("net.minecrell:terminalconsoleappender:1.3.0")
@@ -148,7 +148,7 @@ dependencies {
     implementation("com.velocitypowered:velocity-native:3.4.0-SNAPSHOT") {
         isTransitive = false
     }
-    implementation("io.netty:netty-codec-haproxy:4.2.7.Final") // Add support for proxy protocol
+    implementation("io.netty:netty-codec-haproxy:4.1.118.Final") // Add support for proxy protocol
     implementation("org.apache.logging.log4j:log4j-iostreams:2.24.1")
     implementation("org.ow2.asm:asm-commons:9.8")
     implementation("org.spongepowered:configurate-yaml:4.2.0")
@@ -163,7 +163,6 @@ dependencies {
     }
 
     testImplementation("io.github.classgraph:classgraph:4.8.179") // For mob goal test
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
     testImplementation("org.junit.platform:junit-platform-suite-engine:1.12.2")
     testImplementation("org.hamcrest:hamcrest:2.2")
@@ -193,7 +192,7 @@ tasks.jar {
         val build = System.getenv("BUILD_NUMBER") ?: null
         val buildTime = providers.environmentVariable("BUILD_STARTED_AT").map(Instant::parse).orElse(Instant.EPOCH).get()
         val gitHash = git.exec(providers, "rev-parse", "--short=7", "HEAD").get().trim()
-        val implementationVersion = "$mcVersion"
+        val implementationVersion = "$mcVersion-${build ?: "DEV"}-$gitHash"
         val date = git.exec(providers, "show", "-s", "--format=%ci", gitHash).get().trim()
         val gitBranch = git.exec(providers, "rev-parse", "--abbrev-ref", "HEAD").get().trim()
         attributes(

@@ -34,12 +34,12 @@ public class PaperPlayerLoginConnection extends ReadablePlayerCookieConnectionIm
 
     @Override
     public SocketAddress getAddress() {
-        return this.packetListener.connection.channel.remoteAddress();
+        return this.packetListener.connection.getRemoteAddress();
     }
 
     @Override
     public InetSocketAddress getClientAddress() {
-        return (InetSocketAddress) this.packetListener.connection.getRemoteAddress();
+        return (InetSocketAddress) this.packetListener.connection.channel.remoteAddress();
     }
 
     @Override

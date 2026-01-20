@@ -243,7 +243,7 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
      * Separate from the portal game rule.
      *
      * @return whether this server allows the Nether or not
-     * @see GameRules#ALLOW_ENTERING_NETHER_USING_PORTALS
+     * @see GameRule#ALLOW_ENTERING_NETHER_USING_PORTALS
      */
     public boolean getAllowNether();
 

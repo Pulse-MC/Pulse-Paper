@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/entity/ai/goal/target/TargetGoal.java
 +++ b/net/minecraft/world/entity/ai/goal/target/TargetGoal.java
-@@ -62,7 +_,7 @@
+@@ -63,7 +_,7 @@
                          }
                      }
  
@@ -9,7 +9,7 @@
                      return true;
                  }
              }
-@@ -82,7 +_,7 @@
+@@ -83,7 +_,7 @@
  
      @Override
      public void stop() {

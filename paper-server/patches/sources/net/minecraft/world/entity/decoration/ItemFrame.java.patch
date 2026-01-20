@@ -13,9 +13,9 @@
  
      private AABB createBoundingBox(BlockPos pos, Direction direction, boolean hasFramedMap) {
 +        // Paper start - add static method
-+        return createBoundingBoxStatic(pos, direction, hasFramedMap);
++        return calculateBoundingBoxStatic(pos, direction, hasFramedMap);
 +    }
-+    public static AABB createBoundingBoxStatic(BlockPos pos, Direction direction, boolean hasFramedMap) {
++    public static AABB calculateBoundingBoxStatic(BlockPos pos, Direction direction, boolean hasFramedMap) {
 +        // Paper end - add static method
          float f = 0.46875F;
          Vec3 vec3 = Vec3.atCenterOf(pos).relative(direction, -0.46875);
@@ -51,21 +51,22 @@
                  this.dropItem(level, damageSource.getEntity(), false);
                  this.gameEvent(GameEvent.BLOCK_CHANGE, damageSource.getEntity());
                  this.playSound(this.getRemoveItemSound(), 1.0F, 1.0F);
-@@ -258,6 +_,13 @@
+@@ -258,6 +_,14 @@
          return this.getEntityData().get(DATA_ITEM);
      }
  
 +    // Paper start - Fix MC-123848 (spawn item frame drops above block)
++    @Nullable
 +    @Override
-+    public net.minecraft.world.entity.item.@Nullable ItemEntity spawnAtLocation(ServerLevel serverLevel, ItemStack stack) {
++    public net.minecraft.world.entity.item.ItemEntity spawnAtLocation(ServerLevel serverLevel, ItemStack stack) {
 +        return this.spawnAtLocation(serverLevel, stack, this.getDirection() == Direction.DOWN ? -0.6F : 0.0F);
 +    }
 +    // Paper end
 +
-     public @Nullable MapId getFramedMapId(ItemStack stack) {
+     @Nullable
+     public MapId getFramedMapId(ItemStack stack) {
          return stack.get(DataComponents.MAP_ID);
-     }
-@@ -271,13 +_,19 @@
+@@ -272,13 +_,19 @@
      }
  
      public void setItem(ItemStack stack, boolean updateNeighbours) {
@@ -86,7 +87,7 @@
              this.playSound(this.getAddItemSound(), 1.0F, 1.0F);
          }
  
-@@ -304,6 +_,7 @@
+@@ -305,6 +_,7 @@
      }
  
      private void onItemChanged(ItemStack item) {
@@ -94,7 +95,7 @@
          if (!item.isEmpty() && item.getFrame() != this) {
              item.setEntityRepresentation(this);
          }
-@@ -372,7 +_,13 @@
+@@ -373,7 +_,13 @@
                      if (savedData != null && savedData.isTrackedCountOverLimit(256)) {
                          return InteractionResult.FAIL;
                      } else {
@@ -109,7 +110,7 @@
                          this.gameEvent(GameEvent.BLOCK_CHANGE, player);
                          itemInHand.consume(1, player);
                          return InteractionResult.SUCCESS;
-@@ -381,6 +_,13 @@
+@@ -382,6 +_,13 @@
                      return InteractionResult.PASS;
                  }
              } else {

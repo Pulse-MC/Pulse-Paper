@@ -7,7 +7,6 @@ import io.papermc.paper.registry.tag.TagKey;
 import java.util.List;
 import net.kyori.adventure.key.Key;
 import org.bukkit.damage.DamageType;
-import org.checkerframework.checker.index.qual.NonNegative;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NullMarked;
@@ -33,8 +32,7 @@ public interface BlocksAttacks {
      *
      * @return the delay in seconds
      */
-    @Contract(pure = true)
-    @NonNegative float blockDelaySeconds();
+    float blockDelaySeconds();
 
     /**
      * Gets the multiplier applied to the cooldown time for the item when attacked by a disabling attack (the multiplier for {@link Weapon#disableBlockingForSeconds()}).
@@ -43,15 +41,13 @@ public interface BlocksAttacks {
      *
      * @return the multiplier for the cooldown time
      */
-    @Contract(pure = true)
-    @NonNegative float disableCooldownScale();
+    float disableCooldownScale();
 
     /**
      * Gets a list of {@link DamageReduction} of how much damage should be blocked in a given attack.
      *
      * @return a list of damage reductions
      */
-    @Contract(pure = true)
     List<DamageReduction> damageReductions();
 
     /**
@@ -59,7 +55,6 @@ public interface BlocksAttacks {
      *
      * @return the damage function
      */
-    @Contract(pure = true)
     ItemDamageFunction itemDamage();
 
     /**
@@ -67,7 +62,6 @@ public interface BlocksAttacks {
      *
      * @return a damage type tag key, or null if there is no such tag key
      */
-    @Contract(pure = true)
     @Nullable TagKey<DamageType> bypassedBy();
 
     /**
@@ -75,7 +69,6 @@ public interface BlocksAttacks {
      *
      * @return a key of the sound
      */
-    @Contract(pure = true)
     @Nullable Key blockSound();
 
     /**
@@ -83,7 +76,6 @@ public interface BlocksAttacks {
      *
      * @return a key of the sound
      */
-    @Contract(pure = true)
     @Nullable Key disableSound();
 
     /**
@@ -94,10 +86,10 @@ public interface BlocksAttacks {
     interface Builder extends DataComponentBuilder<BlocksAttacks> {
 
         @Contract(value = "_ -> this", mutates = "this")
-        Builder blockDelaySeconds(@NonNegative float delay);
+        Builder blockDelaySeconds(float delay);
 
         @Contract(value = "_ -> this", mutates = "this")
-        Builder disableCooldownScale(@NonNegative float scale);
+        Builder disableCooldownScale(float scale);
 
         @Contract(value = "_ -> this", mutates = "this")
         Builder addDamageReduction(DamageReduction reduction);

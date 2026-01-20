@@ -1,7 +1,7 @@
 --- a/net/minecraft/network/chat/MessageSignature.java
 +++ b/net/minecraft/network/chat/MessageSignature.java
 @@ -13,6 +_,7 @@
- import org.jspecify.annotations.Nullable;
+ import net.minecraft.util.SignatureValidator;
  
  public record MessageSignature(byte[] bytes) {
 +    public net.kyori.adventure.chat.SignedMessage.Signature adventure() { return () -> this.bytes; } // Paper - adventure; support signed messages

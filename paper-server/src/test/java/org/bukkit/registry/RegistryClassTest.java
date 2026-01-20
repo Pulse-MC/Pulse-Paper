@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.flag.FeatureElement;
 import net.minecraft.world.flag.FeatureFlags;
 import org.bukkit.Bukkit;
@@ -62,7 +62,7 @@ public class RegistryClassTest {
 
     private static final Map<Class<? extends Keyed>, Data> INIT_DATA = new HashMap<>();
     private static final List<Arguments> FIELD_DATA_CACHE = new ArrayList<>();
-    private static RegistryAccess vanilla_registry;
+    private static RegistryAccess.Frozen vanilla_registry;
 
     public static Stream<Arguments> fieldData() {
         return RegistryClassTest.FIELD_DATA_CACHE.stream();
@@ -81,13 +81,14 @@ public class RegistryClassTest {
     }
 
     private static void initValueClasses() {
-        RegistryClassTest.vanilla_registry = RegistryHelper.createRegistries(FeatureFlags.VANILLA_SET).access();
+        RegistryClassTest.vanilla_registry = RegistryHelper.createRegistry(FeatureFlags.VANILLA_SET);
 
         Map<Class<? extends Keyed>, List<NamespacedKey>> outsideRequest = new LinkedHashMap<>();
 
         // First init listening for outside requests
         RegistriesArgumentProvider.getData()
-                .map(RegistriesArgumentProvider.RegistryArgument::api)
+                .map(Arguments::get).map(args -> args[0])
+                .map(type -> (Class<? extends Keyed>) type)
                 .forEach(type -> {
                     Registry<?> spyRegistry = Bukkit.getRegistry(type);
                     spyOutsideRequests(outsideRequest, type, spyRegistry);
@@ -95,7 +96,9 @@ public class RegistryClassTest {
 
         // Init all registries and recorde the outcome
         RegistriesArgumentProvider.getData()
-                .map(RegistriesArgumentProvider.RegistryArgument::api)
+                .map(Arguments::get)
+                .map(args -> args[0])
+                .map(type -> (Class<? extends Keyed>) type)
                 .forEachOrdered(type -> {
                     try {
                         Registry<?> spyRegistry = Bukkit.getRegistry(type);
@@ -157,7 +160,9 @@ public class RegistryClassTest {
 
         // Cleanup
         RegistriesArgumentProvider.getData()
-                .map(RegistriesArgumentProvider.RegistryArgument::api)
+                .map(Arguments::get)
+                .map(args -> args[0])
+                .map(type -> (Class<? extends Keyed>) type)
                 .forEach(type -> MockUtil.resetMock(Bukkit.getRegistry(type)));
     }
 
@@ -176,8 +181,8 @@ public class RegistryClassTest {
     }
 
     private static void initFieldDataCache() {
-        RegistriesArgumentProvider.getData().map(args -> {
-            Class<? extends Keyed> type = args.api();
+        RegistriesArgumentProvider.getData().map(arguments -> {
+            Class<? extends Keyed> type = (Class<? extends Keyed>) arguments.get()[0];
             Map<String, List<Class<? extends Annotation>>> annotations = RegistryClassTest.getFieldAnnotations(type);
 
             List<FieldData> fields = new ArrayList<>();
@@ -213,7 +218,7 @@ public class RegistryClassTest {
                 fields.add(new FieldData(field, annotations.computeIfAbsent(field.getName(), k -> new ArrayList<>())));
             }
 
-            return Arguments.arguments(args.api(), args.registryKey(), fields);
+            return Arguments.arguments(arguments.get()[0], arguments.get()[1], fields);
         }).forEach(FIELD_DATA_CACHE::add);
     }
 
@@ -486,11 +491,11 @@ public class RegistryClassTest {
     @ParameterizedTest
     @MethodSource("fieldData")
     public <T extends Keyed> void testMissingConstants(Class<T> type, ResourceKey<net.minecraft.core.Registry<?>> registryKey) throws IllegalAccessException {
-        net.minecraft.core.Registry<Object> registry = RegistryHelper.registryAccess().lookupOrThrow(registryKey);
-        List<Identifier> missingKeys = new ArrayList<>();
+        net.minecraft.core.Registry<Object> registry = RegistryHelper.getRegistry().lookupOrThrow(registryKey);
+        List<ResourceLocation> missingKeys = new ArrayList<>();
 
         for (Object nmsObject : registry) {
-            Identifier minecraftKey = registry.getKey(nmsObject);
+            ResourceLocation minecraftKey = registry.getKey(nmsObject);
 
             try {
                 Field field = type.getField(this.convertToFieldName(minecraftKey.getPath()));

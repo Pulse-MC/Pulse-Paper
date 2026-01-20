@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import java.security.CodeSigner;
 import java.security.CodeSource;
 import java.util.Enumeration;
-import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -60,13 +59,7 @@ public class PaperSimplePluginClassLoader extends URLClassLoader {
 
         // See UrlClassLoader#findClass(String)
         String path = name.replace('.', '/').concat(".class");
-        JarEntry entry;
-        try {
-            entry = this.jar.getJarEntry(path);
-        } catch (IllegalStateException zipFileClosed) {
-            String pluginName = Objects.requireNonNullElse(configuration.getName(), "<uninit>");
-            throw new IllegalStateException("The paper plugin classloader for " + pluginName + " has thrown a zip file error.", zipFileClosed);
-        }
+        JarEntry entry = this.jar.getJarEntry(path);
         if (entry == null) {
             throw new ClassNotFoundException(name);
         }

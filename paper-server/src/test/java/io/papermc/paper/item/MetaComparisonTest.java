@@ -22,13 +22,13 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.support.environment.VanillaFeature;
+import org.bukkit.support.environment.AllFeatures;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 // TODO: This should technically be used to compare legacy meta vs the newly implemented
-@VanillaFeature
+@AllFeatures
 public class MetaComparisonTest {
 
     private static final ItemFactory FACTORY = CraftItemFactory.instance();
