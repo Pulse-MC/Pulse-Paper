@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.TextColor.color;
 import static io.papermc.paper.ServerBuildInfo.StringRepresentation.VERSION_SIMPLE;
+// PULSE_MIDIFIED
 
 @DefaultQualifier(NonNull.class)
 public class PaperVersionFetcher implements VersionFetcher {
@@ -44,7 +45,7 @@ public class PaperVersionFetcher implements VersionFetcher {
     // Pulse API Endpoints
     private static final String API_DEV_BUILDS = "https://api.pulsemc.dev/devbuilds";
     private static final String API_RELEASES = "https://api.pulsemc.dev/releases";
-    private static final String DOWNLOAD_PAGE = "https://pulsemc.dev/downloads";
+    private static final String DOWNLOAD_PAGE = "https://pulsemc.dev/";
 
     private static final ServerBuildInfo BUILD_INFO = ServerBuildInfo.buildInfo();
     private static final String USER_AGENT = BUILD_INFO.brandName() + "/" + BUILD_INFO.asString(VERSION_SIMPLE) + " (Pulse Version Checker)";

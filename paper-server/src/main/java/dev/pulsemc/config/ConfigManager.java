@@ -11,36 +11,36 @@ public class ConfigManager {
 
     public enum BatchingMode { SMART_EXECUTION, STRICT_TICK, INTERVAL }
 
-    // --- Core ---
+    // Core
     public static boolean enabled = true;
 
-    // --- Batching ---
+    // Batching
     public static BatchingMode batchingMode = BatchingMode.SMART_EXECUTION;
     public static int flushInterval = 25;
     public static int maxBatchBytes = 1460; // MTU Safety
     public static List<String> instantPackets = new ArrayList<>();
     public static int safety_margin = 256;
 
-    // --- Optimization ---
+    // Optimization
     public static boolean optOffsets = true;
     public static boolean optExplosions = true;
     public static int optExplosionThreshold = 512;
 
-    // --- Compression ---
+    // Compression
     public static int compressionLevel = 4;
     public static int compressionThreshold = 256;
 
-    // --- Compatibility ---
+    // Compatibility
     public static boolean hybridMode = true;
     public static boolean emulateEvents = true;
     public static List<String> ignoredPackets = new ArrayList<>();
 
-    // --- Mod ---
+    // Mod
     public static boolean modHandshake = true;
     public static boolean modRequire = false;
     public static String modKickMessage = "<red>To play on this server, the <bold>Pulse Fabric</bold> mod is required!";
 
-    // --- Metrics ---
+    // Metrics
     public static boolean metricsEnabled = true;
     public static int metricsUpdateInterval = 5;
     public static boolean metricNetwork = true;
@@ -116,14 +116,6 @@ public class ConfigManager {
             
             # Packet batching (core Pulse feature)
             batching:
-              # Flush mode:
-              # SMART_EXECUTION – flush after plugin/script execution (recommended)
-              # STRICT_TICK     – flush at end of each server tick (50ms)
-              # INTERVAL        – flush every N milliseconds (Not fully implemented yet)
-              mode: SMART_EXECUTION
-            
-              # Flush interval (ms), only for INTERVAL mode
-              interval: 25
             
               # MTU safety limit.
               # Buffer is flushed immediately if this size is exceeded.

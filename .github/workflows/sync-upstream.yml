@@ -1,0 +1,48 @@
+name: PulseMC Upstream Sync
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Раз в сутки
+  workflow_dispatch: # Кнопка для ручного запуска
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.email "bot@pulsemc.dev"
+          git config --global user.name "PulseMC Sync Bot"
+
+      - name: Sync with Upstream
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git remote add upstream https://github.com/PaperMC/Paper.git
+          git fetch upstream main
+
+          SYNC_BRANCH="upstream-sync-${{ github.run_number }}"
+          git checkout -b "$SYNC_BRANCH"
+
+          if git merge upstream/main; then
+            echo "[PULSE] Merge successful, pushing branch..."
+            git push origin "$SYNC_BRANCH"
+          
+            gh pr create \
+              --title "🔄 Update Upstream (Paper)" \
+              --body "New changes from PaperMC have been merged automatically. Check if the build passes!" \
+              --base main \
+              --head "$SYNC_BRANCH"
+          else
+            echo "[PULSE] Merge conflict detected! Creating a manual report..."
+            exit 1
+          fi

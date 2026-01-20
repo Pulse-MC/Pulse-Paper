@@ -29,11 +29,11 @@ public class PulseBar {
         if (viewers.contains(player.getUniqueId())) {
             viewers.remove(player.getUniqueId());
             player.hideBossBar(bossBar);
-            player.sendMessage(mm.deserialize("<#ff2929>PulseMC: <grey>Metrics bar disabled."));
+            player.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <grey>Metrics bar disabled."));
         } else {
             viewers.add(player.getUniqueId());
             player.showBossBar(bossBar);
-            player.sendMessage(mm.deserialize("<green>PulseMC: <grey>Metrics bar enabled."));
+            player.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <grey>Metrics bar enabled."));
         }
     }
 

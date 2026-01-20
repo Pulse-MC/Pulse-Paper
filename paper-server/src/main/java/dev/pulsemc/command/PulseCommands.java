@@ -55,9 +55,9 @@ public class PulseCommands {
         String err = ConfigManager.load();
         CommandSender sender = ctx.getSource().getBukkitSender();
         if (err != null) {
-            sender.sendMessage(mm.deserialize("<#ff2929>Error: " + err));
+            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <red>Error: " + err));
         } else {
-            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold><gray>: <green>Configuration reloaded!"));
+            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <green>Configuration reloaded!"));
         }
         return 1;
     }
@@ -66,7 +66,8 @@ public class PulseCommands {
         if (ctx.getSource().getEntity() instanceof net.minecraft.server.level.ServerPlayer nmsPlayer) {
             PulseBar.toggle(nmsPlayer.getBukkitEntity());
         } else {
-            ctx.getSource().sendFailure(Component.literal("Only for players!"));
+            CommandSender sender = ctx.getSource().getBukkitSender();
+            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <red>Only for players!"));
         }
         return 1;
     }
