@@ -14,7 +14,7 @@ import org.jspecify.annotations.NullMarked;
  * as multiple acceleration calculations are done.
  */
 @NullMarked
-public class EntityPushedByEntityAttackEvent extends EntityKnockbackEvent {
+public class EntityPushedByEntityAttackEvent extends EntityKnockbackEvent implements Cancellable {
 
     private final Entity pushedBy;
 
@@ -53,5 +53,15 @@ public class EntityPushedByEntityAttackEvent extends EntityKnockbackEvent {
     @Deprecated(since = "1.20.6", forRemoval = true)
     public void setAcceleration(final Vector acceleration) {
         super.setKnockback(acceleration);
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return super.isCancelled();
+    }
+
+    @Override
+    public void setCancelled(final boolean cancel) {
+        super.setCancelled(cancel);
     }
 }

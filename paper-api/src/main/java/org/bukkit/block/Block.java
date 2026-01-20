@@ -483,7 +483,9 @@ public interface Block extends Metadatable, Translatable, net.kyori.adventure.tr
      */
     boolean isBurnable();
     /**
-     * Checks if this block can be immediately replaced by another block, such as placing a new block in air or tall grass.
+     * Check if this block is replaceable
+     * <p>
+     * Determined by Minecraft, representing a block that is not AIR that you can still place a new block at, such as flowers.
      * @return true if block is replaceable
      */
     boolean isReplaceable();

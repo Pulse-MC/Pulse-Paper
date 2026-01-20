@@ -25,7 +25,7 @@
 +                            blockList.destroyBlock(blockPos, true, null); // CraftBukkit
                          }
  
--                        level.setBlock(blockPos, block.defaultBlockState(), Block.UPDATE_ALL);
+-                        level.setBlock(blockPos, block.defaultBlockState(), 3);
 +                        blockList.setBlock(blockPos, block.defaultBlockState(), 3); // CraftBukkit
                      }
                  }

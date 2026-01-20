@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import net.kyori.adventure.text.Component;
 import org.bukkit.BanEntry;
 import org.bukkit.DyeColor;
 import org.bukkit.Effect;
@@ -289,7 +288,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
     /**
      * Retrieves a cookie from this player.
      *
-     * @param key the key identifying the cookie
+     * @param key the key identifying the cookie cookie
      * @return a {@link CompletableFuture} that will be completed when the
      * Cookie response is received or otherwise available. If the cookie is not
      * set in the client, the {@link CompletableFuture} will complete with a
@@ -300,7 +299,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
     /**
      * Stores a cookie in this player's client.
      *
-     * @param key the key identifying the cookie
+     * @param key the key identifying the cookie cookie
      * @param value the data to store in the cookie
      * @throws IllegalStateException if a cookie cannot be stored at this time
      */
@@ -339,12 +338,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      *
      * @see #kick(net.kyori.adventure.text.Component)
      */
-    default void kick() {
-        class Holder {
-            public static final Component DEFAULT_KICK_MESSAGE = Component.translatable("multiplayer.disconnect.kicked");
-        }
-        this.kick(Holder.DEFAULT_KICK_MESSAGE);
-    }
+    void kick();
 
     /**
      * Kicks player with custom kick message.
@@ -576,18 +570,14 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * location more generally and is not limited to beds.
      */
     @Deprecated(since = "1.20.4")
-    default void setBedSpawnLocation(@Nullable Location location) {
-        this.setBedSpawnLocation(location, false);
-    }
+    public void setBedSpawnLocation(@Nullable Location location);
 
     /**
      * Sets the Location where the player will respawn.
      *
      * @param location where to set the respawn location
      */
-    default void setRespawnLocation(@Nullable Location location) {
-        this.setRespawnLocation(location, false);
-    }
+    public void setRespawnLocation(@Nullable Location location);
 
     /**
      * Sets the Location where the player will spawn at their bed.
@@ -601,9 +591,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * location more generally and is not limited to beds.
      */
     @Deprecated(since = "1.20.4")
-    default void setBedSpawnLocation(@Nullable Location location, boolean force) {
-        this.setRespawnLocation(location, force);
-    }
+    public void setBedSpawnLocation(@Nullable Location location, boolean force);
 
     /**
      * Sets the Location where the player will respawn.
@@ -645,9 +633,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @deprecated Magic value
      */
     @Deprecated(since = "1.6.2")
-    default void playNote(Location loc, byte instrument, byte note) {
-        this.playNote(loc, Instrument.getByType(instrument), new Note(note));
-    }
+    public void playNote(Location loc, byte instrument, byte note);
 
     /**
      * Play a note for the player at a location. <br>
@@ -671,9 +657,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param volume The volume of the sound
      * @param pitch The pitch of the sound
      */
-    default void playSound(Location location, Sound sound, float volume, float pitch) {
-        this.playSound(location, sound, SoundCategory.MASTER, volume, pitch);
-    }
+    public void playSound(Location location, Sound sound, float volume, float pitch);
 
     /**
      * Play a sound for a player at the location.
@@ -687,9 +671,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param volume The volume of the sound
      * @param pitch The pitch of the sound
      */
-    default void playSound(Location location, String sound, float volume, float pitch) {
-        this.playSound(location, sound, SoundCategory.MASTER, volume, pitch);
-    }
+    public void playSound(Location location, String sound, float volume, float pitch);
 
     /**
      * Play a sound for a player at the location.
@@ -761,9 +743,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param volume The volume of the sound
      * @param pitch The pitch of the sound
      */
-    default void playSound(Entity entity, Sound sound, float volume, float pitch) {
-        this.playSound(entity, sound, SoundCategory.MASTER, volume, pitch);
-    }
+    public void playSound(Entity entity, Sound sound, float volume, float pitch);
 
     /**
      * Play a sound for a player at the location of the entity.
@@ -775,9 +755,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param volume The volume of the sound
      * @param pitch The pitch of the sound
      */
-    default void playSound(Entity entity, String sound, float volume, float pitch) {
-        this.playSound(entity, sound, SoundCategory.MASTER, volume, pitch);
-    }
+    public void playSound(Entity entity, String sound, float volume, float pitch);
 
     /**
      * Play a sound for a player at the location of the entity.
@@ -840,18 +818,14 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      *
      * @param sound the sound to stop
      */
-    default void stopSound(Sound sound) {
-        this.stopSound(sound, null);
-    }
+    public void stopSound(Sound sound);
 
     /**
      * Stop the specified sound from playing.
      *
      * @param sound the sound to stop
      */
-    default void stopSound(String sound) {
-        this.stopSound(sound, null);
-    }
+    public void stopSound(String sound);
 
     /**
      * Stop the specified sound from playing.
@@ -859,9 +833,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param sound the sound to stop
      * @param category the category of the sound
      */
-    default void stopSound(Sound sound, @Nullable SoundCategory category) {
-        this.stopSound(sound.getKey().getKey(), category);
-    }
+    public void stopSound(Sound sound, @Nullable SoundCategory category);
 
     /**
      * Stop the specified sound from playing.
@@ -1005,9 +977,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param progress the progress from 0.0 - 1.0 where 0 is no damage and
      * 1.0 is the most damaged
      */
-    default void sendBlockDamage(Location loc, float progress) {
-        this.sendBlockDamage(loc, progress, this.getEntityId());
-    }
+    public void sendBlockDamage(Location loc, float progress);
 
     // Paper start
     /**
@@ -1870,7 +1840,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
     public int getExpCooldown();
 
     /**
-     * Sets the player's cooldown between picking up experience orbs.
+     * Sets the player's cooldown between picking up experience orbs..
      *
      * <strong>Note:</strong> Setting this to 0 allows the player to pick up
      * instantly, but setting this to a negative value will cause the player to
@@ -2073,9 +2043,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param plugin Plugin that wants to hide the player
      * @param player Player to hide
      */
-    default void hidePlayer(Plugin plugin, Player player) {
-        this.hideEntity(plugin, player);
-    }
+    public void hidePlayer(Plugin plugin, Player player);
 
     /**
      * Allows this player to see a player that was previously hidden
@@ -2094,9 +2062,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param plugin Plugin that wants to show the player
      * @param player Player to show
      */
-    default void showPlayer(Plugin plugin, Player player) {
-        this.showEntity(plugin, player);
-    }
+    public void showPlayer(Plugin plugin, Player player);
 
     /**
      * Checks to see if a player has been hidden from this player
@@ -2225,10 +2191,10 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * Notes:
      * <ul>
      * <li>Players can disable server textures on their client, in which
-     *     case this method will have no effect on them. Use the
+     *     case this method will have no affect on them. Use the
      *     {@link PlayerResourcePackStatusEvent} to figure out whether or not
      *     the player loaded the pack!
-     * <li>The request is sent with "null" as the hash. This might result
+     * <li>The request is send with "null" as the hash. This might result
      *     in newer versions not loading the pack correctly.
      * </ul>
      *
@@ -2241,9 +2207,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      *     should use {@link #setResourcePack(UUID, String, byte[], net.kyori.adventure.text.Component, boolean)}.
      */
     @Deprecated(since = "1.7.2")
-    default void setTexturePack(String url) {
-        this.setResourcePack(url);
-    }
+    public void setTexturePack(String url);
 
     /**
      * Request that the player's client download and switch resource packs.
@@ -2260,10 +2224,10 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * Notes:
      * <ul>
      * <li>Players can disable server resources on their client, in which
-     *     case this method will have no effect on them. Use the
+     *     case this method will have no affect on them. Use the
      *     {@link PlayerResourcePackStatusEvent} to figure out whether or not
      *     the player loaded the pack!
-     * <li>The request is sent with empty string as the hash. This might result
+     * <li>The request is send with empty string as the hash. This might result
      *     in newer versions not loading the pack correctly.
      * </ul>
      *
@@ -2276,9 +2240,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @deprecated in favour of {@link #sendResourcePacks(net.kyori.adventure.resource.ResourcePackRequest)}
      */
     @Deprecated // Paper - adventure
-    default void setResourcePack(String url) {
-        this.setResourcePack(url, (byte[]) null);
-    }
+    public void setResourcePack(String url);
 
     /**
      * Request that the player's client download and switch resource packs.
@@ -2298,7 +2260,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * Notes:
      * <ul>
      * <li>Players can disable server resources on their client, in which
-     *     case this method will have no effect on them. Use the
+     *     case this method will have no affect on them. Use the
      *     {@link PlayerResourcePackStatusEvent} to figure out whether or not
      *     the player loaded the pack!
      * <li>The request is sent with empty string as the hash when the hash is
@@ -2320,9 +2282,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      *     long.
      */
     @Deprecated // Paper - adventure
-    default void setResourcePack(String url, byte @Nullable [] hash) {
-        this.setResourcePack(url, hash, false);
-    }
+    public void setResourcePack(String url, byte @Nullable [] hash);
 
     /**
      * Request that the player's client download and switch resource packs.
@@ -2342,7 +2302,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * Notes:
      * <ul>
      * <li>Players can disable server resources on their client, in which
-     *     case this method will have no effect on them. Use the
+     *     case this method will have no affect on them. Use the
      *     {@link PlayerResourcePackStatusEvent} to figure out whether or not
      *     the player loaded the pack!
      * <li>To remove a resource pack you can use
@@ -2367,9 +2327,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      *     long.
      */
     @Deprecated // Paper - adventure
-    default void setResourcePack(String url, byte @Nullable [] hash, @Nullable String prompt) {
-        this.setResourcePack(url, hash, prompt, false);
-    }
+    public void setResourcePack(String url, byte @Nullable [] hash, @Nullable String prompt);
 
     // Paper start
     /**
@@ -2390,7 +2348,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * Notes:
      * <ul>
      * <li>Players can disable server resources on their client, in which
-     *     case this method will have no effect on them. Use the
+     *     case this method will have no affect on them. Use the
      *     {@link PlayerResourcePackStatusEvent} to figure out whether or not
      *     the player loaded the pack!
      * <li>To remove a resource pack you can use
@@ -2437,7 +2395,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * Notes:
      * <ul>
      * <li>Players can disable server resources on their client, in which
-     *     case this method will have no effect on them. Use the
+     *     case this method will have no affect on them. Use the
      *     {@link PlayerResourcePackStatusEvent} to figure out whether or not
      *     the player loaded the pack!
      * <li>To remove a resource pack you can use
@@ -2463,9 +2421,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @deprecated in favour of {@link #sendResourcePacks(net.kyori.adventure.resource.ResourcePackRequest)}
      */
     @Deprecated // Paper - adventure
-    default void setResourcePack(String url, byte @Nullable [] hash, boolean force) {
-        this.setResourcePack(url, hash, (String) null, force);
-    }
+    public void setResourcePack(String url, byte @Nullable [] hash, boolean force);
 
     /**
      * Request that the player's client download and switch resource packs.
@@ -2485,7 +2441,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * Notes:
      * <ul>
      * <li>Players can disable server resources on their client, in which
-     *     case this method will have no effect on them. Use the
+     *     case this method will have no affect on them. Use the
      *     {@link PlayerResourcePackStatusEvent} to figure out whether or not
      *     the player loaded the pack!
      * <li>To remove a resource pack you can use
@@ -2533,7 +2489,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * Notes:
      * <ul>
      * <li>Players can disable server resources on their client, in which
-     *     case this method will have no effect on them. Use the
+     *     case this method will have no affect on them. Use the
      *     {@link PlayerResourcePackStatusEvent} to figure out whether or not
      *     the player loaded the pack!
      * <li>To remove a resource pack you can use
@@ -2582,7 +2538,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * Notes:
      * <ul>
      * <li>Players can disable server resources on their client, in which
-     *     case this method will have no effect on them. Use the
+     *     case this method will have no affect on them. Use the
      *     {@link PlayerResourcePackStatusEvent} to figure out whether or not
      *     the player loaded the pack!
      * <li>To remove a resource pack you can use
@@ -2631,7 +2587,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * Notes:
      * <ul>
      * <li>Players can disable server resources on their client, in which
-     *     case this method will have no effect on them. Use the
+     *     case this method will have no affect on them. Use the
      *     {@link PlayerResourcePackStatusEvent} to figure out whether or not
      *     the player loaded the pack!
      * <li>To remove a resource pack you can use
@@ -2677,7 +2633,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * Notes:
      * <ul>
      * <li>Players can disable server resources on their client, in which
-     *     case this method will have no effect on them.
+     *     case this method will have no affect on them.
      * <li>To remove a resource pack you can use
      *     {@link #removeResourcePacks(UUID, UUID...)} or {@link #clearResourcePacks()}.
      * </ul>
@@ -2710,7 +2666,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * Notes:
      * <ul>
      * <li>Players can disable server resources on their client, in which
-     *     case this method will have no effect on them.
+     *     case this method will have no affect on them.
      * <li>To remove a resource pack you can use
      *     {@link #removeResourcePacks(UUID, UUID...)} or {@link #clearResourcePacks()}.
      * </ul>
@@ -2744,7 +2700,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * Notes:
      * <ul>
      * <li>Players can disable server resources on their client, in which
-     *     case this method will have no effect on them.
+     *     case this method will have no affect on them.
      * <li>To remove a resource pack you can use
      *     {@link #removeResourcePacks(UUID, UUID...)} or {@link #clearResourcePacks()}.
      * </ul>
@@ -2779,7 +2735,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * Notes:
      * <ul>
      * <li>Players can disable server resources on their client, in which
-     *     case this method will have no effect on them.
+     *     case this method will have no affect on them.
      * <li>To remove a resource pack you can use
      *     {@link #removeResourcePacks(UUID, UUID...)} or {@link #clearResourcePacks()}.
      * </ul>
@@ -2853,7 +2809,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * Notes:
      * <ul>
      * <li>Players can disable server resources on their client, in which
-     *     case this method will have no effect on them. Use the
+     *     case this method will have no affect on them. Use the
      *     {@link PlayerResourcePackStatusEvent} to figure out whether or not
      *     the player loaded the pack!
      * <li>To remove a resource pack you can use
@@ -3069,9 +3025,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param location the location to spawn at
      * @param count the number of particles
      */
-    default void spawnParticle(Particle particle, Location location, int count) {
-        this.spawnParticle(particle, location.getX(), location.getY(), location.getZ(), count);
-    }
+    public void spawnParticle(Particle particle, Location location, int count);
 
     /**
      * Spawns the particle (the number of times specified by count)
@@ -3083,9 +3037,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param z the position on the z axis to spawn at
      * @param count the number of particles
      */
-    default void spawnParticle(Particle particle, double x, double y, double z, int count) {
-        this.spawnParticle(particle, x, y, z, count, null);
-    }
+    public void spawnParticle(Particle particle, double x, double y, double z, int count);
 
     /**
      * Spawns the particle (the number of times specified by count)
@@ -3098,9 +3050,8 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param data the data to use for the particle or null,
      *             the type of this depends on {@link Particle#getDataType()}
      */
-    default <T> void spawnParticle(Particle particle, Location location, int count, @Nullable T data) {
-        this.spawnParticle(particle, location.getX(), location.getY(), location.getZ(), count, data);
-    }
+    public <T> void spawnParticle(Particle particle, Location location, int count, @Nullable T data);
+
 
     /**
      * Spawns the particle (the number of times specified by count)
@@ -3115,9 +3066,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param data the data to use for the particle or null,
      *             the type of this depends on {@link Particle#getDataType()}
      */
-    default <T> void spawnParticle(Particle particle, double x, double y, double z, int count, @Nullable T data) {
-        this.spawnParticle(particle, x, y, z, count, 0, 0, 0, data);
-    }
+    public <T> void spawnParticle(Particle particle, double x, double y, double z, int count, @Nullable T data);
 
     /**
      * Spawns the particle (the number of times specified by count)
@@ -3132,9 +3081,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param offsetY the maximum random offset on the Y axis
      * @param offsetZ the maximum random offset on the Z axis
      */
-    default void spawnParticle(Particle particle, Location location, int count, double offsetX, double offsetY, double offsetZ) {
-        this.spawnParticle(particle, location.getX(), location.getY(), location.getZ(), count, offsetX, offsetY, offsetZ);
-    }
+    public void spawnParticle(Particle particle, Location location, int count, double offsetX, double offsetY, double offsetZ);
 
     /**
      * Spawns the particle (the number of times specified by count)
@@ -3151,9 +3098,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param offsetY the maximum random offset on the Y axis
      * @param offsetZ the maximum random offset on the Z axis
      */
-    default void spawnParticle(Particle particle, double x, double y, double z, int count, double offsetX, double offsetY, double offsetZ) {
-        this.spawnParticle(particle, x, y, z, count, offsetX, offsetY, offsetZ, null);
-    }
+    public void spawnParticle(Particle particle, double x, double y, double z, int count, double offsetX, double offsetY, double offsetZ);
 
     /**
      * Spawns the particle (the number of times specified by count)
@@ -3171,9 +3116,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param data the data to use for the particle or null,
      *             the type of this depends on {@link Particle#getDataType()}
      */
-    default <T> void spawnParticle(Particle particle, Location location, int count, double offsetX, double offsetY, double offsetZ, @Nullable T data) {
-        this.spawnParticle(particle, location.getX(), location.getY(), location.getZ(), count, offsetX, offsetY, offsetZ, data);
-    }
+    public <T> void spawnParticle(Particle particle, Location location, int count, double offsetX, double offsetY, double offsetZ, @Nullable T data);
 
     /**
      * Spawns the particle (the number of times specified by count)
@@ -3193,9 +3136,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param data the data to use for the particle or null,
      *             the type of this depends on {@link Particle#getDataType()}
      */
-    default <T> void spawnParticle(Particle particle, double x, double y, double z, int count, double offsetX, double offsetY, double offsetZ, @Nullable T data) {
-        this.spawnParticle(particle, x, y, z, count, offsetX, offsetY, offsetZ, 1, data);
-    }
+    public <T> void spawnParticle(Particle particle, double x, double y, double z, int count, double offsetX, double offsetY, double offsetZ, @Nullable T data);
 
     /**
      * Spawns the particle (the number of times specified by count)
@@ -3212,9 +3153,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param extra the extra data for this particle, depends on the
      *              particle used (normally speed)
      */
-    default void spawnParticle(Particle particle, Location location, int count, double offsetX, double offsetY, double offsetZ, double extra) {
-        this.spawnParticle(particle, location.getX(), location.getY(), location.getZ(), count, offsetX, offsetY, offsetZ, extra);
-    }
+    public void spawnParticle(Particle particle, Location location, int count, double offsetX, double offsetY, double offsetZ, double extra);
 
     /**
      * Spawns the particle (the number of times specified by count)
@@ -3233,9 +3172,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param extra the extra data for this particle, depends on the
      *              particle used (normally speed)
      */
-    default void spawnParticle(Particle particle, double x, double y, double z, int count, double offsetX, double offsetY, double offsetZ, double extra) {
-        this.spawnParticle(particle, x, y, z, count, offsetX, offsetY, offsetZ, extra, null);
-    }
+    public void spawnParticle(Particle particle, double x, double y, double z, int count, double offsetX, double offsetY, double offsetZ, double extra);
 
     /**
      * Spawns the particle (the number of times specified by count)
@@ -3255,9 +3192,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param data the data to use for the particle or null,
      *             the type of this depends on {@link Particle#getDataType()}
      */
-    default <T> void spawnParticle(Particle particle, Location location, int count, double offsetX, double offsetY, double offsetZ, double extra, @Nullable T data) {
-        this.spawnParticle(particle, location.getX(), location.getY(), location.getZ(), count, offsetX, offsetY, offsetZ, extra, data);
-    }
+    public <T> void spawnParticle(Particle particle, Location location, int count, double offsetX, double offsetY, double offsetZ, double extra, @Nullable T data);
 
     /**
      * Spawns the particle (the number of times specified by count)
@@ -3279,9 +3214,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param data the data to use for the particle or null,
      *             the type of this depends on {@link Particle#getDataType()}
      */
-    default <T> void spawnParticle(Particle particle, double x, double y, double z, int count, double offsetX, double offsetY, double offsetZ, double extra, @Nullable T data) {
-        this.spawnParticle(particle, x, y, z, count, offsetX, offsetY, offsetZ, extra, data, false);
-    }
+    public <T> void spawnParticle(Particle particle, double x, double y, double z, int count, double offsetX, double offsetY, double offsetZ, double extra, @Nullable T data);
 
     /**
      * Spawns the particle (the number of times specified by count)
@@ -3304,9 +3237,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      *              range and encourage their client to render it regardless of
      *              settings
      */
-    default <T> void spawnParticle(Particle particle, Location location, int count, double offsetX, double offsetY, double offsetZ, double extra, @Nullable T data, boolean force) {
-        this.spawnParticle(particle, location.getX(), location.getY(), location.getZ(), count, offsetX, offsetY, offsetZ, extra, data, force);
-    }
+    public <T> void spawnParticle(Particle particle, Location location, int count, double offsetX, double offsetY, double offsetZ, double extra, @Nullable T data, boolean force);
 
     /**
      * Spawns the particle (the number of times specified by count)
@@ -3490,12 +3421,11 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
     public void updateCommands();
 
     /**
-     * Open an ItemStack with {@link io.papermc.paper.datacomponent.DataComponentTypes#WRITTEN_BOOK_CONTENT} for a Player
+     * Open a {@link Material#WRITTEN_BOOK} for a Player
      *
-     * @param book the item with written book content to open for this player
-     * @throws IllegalArgumentException if the ItemStack is null, empty or doesn't have a {@link io.papermc.paper.datacomponent.DataComponentTypes#WRITTEN_BOOK_CONTENT}
+     * @param book The book to open for this player
      */
-    void openBook(ItemStack book);
+    public void openBook(ItemStack book);
 
     /**
      * Open a Sign for editing by the Player.
@@ -3506,9 +3436,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @deprecated use {@link #openSign(Sign, Side)}
      */
     @Deprecated
-    default void openSign(Sign sign) {
-        this.openSign(sign, org.bukkit.block.sign.Side.FRONT);
-    }
+    public void openSign(Sign sign);
 
     /**
      * Open a Sign for editing by the Player.
@@ -3892,7 +3820,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
 
     // Paper start - Add chunk view API
     /**
-     * Gets the set of chunk keys for all chunks that have been sent to the player.
+     * Gets the a set of chunk keys for all chunks that have been sent to the player.
      *
      * @return an immutable set of chunk keys
      * @apiNote currently marked as experimental to gather feedback regarding the returned set being an immutable copy

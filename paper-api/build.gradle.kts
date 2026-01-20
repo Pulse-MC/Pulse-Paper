@@ -10,7 +10,8 @@ java {
 }
 
 val annotationsVersion = "26.0.2"
-val adventureVersion = "4.25.0"
+// Keep in sync with paper-server adventure-text-serializer-ansi dep
+val adventureVersion = "4.24.0"
 val bungeeCordChatVersion = "1.21-R0.2-deprecated+build.21"
 val slf4jVersion = "2.0.16"
 val log4jVersion = "2.24.1"
@@ -170,10 +171,10 @@ tasks.withType<Javadoc>().configureEach {
     options.isDocFilesSubDirs = true
     options.links(
         "https://guava.dev/releases/33.3.1-jre/api/docs/",
-        "https://www.javadocs.dev/org.yaml/snakeyaml/2.2/",
-        "https://www.javadocs.dev/org.jetbrains/annotations/$annotationsVersion/",
-        "https://www.javadocs.dev/org.joml/joml/1.10.8/",
-        "https://www.javadocs.dev/com.google.code.gson/gson/2.11.0",
+        "https://javadoc.io/doc/org.yaml/snakeyaml/2.2/",
+        "https://javadoc.io/doc/org.jetbrains/annotations/$annotationsVersion/",
+        "https://javadoc.io/doc/org.joml/joml/1.10.8/",
+        "https://www.javadoc.io/doc/com.google.code.gson/gson/2.11.0",
         "https://jspecify.dev/docs/api/",
         "https://jd.advntr.dev/api/$adventureVersion/",
         "https://jd.advntr.dev/key/$adventureVersion/",
@@ -182,9 +183,9 @@ tasks.withType<Javadoc>().configureEach {
         "https://jd.advntr.dev/text-serializer-legacy/$adventureVersion/",
         "https://jd.advntr.dev/text-serializer-plain/$adventureVersion/",
         "https://jd.advntr.dev/text-logger-slf4j/$adventureVersion/",
-        "https://www.javadocs.dev/org.slf4j/slf4j-api/$slf4jVersion/",
+        "https://javadoc.io/doc/org.slf4j/slf4j-api/$slf4jVersion/",
         "https://logging.apache.org/log4j/2.x/javadoc/log4j-api/",
-        "https://www.javadocs.dev/org.apache.maven.resolver/maven-resolver-api/1.7.3",
+        "https://javadoc.io/doc/org.apache.maven.resolver/maven-resolver-api/1.7.3",
     )
     options.tags("apiNote:a:API Note:")
 
@@ -231,4 +232,16 @@ val scanJarForBadCalls by tasks.registering(io.papermc.paperweight.tasks.ScanJar
 }
 tasks.check {
     dependsOn(scanJarForBadCalls)
+}
+
+if (providers.gradleProperty("updatingMinecraft").getOrElse("false").toBoolean()) {
+    val scanJarForOldGeneratedCode by tasks.registering(io.papermc.paperweight.tasks.ScanJarForOldGeneratedCode::class) {
+        mcVersion.set(providers.gradleProperty("mcVersion"))
+        annotation.set("Lio/papermc/paper/generated/GeneratedFrom;")
+        jarToScan.set(tasks.jar.flatMap { it.archiveFile })
+        classpath.from(configurations.compileClasspath)
+    }
+    tasks.check {
+        dependsOn(scanJarForOldGeneratedCode)
+    }
 }

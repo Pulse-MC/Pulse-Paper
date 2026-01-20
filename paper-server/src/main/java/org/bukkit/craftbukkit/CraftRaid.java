@@ -49,7 +49,7 @@ public final class CraftRaid implements Raid {
     @Override
     public Location getLocation() {
         BlockPos pos = this.handle.getCenter();
-        return CraftLocation.toBukkit(pos, this.level);
+        return CraftLocation.toBukkit(pos, this.level.getWorld());
     }
 
     @Override

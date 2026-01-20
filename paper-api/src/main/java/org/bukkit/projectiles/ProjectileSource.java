@@ -22,9 +22,7 @@ public interface ProjectileSource {
      * @return the launched projectile
      */
     @NotNull
-    default <T extends Projectile> T launchProjectile(@NotNull Class<? extends T> projectile) {
-        return this.launchProjectile(projectile, null);
-    }
+    public <T extends Projectile> T launchProjectile(@NotNull Class<? extends T> projectile);
 
     /**
      * Launches a {@link Projectile} from the ProjectileSource with an
@@ -40,10 +38,8 @@ public interface ProjectileSource {
      * @return the launched projectile
      */
     @NotNull
-    default <T extends Projectile> T launchProjectile(@NotNull Class<? extends T> projectile, @Nullable Vector velocity) {
-        return this.launchProjectile(projectile, velocity, null);
-    }
-
+    public <T extends Projectile> T launchProjectile(@NotNull Class<? extends T> projectile, @Nullable Vector velocity);
+    
     // Paper start - add consumer to launchProjectile
     /**
      * Launches a {@link Projectile} from the ProjectileSource with an

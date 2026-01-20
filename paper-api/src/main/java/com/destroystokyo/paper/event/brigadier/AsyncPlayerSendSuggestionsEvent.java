@@ -18,11 +18,10 @@ import org.jspecify.annotations.NullMarked;
 public class AsyncPlayerSendSuggestionsEvent extends PlayerEvent implements Cancellable {
 
     private static final HandlerList HANDLER_LIST = new HandlerList();
+    private boolean cancelled = false;
 
     private Suggestions suggestions;
     private final String buffer;
-
-    private boolean cancelled;
 
     @ApiStatus.Internal
     public AsyncPlayerSendSuggestionsEvent(final Player player, final Suggestions suggestions, final String buffer) {
@@ -58,6 +57,9 @@ public class AsyncPlayerSendSuggestionsEvent extends PlayerEvent implements Canc
         this.suggestions = suggestions;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isCancelled() {
         return this.cancelled;
@@ -65,7 +67,6 @@ public class AsyncPlayerSendSuggestionsEvent extends PlayerEvent implements Canc
 
     /**
      * Cancels sending suggestions to the client.
-     * <p>
      * {@inheritDoc}
      */
     @Override

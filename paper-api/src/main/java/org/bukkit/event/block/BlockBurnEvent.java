@@ -40,12 +40,12 @@ public class BlockBurnEvent extends BlockEvent implements Cancellable {
      */
     @Nullable
     public Block getIgnitingBlock() {
-        return this.ignitingBlock;
+        return ignitingBlock;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override

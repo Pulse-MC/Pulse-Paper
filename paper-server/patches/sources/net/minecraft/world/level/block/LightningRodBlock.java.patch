@@ -16,6 +16,6 @@
 +            return;
 +        }
 +        // CraftBukkit end
-         level.setBlock(pos, state.setValue(POWERED, true), Block.UPDATE_ALL);
+         level.setBlock(pos, state.setValue(POWERED, true), 3);
          this.updateNeighbours(state, level, pos);
          level.scheduleTick(pos, this, 8);

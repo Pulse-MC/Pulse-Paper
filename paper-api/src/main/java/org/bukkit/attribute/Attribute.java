@@ -198,6 +198,7 @@ public interface Attribute extends OldEnum<Attribute>, Keyed, Translatable, net.
      */
     enum Sentiment {
         // Start generate - AttributeSentiment
+        // @GeneratedFrom 1.21.8
         POSITIVE,
         NEUTRAL,
         NEGATIVE;

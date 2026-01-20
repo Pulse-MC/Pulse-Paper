@@ -3,8 +3,11 @@ package io.papermc.paper.datacomponent.item.consumable;
 import net.minecraft.world.item.consume_effects.ClearAllStatusEffectsConsumeEffect;
 
 public record PaperClearAllStatusEffects(
-    ClearAllStatusEffectsConsumeEffect internal
-) implements ConsumeEffect.ClearAllStatusEffects, PaperConsumableEffect {
+    net.minecraft.world.item.consume_effects.ClearAllStatusEffectsConsumeEffect impl
+) implements ConsumeEffect.ClearAllStatusEffects, PaperConsumableEffect<ClearAllStatusEffectsConsumeEffect> {
 
-    public static final ConsumeEffect.ClearAllStatusEffects INSTANCE = new PaperClearAllStatusEffects(ClearAllStatusEffectsConsumeEffect.INSTANCE);
+    @Override
+    public net.minecraft.world.item.consume_effects.ClearAllStatusEffectsConsumeEffect getHandle() {
+        return this.impl;
+    }
 }

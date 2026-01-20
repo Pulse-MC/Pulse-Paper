@@ -145,25 +145,16 @@ public class EntityShootBowEvent extends EntityEvent implements Cancellable {
         return this.consumeItem;
     }
 
-    /**
-     * @deprecated use {@link #getConsumable()}
-     */
     @Nullable @Deprecated
     public ItemStack getArrowItem() {
         return this.getConsumable();
     }
 
-    /**
-     * @deprecated not currently functional
-     */
     @Deprecated
     public void setConsumeArrow(boolean consumeArrow) {
         this.setConsumeItem(consumeArrow);
     }
 
-    /**
-     * @deprecated use {@link #shouldConsumeItem()}
-     */
     @Deprecated
     public boolean getConsumeArrow() {
         return this.shouldConsumeItem();

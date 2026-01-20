@@ -1,15 +1,13 @@
 package org.bukkit.craftbukkit.block.impl;
 
-import io.papermc.paper.annotation.GeneratedClass;
+import io.papermc.paper.generated.GeneratedFrom;
 import net.minecraft.world.level.block.HangingMossBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import org.bukkit.block.data.type.HangingMoss;
 import org.bukkit.craftbukkit.block.data.CraftBlockData;
-import org.jspecify.annotations.NullMarked;
 
-@NullMarked
-@GeneratedClass
+@GeneratedFrom("1.21.8")
 public class CraftHangingMoss extends CraftBlockData implements HangingMoss {
     private static final BooleanProperty TIP = HangingMossBlock.TIP;
 

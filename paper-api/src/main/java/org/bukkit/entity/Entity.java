@@ -138,11 +138,6 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
     // Paper start - Teleport API
     /**
      * Teleports this entity to the given location.
-     * <p>
-     * Note: This uses default in game behavior for teleportation, especially in regard to handling
-     * passengers and vehicles across dimensions. It should be noted at this moment, teleporting a {@link Player}
-     * with passengers across dimensions is not supported and will cause this to return false. This behavior may
-     * change in future versions.
      *
      * @param location New location to teleport this entity to
      * @param teleportFlags Flags to be used in this teleportation
@@ -154,11 +149,6 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
 
     /**
      * Teleports this entity to the given location.
-     * <p>
-     * Note: This uses default in game behavior for teleportation, especially in regard to handling
-     * passengers and vehicles across dimensions. It should be noted at this moment, teleporting a {@link Player}
-     * with passengers across dimensions is not supported and will cause this to return false. This behavior may
-     * change in future versions.
      *
      * @param location New location to teleport this entity to
      * @param cause The cause of this teleportation
@@ -189,12 +179,8 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
     // Paper end - Teleport API
 
     /**
-     * Teleports this entity to the given location.
-     * <p>
-     * Note: This uses default in game behavior for teleportation, especially in regard to handling
-     * passengers and vehicles across dimensions. It should be noted at this moment, teleporting a {@link Player}
-     * with passengers across dimensions is not supported and will cause this to return false. This behavior may
-     * change in future versions.
+     * Teleports this entity to the given location. If this entity is riding a
+     * vehicle, it will be dismounted prior to teleportation.
      *
      * @param location New location to teleport this entity to
      * @return <code>true</code> if the teleport was successful
@@ -202,12 +188,8 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
     public boolean teleport(@NotNull Location location);
 
     /**
-     * Teleports this entity to the given location.
-     * <p>
-     * Note: This uses default in game behavior for teleportation, especially in regard to handling
-     * passengers and vehicles across dimensions. It should be noted at this moment, teleporting a {@link Player}
-     * with passengers across dimensions is not supported and will cause this to return false. This behavior may
-     * change in future versions.
+     * Teleports this entity to the given location. If this entity is riding a
+     * vehicle, it will be dismounted prior to teleportation.
      *
      * @param location New location to teleport this entity to
      * @param cause The cause of this teleportation
@@ -216,12 +198,8 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
     public boolean teleport(@NotNull Location location, @NotNull TeleportCause cause);
 
     /**
-     * Teleports this entity to the target Entity.
-     * <p>
-     * Note: This uses default in game behavior for teleportation, especially in regard to handling
-     * passengers and vehicles across dimensions. It should be noted at this moment, teleporting a {@link Player}
-     * with passengers across dimensions is not supported and will cause this to return false. This behavior may
-     * change in future versions.
+     * Teleports this entity to the target Entity. If this entity is riding a
+     * vehicle, it will be dismounted prior to teleportation.
      *
      * @param destination Entity to teleport this entity to
      * @return <code>true</code> if the teleport was successful
@@ -229,12 +207,8 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
     public boolean teleport(@NotNull Entity destination);
 
     /**
-     * Teleports this entity to the target Entity.
-     * <p>
-     * Note: This uses default in game behavior for teleportation, especially in regard to handling
-     * passengers and vehicles across dimensions. It should be noted at this moment, teleporting a {@link Player}
-     * with passengers across dimensions is not supported and will cause this to return false. This behavior may
-     * change in future versions.
+     * Teleports this entity to the target Entity. If this entity is riding a
+     * vehicle, it will be dismounted prior to teleportation.
      *
      * @param destination Entity to teleport this entity to
      * @param cause The cause of this teleportation
@@ -245,12 +219,6 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
     // Paper start
     /**
      * Loads/Generates(in 1.13+) the Chunk asynchronously, and then teleports the entity when the chunk is ready.
-     * <p>
-     * Note: This uses default in game behavior for teleportation, especially in regard to handling
-     * passengers and vehicles across dimensions. It should be noted at this moment, teleporting a {@link Player}
-     * with passengers across dimensions is not supported and will cause the future to return false. This behavior may
-     * change in future versions.
-     *
      * @param loc Location to teleport to
      * @return A future that will be completed with the result of the teleport
      */
@@ -260,12 +228,6 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
 
     /**
      * Loads/Generates(in 1.13+) the Chunk asynchronously, and then teleports the entity when the chunk is ready.
-     * <p>
-     * Note: This uses default in game behavior for teleportation, especially in regard to handling
-     * passengers and vehicles across dimensions. It should be noted at this moment, teleporting a {@link Player}
-     * with passengers across dimensions is not supported and will cause the future to return false. This behavior may
-     * change in future versions.
-     *
      * @param loc Location to teleport to
      * @param cause Reason for teleport
      * @return A future that will be completed with the result of the teleport
@@ -279,32 +241,9 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
 
     /**
      * Loads/Generates(in 1.13+) the Chunk asynchronously, and then teleports the entity when the chunk is ready.
-     * <p>
-     * Note: This uses default in game behavior for teleportation, especially in regard to handling
-     * passengers and vehicles across dimensions. It should be noted at this moment, teleporting a {@link Player}
-     * with passengers across dimensions is not supported and will cause the future to return false. This behavior may
-     * change in future versions.
-     *
-     * @param loc Location to teleport to
-     * @param teleportFlags Flags to be used in this teleportation
-     * @return A future that will be completed with the result of the teleport
-     */
-    default java.util.concurrent.@NotNull CompletableFuture<Boolean> teleportAsync(@NotNull Location loc, @NotNull io.papermc.paper.entity.TeleportFlag @NotNull... teleportFlags) {
-        return this.teleportAsync(loc, TeleportCause.PLUGIN, teleportFlags);
-    }
-
-    /**
-     * Loads/Generates(in 1.13+) the Chunk asynchronously, and then teleports the entity when the chunk is ready.
-     * <p>
-     * Note: This uses default in game behavior for teleportation, especially in regard to handling
-     * passengers and vehicles across dimensions. It should be noted at this moment, teleporting a {@link Player}
-     * with passengers across dimensions is not supported and will cause the future to return false. This behavior may
-     * change in future versions.
-     *
      * @param loc Location to teleport to
      * @param cause Reason for teleport
      * @param teleportFlags Flags to be used in this teleportation
-     *
      * @return A future that will be completed with the result of the teleport
      */
     java.util.concurrent.@NotNull CompletableFuture<Boolean> teleportAsync(@NotNull Location loc, @NotNull TeleportCause cause, @NotNull io.papermc.paper.entity.TeleportFlag @NotNull... teleportFlags);
@@ -447,7 +386,7 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
     boolean isInvisible();
 
     /**
-     * Sets this entity no physics status.
+     * Sets this entities no physics status.
      *
      * @param noPhysics boolean indicating if the entity should not have physics.
      */

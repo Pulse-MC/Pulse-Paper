@@ -4,18 +4,15 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import net.kyori.adventure.text.object.PlayerHeadObjectContents;
 import org.bukkit.profile.PlayerTextures;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import static net.kyori.adventure.text.object.PlayerHeadObjectContents.property;
 
 /**
  * Represents a players profile for the game, such as UUID, Name, and textures.
  */
 @NullMarked
-public interface PlayerProfile extends org.bukkit.profile.PlayerProfile, PlayerHeadObjectContents.SkinSource {
+public interface PlayerProfile extends org.bukkit.profile.PlayerProfile {
 
     /**
      * @return The players name, if set
@@ -54,7 +51,7 @@ public interface PlayerProfile extends org.bukkit.profile.PlayerProfile, PlayerH
      * This will build a snapshot of the current texture data once
      * requested inside PlayerTextures.
      *
-     * @return the textures
+     * @return the textures, not <code>null</code>
      */
     @Override
     PlayerTextures getTextures();
@@ -62,14 +59,14 @@ public interface PlayerProfile extends org.bukkit.profile.PlayerProfile, PlayerH
     /**
      * Copies the given textures.
      *
-     * @param textures the textures to copy, or {@code null} to clear the
+     * @param textures the textures to copy, or <code>null</code> to clear the
      * textures
      */
     @Override
     void setTextures(@Nullable PlayerTextures textures);
 
     /**
-     * @return A Mutable set of this player's properties, such as textures.
+     * @return A Mutable set of this players properties, such as textures.
      * Values specified here are subject to implementation details.
      */
     Set<ProfileProperty> getProperties();
@@ -254,19 +251,4 @@ public interface PlayerProfile extends org.bukkit.profile.PlayerProfile, PlayerH
      */
     @Override
     PlayerProfile clone();
-
-    @Override
-    default void applySkinToPlayerHeadContents(final PlayerHeadObjectContents.Builder builder) {
-        if (this.getProperties().isEmpty() && (this.getName() != null) != (this.getId() != null)) {
-            if (this.getId() != null) {
-                builder.id(this.getId());
-            } else {
-                builder.name(this.getName());
-            }
-            return;
-        }
-        builder.id(this.getId())
-            .name(this.getName())
-            .profileProperties(this.getProperties().stream().map(prop -> property(prop.getName(), prop.getValue(), prop.getSignature())).toList());
-    }
 }

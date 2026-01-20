@@ -14,12 +14,12 @@ public class ComponentServicesTest {
 
     @Test
     public void testPlainTextComponentSerializerProvider() {
-        assertEquals("Paper", PlainTextComponentSerializer.plainText().serialize(Component.translatable("item.minecraft.paper")));
+        assertEquals("Done", PlainTextComponentSerializer.plainText().serialize(Component.translatable("narrator.loading.done")));
     }
 
     @Test
     public void testLegacyComponentSerializerProvider() {
-        assertEquals("§cPaper", LegacyComponentSerializer.legacySection().serialize(Component.translatable("item.minecraft.paper", NamedTextColor.RED)));
-        assertEquals("&cPaper", LegacyComponentSerializer.legacyAmpersand().serialize(Component.translatable("item.minecraft.paper", NamedTextColor.RED)));
+        assertEquals("§cDone", LegacyComponentSerializer.legacySection().serialize(Component.translatable("narrator.loading.done", NamedTextColor.RED)));
+        assertEquals("&cDone", LegacyComponentSerializer.legacyAmpersand().serialize(Component.translatable("narrator.loading.done", NamedTextColor.RED)));
     }
 }

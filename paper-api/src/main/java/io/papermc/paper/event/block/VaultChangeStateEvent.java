@@ -1,5 +1,6 @@
 package io.papermc.paper.event.block;
 
+import com.google.common.base.Preconditions;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Vault;
 import org.bukkit.entity.Player;
@@ -15,14 +16,12 @@ import org.jspecify.annotations.Nullable;
  */
 @NullMarked
 public class VaultChangeStateEvent extends BlockEvent implements Cancellable {
-
     private static final HandlerList HANDLER_LIST = new HandlerList();
 
     private final @Nullable Player player;
     private final Vault.State currentState;
     private final Vault.State newState;
-
-    private boolean cancelled;
+    private boolean cancelled = false;
 
     @ApiStatus.Internal
     public VaultChangeStateEvent(final Block vaultBlock, final @Nullable Player player, final Vault.State currentState, final Vault.State newState) {
@@ -47,7 +46,7 @@ public class VaultChangeStateEvent extends BlockEvent implements Cancellable {
      * @return The current vault state.
      */
     public Vault.State getCurrentState() {
-        return this.currentState;
+        return currentState;
     }
 
     /**
@@ -56,7 +55,7 @@ public class VaultChangeStateEvent extends BlockEvent implements Cancellable {
      * @return The new vault state.
      */
     public Vault.State getNewState() {
-        return this.newState;
+        return newState;
     }
 
     @Override

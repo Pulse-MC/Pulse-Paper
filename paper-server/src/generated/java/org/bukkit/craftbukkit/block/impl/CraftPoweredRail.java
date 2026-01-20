@@ -1,7 +1,7 @@
 package org.bukkit.craftbukkit.block.impl;
 
 import com.google.common.base.Preconditions;
-import io.papermc.paper.annotation.GeneratedClass;
+import io.papermc.paper.generated.GeneratedFrom;
 import java.util.Set;
 import net.minecraft.world.level.block.PoweredRailBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -10,10 +10,8 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.RailShape;
 import org.bukkit.block.data.type.RedstoneRail;
 import org.bukkit.craftbukkit.block.data.CraftBlockData;
-import org.jspecify.annotations.NullMarked;
 
-@NullMarked
-@GeneratedClass
+@GeneratedFrom("1.21.8")
 public class CraftPoweredRail extends CraftBlockData implements RedstoneRail {
     private static final BooleanProperty POWERED = PoweredRailBlock.POWERED;
 

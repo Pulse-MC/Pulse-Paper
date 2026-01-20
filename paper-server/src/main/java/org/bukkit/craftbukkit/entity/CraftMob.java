@@ -22,19 +22,8 @@ public abstract class CraftMob extends CraftLivingEntity implements Mob, io.pape
     }
 
     @Override
-    public net.minecraft.world.entity.Mob getHandle() {
-        return (net.minecraft.world.entity.Mob) this.entity;
-    }
-
-    @Override
-    public void setHandle(net.minecraft.world.entity.Entity entity) {
-        super.setHandle(entity);
-        this.paperPathfinder.setHandle(this.getHandle());
-    }
-
-    @Override
     public boolean shouldDespawnInPeaceful() {
-        return this.getHandle().shouldDespawnInPeaceful();
+        return this.getHandle().shouldActuallyDespawnInPeaceful();
     }
 
     @Override
@@ -46,6 +35,17 @@ public abstract class CraftMob extends CraftLivingEntity implements Mob, io.pape
     @Override
     public TriState getDespawnInPeacefulOverride() {
         return this.getHandle().despawnInPeacefulOverride;
+    }
+
+    @Override
+    public net.minecraft.world.entity.Mob getHandle() {
+        return (net.minecraft.world.entity.Mob) this.entity;
+    }
+
+    @Override
+    public void setHandle(net.minecraft.world.entity.Entity entity) {
+        super.setHandle(entity);
+        this.paperPathfinder.setHandle(getHandle());
     }
 
     @Override

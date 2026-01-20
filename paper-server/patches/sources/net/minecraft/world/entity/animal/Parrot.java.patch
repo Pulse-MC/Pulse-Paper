@@ -1,15 +1,15 @@
 --- a/net/minecraft/world/entity/animal/Parrot.java
 +++ b/net/minecraft/world/entity/animal/Parrot.java
-@@ -265,7 +_,7 @@
+@@ -264,7 +_,7 @@
              }
  
-             if (!this.level().isClientSide()) {
+             if (!this.level().isClientSide) {
 -                if (this.random.nextInt(10) == 0) {
 +                if (this.random.nextInt(10) == 0 && !org.bukkit.craftbukkit.event.CraftEventFactory.callEntityTameEvent(this, player).isCancelled()) { // CraftBukkit
                      this.tame(player);
-                     this.level().broadcastEntityEvent(this, EntityEvent.TAMING_SUCCEEDED);
+                     this.level().broadcastEntityEvent(this, (byte)7);
                  } else {
-@@ -286,7 +_,7 @@
+@@ -285,7 +_,7 @@
              }
          } else {
              this.usePlayerItem(player, hand, itemInHand);
@@ -18,7 +18,7 @@
              if (player.isCreative() || !this.isInvulnerable()) {
                  this.hurt(this.damageSources().playerAttack(player), Float.MAX_VALUE);
              }
-@@ -381,8 +_,8 @@
+@@ -380,8 +_,8 @@
      }
  
      @Override
@@ -29,7 +29,7 @@
      }
  
      @Override
-@@ -397,8 +_,13 @@
+@@ -396,8 +_,13 @@
          if (this.isInvulnerableTo(level, damageSource)) {
              return false;
          } else {

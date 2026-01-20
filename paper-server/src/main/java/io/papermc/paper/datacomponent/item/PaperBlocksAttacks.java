@@ -126,8 +126,8 @@ public record PaperBlocksAttacks(
             return new PaperBlocksAttacks(new net.minecraft.world.item.component.BlocksAttacks(
                 this.blockDelaySeconds,
                 this.disableCooldownScale,
-                this.damageReductions.stream().map(damageReduction -> ((PaperDamageReduction) damageReduction).internal()).toList(),
-                ((PaperItemDamageFunction) this.itemDamage).internal(),
+                this.damageReductions.stream().map(damageReduction -> ((PaperDamageReduction) damageReduction).getHandle()).toList(),
+                ((PaperItemDamageFunction) this.itemDamage).getHandle(),
                 Optional.ofNullable(this.bypassedBy).map(PaperRegistries::toNms),
                 Optional.ofNullable(this.blockSound).map(PaperAdventure::resolveSound),
                 Optional.ofNullable(this.disableSound).map(PaperAdventure::resolveSound)

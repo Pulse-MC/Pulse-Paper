@@ -1,51 +1,24 @@
 package io.papermc.paper.datacomponent.item.attribute;
 
-import io.papermc.paper.adventure.PaperAdventure;
-import net.kyori.adventure.text.Component;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import org.bukkit.craftbukkit.util.Handleable;
 
-public sealed interface PaperAttributeModifierDisplay permits PaperAttributeModifierDisplay.Default, PaperAttributeModifierDisplay.Hidden, PaperAttributeModifierDisplay.OverrideText {
+public interface PaperAttributeModifierDisplay<T extends ItemAttributeModifiers.Display> extends Handleable<T> {
 
-    static AttributeModifierDisplay fromVanilla(ItemAttributeModifiers.Display display) {
+    static AttributeModifierDisplay fromNms(ItemAttributeModifiers.Display display) {
         return switch (display) {
-            case ItemAttributeModifiers.Display.Default $ -> Default.INSTANCE;
-            case ItemAttributeModifiers.Display.Hidden $ -> Hidden.INSTANCE;
-            case ItemAttributeModifiers.Display.OverrideText override -> new OverrideText(override);
+            case ItemAttributeModifiers.Display.Default def -> new PaperDefaultDisplay(def);
+            case ItemAttributeModifiers.Display.Hidden hidden -> new PaperHiddenDisplay(hidden);
+            case ItemAttributeModifiers.Display.OverrideText override -> new PaperOverrideTextDisplay(override);
             default -> throw new UnsupportedOperationException("Don't know how to convert " + display.getClass());
         };
     }
 
-    static ItemAttributeModifiers.Display toVanilla(AttributeModifierDisplay display) {
-        if (display instanceof PaperAttributeModifierDisplay paperDisplay) {
-            return paperDisplay.internal();
+    static ItemAttributeModifiers.Display toNms(AttributeModifierDisplay display) {
+        if (display instanceof PaperAttributeModifierDisplay<?> modifierDisplay) {
+            return modifierDisplay.getHandle();
         } else {
-            throw new UnsupportedOperationException("Must implement PaperAttributeModifierDisplay!");
-        }
-    }
-
-    ItemAttributeModifiers.Display internal();
-
-    record Default(
-        ItemAttributeModifiers.Display internal
-    ) implements AttributeModifierDisplay.Default, PaperAttributeModifierDisplay {
-
-        public static final PaperAttributeModifierDisplay.Default INSTANCE = new PaperAttributeModifierDisplay.Default(ItemAttributeModifiers.Display.attributeModifiers());
-    }
-
-    record Hidden(
-        ItemAttributeModifiers.Display internal
-    ) implements AttributeModifierDisplay.Hidden, PaperAttributeModifierDisplay {
-
-        public static final PaperAttributeModifierDisplay.Hidden INSTANCE = new PaperAttributeModifierDisplay.Hidden(ItemAttributeModifiers.Display.hidden());
-    }
-
-    record OverrideText(
-        ItemAttributeModifiers.Display.OverrideText internal
-    ) implements AttributeModifierDisplay.OverrideText, PaperAttributeModifierDisplay {
-
-        @Override
-        public Component text() {
-            return PaperAdventure.asAdventure(this.internal.component());
+            throw new UnsupportedOperationException("Must implement handleable!");
         }
     }
 }

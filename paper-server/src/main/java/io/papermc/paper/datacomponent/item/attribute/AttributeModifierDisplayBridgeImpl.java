@@ -10,16 +10,16 @@ public class AttributeModifierDisplayBridgeImpl implements AttributeModifierDisp
 
     @Override
     public AttributeModifierDisplay.Default reset() {
-        return PaperAttributeModifierDisplay.Default.INSTANCE;
+        return new PaperDefaultDisplay(new ItemAttributeModifiers.Display.Default());
     }
 
     @Override
     public AttributeModifierDisplay.Hidden hidden() {
-        return PaperAttributeModifierDisplay.Hidden.INSTANCE;
+        return new PaperHiddenDisplay(new ItemAttributeModifiers.Display.Hidden());
     }
 
     @Override
     public AttributeModifierDisplay.OverrideText override(final ComponentLike text) {
-        return new PaperAttributeModifierDisplay.OverrideText(new ItemAttributeModifiers.Display.OverrideText(PaperAdventure.asVanilla(text.asComponent())));
+        return new PaperOverrideTextDisplay(new ItemAttributeModifiers.Display.OverrideText(PaperAdventure.asVanilla(text.asComponent())));
     }
 }

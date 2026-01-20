@@ -12,14 +12,14 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 public class RegionizedServerInitEvent extends ServerEvent {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
+    private static final HandlerList handlers = new HandlerList();
 
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

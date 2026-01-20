@@ -2,7 +2,6 @@ package org.bukkit;
 
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
-import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -12,6 +11,7 @@ import org.jspecify.annotations.NullMarked;
 public interface JukeboxSong extends Keyed, Translatable {
 
     // Start generate - JukeboxSong
+    // @GeneratedFrom 1.21.8
     JukeboxSong ELEVEN = get("11");
 
     JukeboxSong THIRTEEN = get("13");
@@ -66,32 +66,4 @@ public interface JukeboxSong extends Keyed, Translatable {
     @Override
     @Deprecated(forRemoval = true)
     String getTranslationKey();
-
-    /**
-     * Gets the sound for this song.
-     *
-     * @return the sound
-     */
-    Sound getSound();
-
-    /**
-     * Gets the description for this song.
-     *
-     * @return the description
-     */
-    Component getDescription();
-
-    /**
-     * Gets the length in seconds for this song.
-     *
-     * @return the length in seconds
-     */
-    float getLengthInSeconds();
-
-    /**
-     * Gets the comparator output for this song.
-     *
-     * @return the comparator output
-     */
-    int getComparatorOutput();
 }

@@ -33,6 +33,7 @@ public interface Dialog extends Keyed, DialogLike {
     }
 
     // Start generate - Dialog
+    // @GeneratedFrom 1.21.8
     Dialog CUSTOM_OPTIONS = getDialog("custom_options");
 
     Dialog QUICK_ACTIONS = getDialog("quick_actions");

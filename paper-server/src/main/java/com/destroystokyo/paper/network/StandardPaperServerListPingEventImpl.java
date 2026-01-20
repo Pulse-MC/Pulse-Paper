@@ -1,6 +1,7 @@
 package com.destroystokyo.paper.network;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
+import com.mojang.authlib.GameProfile;
 import io.papermc.paper.adventure.AdventureComponent;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,13 +13,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.status.ClientboundStatusResponsePacket;
 import net.minecraft.network.protocol.status.ServerStatus;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.players.NameAndId;
 import org.bukkit.craftbukkit.util.CraftIconCache;
 import org.jetbrains.annotations.NotNull;
 
 public final class StandardPaperServerListPingEventImpl extends PaperServerListPingEventImpl {
 
-    private List<NameAndId> originalSample;
+    private List<GameProfile> originalSample;
 
     private StandardPaperServerListPingEventImpl(MinecraftServer server, Connection networkManager, ServerStatus ping) {
         super(server, new PaperStatusClient(networkManager), ping.version().map(ServerStatus.Version::protocol).orElse(-1), server.server.getServerIcon());
@@ -31,8 +31,8 @@ public final class StandardPaperServerListPingEventImpl extends PaperServerListP
         List<ListedPlayerInfo> sample = super.getListedPlayers();
 
         if (this.originalSample != null) {
-            for (NameAndId profile : this.originalSample) {
-                sample.add(new ListedPlayerInfo(profile.name(), profile.id()));
+            for (GameProfile profile : this.originalSample) {
+                sample.add(new ListedPlayerInfo(profile.getName(), profile.getId()));
             }
             this.originalSample = null;
         }
@@ -46,7 +46,7 @@ public final class StandardPaperServerListPingEventImpl extends PaperServerListP
         return super.getPlayerSample();
     }
 
-    private List<NameAndId> getPlayerSampleHandle() {
+    private List<GameProfile> getPlayerSampleHandle() {
         if (this.originalSample != null) {
             return this.originalSample;
         }
@@ -56,9 +56,9 @@ public final class StandardPaperServerListPingEventImpl extends PaperServerListP
             return Collections.emptyList();
         }
 
-        final List<NameAndId> profiles = new ArrayList<>();
+        final List<GameProfile> profiles = new ArrayList<>();
         for (ListedPlayerInfo playerInfo : entries) {
-            profiles.add(new NameAndId(playerInfo.id(), playerInfo.name()));
+            profiles.add(new GameProfile(playerInfo.id(), playerInfo.name()));
         }
         return profiles;
     }

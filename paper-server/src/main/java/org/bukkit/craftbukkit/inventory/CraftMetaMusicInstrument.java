@@ -79,14 +79,14 @@ public class CraftMetaMusicInstrument extends CraftMetaItem implements MusicInst
 
     @Override
     int applyHash() {
-        final int original;
-        int hash = original = super.applyHash();
+        final int orginal;
+        int hash = orginal = super.applyHash();
 
         if (this.hasInstrument()) {
             hash = 61 * hash + this.instrument.hashCode();
         }
 
-        return original != hash ? CraftMetaMusicInstrument.class.hashCode() ^ hash : hash;
+        return orginal != hash ? CraftMetaMusicInstrument.class.hashCode() ^ hash : hash;
     }
 
     @Override

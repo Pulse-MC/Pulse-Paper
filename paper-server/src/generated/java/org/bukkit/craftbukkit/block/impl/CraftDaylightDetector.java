@@ -1,16 +1,14 @@
 package org.bukkit.craftbukkit.block.impl;
 
-import io.papermc.paper.annotation.GeneratedClass;
+import io.papermc.paper.generated.GeneratedFrom;
 import net.minecraft.world.level.block.DaylightDetectorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import org.bukkit.block.data.type.DaylightDetector;
 import org.bukkit.craftbukkit.block.data.CraftBlockData;
-import org.jspecify.annotations.NullMarked;
 
-@NullMarked
-@GeneratedClass
+@GeneratedFrom("1.21.8")
 public class CraftDaylightDetector extends CraftBlockData implements DaylightDetector {
     private static final BooleanProperty INVERTED = DaylightDetectorBlock.INVERTED;
 

@@ -88,8 +88,8 @@ public class PaperPlayerConfigurationConnection extends PaperCommonConnection<Se
     public Pointers pointers() {
         if (this.adventurePointers == null) {
             this.adventurePointers = Pointers.builder()
-                .withDynamic(Identity.NAME, () -> this.handle.getOwner().name())
-                .withDynamic(Identity.UUID, () -> this.handle.getOwner().id())
+                .withDynamic(Identity.NAME, () -> this.handle.getOwner().getName())
+                .withDynamic(Identity.UUID, () -> this.handle.getOwner().getId())
                 .build();
         }
 
@@ -143,10 +143,5 @@ public class PaperPlayerConfigurationConnection extends PaperCommonConnection<Se
     @Override
     public Set<String> getListeningPluginChannels() {
         return Set.copyOf(this.channels());
-    }
-
-    @Override
-    public boolean isConnected() {
-        return this.handle.connection.isConnected();
     }
 }

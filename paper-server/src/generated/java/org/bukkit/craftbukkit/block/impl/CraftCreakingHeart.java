@@ -1,7 +1,7 @@
 package org.bukkit.craftbukkit.block.impl;
 
 import com.google.common.base.Preconditions;
-import io.papermc.paper.annotation.GeneratedClass;
+import io.papermc.paper.generated.GeneratedFrom;
 import java.util.Set;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.CreakingHeartBlock;
@@ -12,10 +12,8 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import org.bukkit.Axis;
 import org.bukkit.block.data.type.CreakingHeart;
 import org.bukkit.craftbukkit.block.data.CraftBlockData;
-import org.jspecify.annotations.NullMarked;
 
-@NullMarked
-@GeneratedClass
+@GeneratedFrom("1.21.8")
 public class CraftCreakingHeart extends CraftBlockData implements CreakingHeart {
     private static final EnumProperty<Direction.Axis> AXIS = CreakingHeartBlock.AXIS;
 

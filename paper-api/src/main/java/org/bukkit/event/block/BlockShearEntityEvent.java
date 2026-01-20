@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Event fired when a dispenser shears a nearby entity.
+ * Event fired when a dispenser shears a nearby sheep.
  */
 public class BlockShearEntityEvent extends BlockEvent implements Cancellable {
 
@@ -43,9 +43,9 @@ public class BlockShearEntityEvent extends BlockEvent implements Cancellable {
     }
 
     /**
-     * Gets the item used to shear this entity.
+     * Gets the item used to shear this sheep.
      *
-     * @return the item used to shear this entity.
+     * @return the item used to shear this sheep.
      */
     @NotNull
     public ItemStack getTool() {
@@ -77,8 +77,8 @@ public class BlockShearEntityEvent extends BlockEvent implements Cancellable {
     }
 
     @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+    public void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
     }
 
     @NotNull

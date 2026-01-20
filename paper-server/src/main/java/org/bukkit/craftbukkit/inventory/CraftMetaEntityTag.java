@@ -9,8 +9,7 @@ import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.item.component.TypedEntityData;
+import net.minecraft.world.item.component.CustomData;
 import org.bukkit.Material;
 import org.bukkit.configuration.serialization.DelegateDeserialization;
 
@@ -27,7 +26,7 @@ public class CraftMetaEntityTag extends CraftMetaItem {
             Material.PAINTING
     );
 
-    static final ItemMetaKeyType<TypedEntityData<EntityType<?>>> ENTITY_TAG = new ItemMetaKeyType<>(DataComponents.ENTITY_DATA, "EntityTag", "entity-tag");
+    static final ItemMetaKeyType<CustomData> ENTITY_TAG = new ItemMetaKeyType<>(DataComponents.ENTITY_DATA, "EntityTag", "entity-tag");
     CompoundTag entityTag;
 
     CraftMetaEntityTag(CraftMetaItem meta) {
@@ -44,7 +43,7 @@ public class CraftMetaEntityTag extends CraftMetaItem {
         super(tag, extraHandledDcts);
 
         getOrEmpty(tag, CraftMetaEntityTag.ENTITY_TAG).ifPresent((nbt) -> {
-            this.entityTag = nbt.copyTagWithEntityId();
+            this.entityTag = nbt.copyTag();
         });
     }
 
@@ -71,7 +70,7 @@ public class CraftMetaEntityTag extends CraftMetaItem {
         super.applyToItem(tag);
 
         if (this.entityTag != null) {
-            tag.put(CraftMetaEntityTag.ENTITY_TAG, TypedEntityData.decodeEntity(this.entityTag));
+            tag.put(CraftMetaEntityTag.ENTITY_TAG, CustomData.of(this.entityTag));
         }
     }
 

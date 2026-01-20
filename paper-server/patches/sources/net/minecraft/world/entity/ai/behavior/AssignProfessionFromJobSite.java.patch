@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/entity/ai/behavior/AssignProfessionFromJobSite.java
 +++ b/net/minecraft/world/entity/ai/behavior/AssignProfessionFromJobSite.java
-@@ -39,7 +_,14 @@
+@@ -38,7 +_,14 @@
                                              .findFirst()
                                      )
                                      .ifPresent(reference -> {

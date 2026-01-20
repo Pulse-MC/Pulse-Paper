@@ -9,7 +9,7 @@
 +        private AdventureView() {
 +        }
 +        @Override
-+        public Instant timestamp() {
++        public @org.jetbrains.annotations.NotNull Instant timestamp() {
 +            return PlayerChatMessage.this.timeStamp();
 +        }
 +        @Override
@@ -17,19 +17,19 @@
 +            return PlayerChatMessage.this.salt();
 +        }
 +        @Override
-+        public @Nullable Signature signature() {
++        public @org.jetbrains.annotations.Nullable Signature signature() {
 +            return PlayerChatMessage.this.signature == null ? null : PlayerChatMessage.this.signature.adventure();
 +        }
 +        @Override
-+        public @Nullable net.kyori.adventure.text.Component unsignedContent() {
++        public net.kyori.adventure.text.@org.jetbrains.annotations.Nullable Component unsignedContent() {
 +            return PlayerChatMessage.this.unsignedContent() == null ? null : io.papermc.paper.adventure.PaperAdventure.asAdventure(PlayerChatMessage.this.unsignedContent());
 +        }
 +        @Override
-+        public String message() {
++        public @org.jetbrains.annotations.NotNull String message() {
 +            return PlayerChatMessage.this.signedContent();
 +        }
 +        @Override
-+        public net.kyori.adventure.identity.Identity identity() {
++        public @org.jetbrains.annotations.NotNull net.kyori.adventure.identity.Identity identity() {
 +            return net.kyori.adventure.identity.Identity.identity(PlayerChatMessage.this.sender());
 +        }
 +        public PlayerChatMessage playerChatMessage() {

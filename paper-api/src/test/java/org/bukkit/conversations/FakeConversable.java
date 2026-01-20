@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 public class FakeConversable implements Conversable {
     public String lastSentMessage;
     public Conversation begunConversation;
-    public Conversation abandonedConversation;
+    public Conversation abandonedConverstion;
     public ConversationAbandonedEvent abandonedConversationEvent;
 
     @Override
@@ -37,12 +37,12 @@ public class FakeConversable implements Conversable {
 
     @Override
     public void abandonConversation(Conversation conversation) {
-        abandonedConversation = conversation;
+        abandonedConverstion = conversation;
     }
 
     @Override
     public void abandonConversation(Conversation conversation, ConversationAbandonedEvent details) {
-        abandonedConversation = conversation;
+        abandonedConverstion = conversation;
         abandonedConversationEvent = details;
     }
 

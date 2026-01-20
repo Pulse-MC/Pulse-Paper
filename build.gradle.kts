@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    id("io.papermc.paperweight.core") version "2.0.0-beta.19" apply false
+    id("io.papermc.paperweight.core") version "2.0.0-beta.18" apply false
 }
 
 subprojects {
@@ -51,7 +51,7 @@ subprojects {
 
     extensions.configure<PublishingExtension> {
         repositories {
-            maven("https://artifactory.papermc.io/artifactory/snapshots/") {
+            maven("https://repo.papermc.io/repository/maven-snapshots/") {
                 name = "paperSnapshots"
                 credentials(PasswordCredentials::class)
             }

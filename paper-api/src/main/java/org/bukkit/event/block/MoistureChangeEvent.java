@@ -21,6 +21,7 @@ public class MoistureChangeEvent extends BlockEvent implements Cancellable {
     public MoistureChangeEvent(@NotNull final Block block, @NotNull final BlockState newState) {
         super(block);
         this.newState = newState;
+        this.cancelled = false;
     }
 
     /**

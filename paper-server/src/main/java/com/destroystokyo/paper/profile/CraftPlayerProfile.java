@@ -2,19 +2,15 @@ package com.destroystokyo.paper.profile;
 
 import com.google.common.base.Preconditions;
 import com.mojang.authlib.yggdrasil.ProfileResult;
-import com.mojang.datafixers.util.Either;
 import io.papermc.paper.configuration.GlobalConfiguration;
 import com.google.common.collect.Iterables;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
-import io.papermc.paper.profile.MutablePropertyMap;
 import net.minecraft.Util;
-import net.minecraft.core.UUIDUtil;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.players.NameAndId;
+import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.util.StringUtil;
-import net.minecraft.world.entity.player.PlayerSkin;
 import net.minecraft.world.item.component.ResolvableProfile;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.configuration.serialization.SerializableAs;
@@ -40,7 +36,7 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
     private final PropertySet properties = new PropertySet();
 
     public CraftPlayerProfile(CraftPlayer player) {
-        this(player.getHandle().getGameProfile());
+        this.profile = player.getHandle().getGameProfile();
     }
 
     public CraftPlayerProfile(UUID id, String name) {
@@ -49,32 +45,25 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
         this.emptyUUID = id == null;
     }
 
-    public CraftPlayerProfile(NameAndId nameAndId) {
-        this(nameAndId.id(), nameAndId.name());
-    }
-
     public CraftPlayerProfile(GameProfile profile) {
         Preconditions.checkArgument(profile != null, "GameProfile cannot be null!");
-        this.profile = new GameProfile(profile.id(), profile.name(), new MutablePropertyMap(profile.properties()));
+        this.profile = profile;
     }
 
     public CraftPlayerProfile(ResolvableProfile resolvableProfile) {
-        this(
-            resolvableProfile.unpack().map(GameProfile::id, p -> p.id().orElse(null)),
-            resolvableProfile.unpack().map(GameProfile::name, p -> p.name().orElse(null))
-        );
-        copyProfileProperties(resolvableProfile.partialProfile(), this.profile);
+        this(resolvableProfile.id().orElse(null), resolvableProfile.name().orElse(null));
+        copyProfileProperties(resolvableProfile.gameProfile(), this.profile);
     }
 
     @Override
     public boolean hasProperty(String property) {
-        return profile.properties().containsKey(property);
+        return profile.getProperties().containsKey(property);
     }
 
     @Override
     public void setProperty(ProfileProperty property) {
         String name = property.getName();
-        PropertyMap properties = profile.properties();
+        PropertyMap properties = profile.getProperties();
         properties.removeAll(name);
 
         Preconditions.checkArgument(properties.size() < 16, "Cannot add more than 16 properties to a profile");
@@ -98,17 +87,13 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
     }
 
     public GameProfile getGameProfile() {
-        return this.buildGameProfile();
-    }
-
-    public GameProfile getGameProfileUnsafe() {
-        return this.profile;
+        return profile;
     }
 
     @Nullable
     @Override
     public UUID getId() {
-        return this.emptyUUID ? null : this.profile.id();
+        return this.emptyUUID ? null : this.profile.getId();
     }
 
     @Override
@@ -116,7 +101,7 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
     public UUID setId(@Nullable UUID uuid) {
         final GameProfile previousProfile = this.profile;
         final UUID previousId = this.getId();
-        this.profile = createAuthLibProfile(uuid, previousProfile.name());
+        this.profile = createAuthLibProfile(uuid, previousProfile.getName());
         copyProfileProperties(previousProfile, this.profile);
         this.emptyUUID = uuid == null;
         return previousId;
@@ -130,17 +115,17 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
     @Nullable
     @Override
     public String getName() {
-        return this.emptyName ? null : this.profile.name();
+        return this.emptyName ? null : this.profile.getName();
     }
 
     @Override
     @Deprecated(forRemoval = true)
     public String setName(@Nullable String name) {
         GameProfile prev = this.profile;
-        this.profile = createAuthLibProfile(prev.id(), name);
+        this.profile = createAuthLibProfile(prev.getId(), name);
         copyProfileProperties(prev, this.profile);
         this.emptyName = name == null;
-        return prev.name();
+        return prev.getName();
     }
 
     @Nonnull
@@ -156,18 +141,18 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
 
     @Override
     public void clearProperties() {
-        profile.properties().clear();
+        profile.getProperties().clear();
     }
 
     @Override
     public boolean removeProperty(String property) {
-        return !profile.properties().removeAll(property).isEmpty();
+        return !profile.getProperties().removeAll(property).isEmpty();
     }
 
     @Nullable
     @Override
     public Property getProperty(String property) {
-        return Iterables.getFirst(this.profile.properties().get(property), null);
+        return Iterables.getFirst(this.profile.getProperties().get(property), null);
     }
 
     @Nullable
@@ -176,21 +161,24 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
         if (property != null) {
             this.setProperty(new ProfileProperty(propertyName, property.value(), property.signature()));
         } else {
-            profile.properties().removeAll(propertyName);
+            profile.getProperties().removeAll(propertyName);
         }
     }
 
     @Override
     public @NotNull GameProfile buildGameProfile() {
-        return new GameProfile(this.profile.id(), this.profile.name(), new PropertyMap(this.profile.properties()));
+        GameProfile profile = new GameProfile(this.profile.getId(), this.profile.getName());
+        profile.getProperties().putAll(this.profile.getProperties());
+        return profile;
     }
 
     @Override
     public @NotNull ResolvableProfile buildResolvableProfile() {
-        if (emptyName != emptyUUID && this.properties.isEmpty()) {
-            return new ResolvableProfile.Dynamic(emptyName ? Either.right(this.profile.id()) : Either.left(this.profile.name()), PlayerSkin.Patch.EMPTY);
+        if (this.emptyName || this.emptyUUID) {
+            return new ResolvableProfile(this.emptyName ? Optional.empty() : Optional.of(this.profile.getName()), this.emptyUUID ? Optional.empty() : Optional.of(this.profile.getId()), this.profile.getProperties());
+        } else {
+            return new ResolvableProfile(this.buildGameProfile());
         }
-        return ResolvableProfile.createResolved(this.buildGameProfile());
     }
 
     @Override
@@ -211,7 +199,7 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
             final CraftPlayerProfile clone = clone();
             clone.complete(true);
             return clone;
-        }, Util.nonCriticalIoPool());
+        }, Util.PROFILE_EXECUTOR);
     }
 
     @Override
@@ -225,46 +213,32 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
 
     public boolean completeFromCache(boolean lookupUUID, boolean onlineMode) {
         MinecraftServer server = MinecraftServer.getServer();
-        String name = profile.name();
+        String name = profile.getName();
+        GameProfileCache userCache = server.getProfileCache();
         if (this.getId() == null) {
-            GameProfile profile;
+            final GameProfile profile;
             if (onlineMode) {
-                profile = server.services().paper().filledProfileCache().getIfCached(name);
-                if (profile == null && lookupUUID) {
-                    NameAndId nameAndId = server.services().nameToIdCache().get(name).orElse(null);
-                    if (nameAndId != null) {
-                        profile = nameAndId.toUncompletedGameProfile();
-                    }
-                }
+                profile = lookupUUID ? userCache.get(name).orElse(null) : userCache.getProfileIfCached(name);
             } else {
                 // Make an OfflinePlayer using an offline mode UUID since the name has no profile
-                profile = UUIDUtil.createOfflineProfile(name);
+                profile = new GameProfile(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(StandardCharsets.UTF_8)), name);
             }
             if (profile != null) {
-                // if old has it, assume it's newer, so overwrite, else use cached if it was set and ours wasn't
-                GameProfile copy = new GameProfile(profile.id(), profile.name(), new MutablePropertyMap()); // Don't mutate profiles in the cache
-                copy.properties().putAll(profile.properties());
-                copyProfileProperties(this.profile, copy);
-                this.profile = copy;
+                // if old has it, assume its newer, so overwrite, else use cached if it was set and ours wasn't
+                copyProfileProperties(this.profile, profile);
+                this.profile = profile;
                 this.emptyUUID = false; // UUID was just retrieved from user cache and profile isn't null (so a completed profile was found)
             }
         }
 
-        if ((profile.name().isEmpty() || !hasTextures()) && this.getId() != null) {
-            GameProfile profile = server.services().paper().filledProfileCache().getIfCached(this.profile.id());
-            if (profile == null) {
-                final Optional<NameAndId> nameAndId = server.services().nameToIdCache().get(this.profile.id());
-                if (nameAndId.isPresent()) {
-                    profile = nameAndId.get().toUncompletedGameProfile();
-                }
-            }
-            if (profile != null) {
-                if (this.profile.name().isEmpty()) {
-                    // if old has it, assume it's newer, so overwrite, else use cached if it was set and ours wasn't
-                    GameProfile copy = new GameProfile(profile.id(), profile.name(), new MutablePropertyMap()); // Don't mutate profiles in the cache
-                    copy.properties().putAll(profile.properties());
-                    copyProfileProperties(this.profile, copy);
-                    this.profile = copy;
+        if ((profile.getName().isEmpty() || !hasTextures()) && this.getId() != null) {
+            Optional<GameProfile> optProfile = userCache.get(this.profile.getId());
+            if (optProfile.isPresent()) {
+                GameProfile profile = optProfile.get();
+                if (this.profile.getName().isEmpty()) {
+                    // if old has it, assume its newer, so overwrite, else use cached if it was set and ours wasn't
+                    copyProfileProperties(this.profile, profile);
+                    this.profile = profile;
                     this.emptyName = false; // Name was just retrieved via the userCache
                 } else if (profile != this.profile) {
                     copyProfileProperties(profile, this.profile);
@@ -286,13 +260,12 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
         MinecraftServer server = MinecraftServer.getServer();
         boolean isCompleteFromCache = this.completeFromCache(true, onlineMode);
         if (onlineMode && (!isCompleteFromCache || (textures && !hasTextures()))) {
-            ProfileResult result = server.services().sessionService().fetchProfile(this.profile.id(), true);
+            ProfileResult result = server.getSessionService().fetchProfile(this.profile.getId(), true);
             if (result != null && result.profile() != null) {
                 copyProfileProperties(result.profile(), this.profile, true);
             }
             if (this.isComplete()) {
-                GameProfile copy = new GameProfile(this.profile.id(), this.profile.name(), new PropertyMap(this.profile.properties())); // Guard mutating profiles in the cache
-                server.services().paper().filledProfileCache().add(copy);
+                server.getProfileCache().add(this.profile);
             }
         }
         return this.isComplete() && (!onlineMode || !textures || hasTextures());
@@ -306,8 +279,8 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
         if (source == target) {
             throw new IllegalArgumentException("Source and target profiles are the same (" + source + ")");
         }
-        PropertyMap sourceProperties = source.properties();
-        PropertyMap targetProperties = target.properties();
+        PropertyMap sourceProperties = source.getProperties();
+        PropertyMap targetProperties = target.getProperties();
         if (clearTarget) targetProperties.clear();
         if (sourceProperties.isEmpty()) {
             return;
@@ -324,8 +297,7 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
         Preconditions.checkArgument(name == null || StringUtil.isValidPlayerName(name), "The name of the profile contains invalid characters: %s", name);
         return new GameProfile(
             uniqueId != null ? uniqueId : Util.NIL_UUID,
-            name != null ? name : "",
-            new MutablePropertyMap()
+            name != null ? name : ""
         );
     }
 
@@ -334,7 +306,13 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
     }
 
     public static PlayerProfile asBukkitCopy(GameProfile gameProfile) {
-        return new CraftPlayerProfile(gameProfile);
+        CraftPlayerProfile profile = new CraftPlayerProfile(gameProfile.getId(), gameProfile.getName());
+        copyProfileProperties(gameProfile, profile.profile);
+        return profile;
+    }
+
+    public static PlayerProfile asBukkitMirror(GameProfile profile) {
+        return new CraftPlayerProfile(profile);
     }
 
     public static Property asAuthlib(ProfileProperty property) {
@@ -342,6 +320,11 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
     }
 
     public static GameProfile asAuthlibCopy(PlayerProfile profile) {
+        CraftPlayerProfile craft = ((CraftPlayerProfile) profile);
+        return asAuthlib(craft.clone());
+    }
+
+    public static GameProfile asAuthlib(PlayerProfile profile) {
         CraftPlayerProfile craft = ((CraftPlayerProfile) profile);
         return craft.getGameProfile();
     }
@@ -382,7 +365,7 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
                     throw new IllegalArgumentException("Property data (" + propertyData + ") is not a valid Map");
                 }
                 Property property = CraftProfileProperty.deserialize((Map<?, ?>) propertyData);
-                profile.profile.properties().put(property.name(), property);
+                profile.profile.getProperties().put(property.name(), property);
             }
         }
 
@@ -406,7 +389,7 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
     public String toString() {
         return "CraftPlayerProfile [uniqueId=" + getId() +
             ", name=" + getName() +
-            ", properties=" + org.bukkit.craftbukkit.profile.CraftPlayerProfile.toString(this.profile.properties()) +
+            ", properties=" + org.bukkit.craftbukkit.profile.CraftPlayerProfile.toString(this.profile.getProperties()) +
             "]";
     }
 
@@ -415,12 +398,12 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
         @Override
         @Nonnull
         public Iterator<ProfileProperty> iterator() {
-            return new ProfilePropertyIterator(profile.properties().values().iterator());
+            return new ProfilePropertyIterator(profile.getProperties().values().iterator());
         }
 
         @Override
         public int size() {
-            return profile.properties().size();
+            return profile.getProperties().size();
         }
 
         @Override
@@ -438,7 +421,7 @@ public class CraftPlayerProfile implements PlayerProfile, SharedPlayerProfile {
 
         @Override
         public boolean contains(Object o) {
-            return o instanceof ProfileProperty && profile.properties().containsKey(((ProfileProperty) o).getName());
+            return o instanceof ProfileProperty && profile.getProperties().containsKey(((ProfileProperty) o).getName());
         }
 
         private class ProfilePropertyIterator implements Iterator<ProfileProperty> {

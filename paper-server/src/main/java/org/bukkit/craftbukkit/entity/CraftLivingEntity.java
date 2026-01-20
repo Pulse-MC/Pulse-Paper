@@ -24,7 +24,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.decoration.ArmorStand;
-import net.minecraft.world.entity.decoration.Mannequin;
 import net.minecraft.world.entity.projectile.FireworkRocketEntity;
 import net.minecraft.world.entity.projectile.FishingHook;
 import net.minecraft.world.entity.projectile.LargeFireball;
@@ -82,6 +81,7 @@ import org.bukkit.entity.Trident;
 import org.bukkit.entity.WitherSkull;
 import org.bukkit.entity.memory.MemoryKey;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -90,7 +90,6 @@ import org.bukkit.potion.PotionType;
 import org.bukkit.util.BlockIterator;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
-import org.jspecify.annotations.NonNull;
 
 public class CraftLivingEntity extends CraftEntity implements LivingEntity {
 
@@ -99,7 +98,7 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
     public CraftLivingEntity(final CraftServer server, final net.minecraft.world.entity.LivingEntity entity) {
         super(server, entity);
 
-        if (entity instanceof Mob || entity instanceof ArmorStand || entity instanceof Mannequin) {
+        if (entity instanceof Mob || entity instanceof ArmorStand) {
             this.equipment = new CraftEntityEquipment(this);
         }
     }
@@ -289,9 +288,19 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
     }
 
     @Override
+    public Block getTargetBlockExact(int maxDistance) {
+        return this.getTargetBlockExact(maxDistance, FluidCollisionMode.NEVER);
+    }
+
+    @Override
     public Block getTargetBlockExact(int maxDistance, FluidCollisionMode fluidCollisionMode) {
         RayTraceResult hitResult = this.rayTraceBlocks(maxDistance, fluidCollisionMode);
         return (hitResult != null ? hitResult.getHitBlock() : null);
+    }
+
+    @Override
+    public RayTraceResult rayTraceBlocks(double maxDistance) {
+        return this.rayTraceBlocks(maxDistance, FluidCollisionMode.NEVER);
     }
 
     @Override
@@ -346,7 +355,6 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
 
     @Override
     public void setArrowCooldown(int ticks) {
-        Preconditions.checkArgument(ticks >= 0, "Amount of ticks before next arrow removal must be non-negative");
         this.getHandle().removeArrowTime = ticks;
     }
 
@@ -357,7 +365,7 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
 
     @Override
     public void setArrowsInBody(final int count, final boolean fireEvent) { // Paper
-        Preconditions.checkArgument(count >= 0, "New arrow amount must be non-negative");
+        Preconditions.checkArgument(count >= 0, "New arrow amount must be >= 0");
         if (!fireEvent) {
             this.getHandle().getEntityData().set(net.minecraft.world.entity.LivingEntity.DATA_ARROW_COUNT_ID, count);
         } else {
@@ -365,32 +373,56 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
         }
     }
 
+    // Paper start - Add methods for working with arrows stuck in living entities
+    @Override
+    public void setNextArrowRemoval(final int ticks) {
+        Preconditions.checkArgument(ticks >= 0, "New amount of ticks before next arrow removal must be >= 0");
+        this.getHandle().removeArrowTime = ticks;
+    }
+
+    @Override
+    public int getNextArrowRemoval() {
+        return this.getHandle().removeArrowTime;
+    }
+    // Paper end - Add methods for working with arrows stuck in living entities
+
     @Override
     public boolean isInvulnerable() {
         return this.getHandle().isInvulnerableTo((ServerLevel) this.getHandle().level(), this.getHandle().damageSources().generic());
     }
-
+    // Paper start - Bee Stinger API
     @Override
     public int getBeeStingerCooldown() {
-        return this.getHandle().removeStingerTime;
+        return getHandle().removeStingerTime;
     }
 
     @Override
     public void setBeeStingerCooldown(int ticks) {
-        Preconditions.checkArgument(ticks >= 0, "New amount of ticks before next bee stinger removal must be non-negative");
-        this.getHandle().removeStingerTime = ticks;
+        getHandle().removeStingerTime = ticks;
     }
 
     @Override
     public int getBeeStingersInBody() {
-        return this.getHandle().getStingerCount();
+        return getHandle().getStingerCount();
     }
 
     @Override
     public void setBeeStingersInBody(int count) {
         Preconditions.checkArgument(count >= 0, "New bee stinger amount must be >= 0");
-        this.getHandle().setStingerCount(count);
+        getHandle().setStingerCount(count);
     }
+
+    @Override
+    public void setNextBeeStingerRemoval(final int ticks) {
+        Preconditions.checkArgument(ticks >= 0, "New amount of ticks before next bee stinger removal must be >= 0");
+        this.getHandle().removeStingerTime = ticks;
+    }
+
+    @Override
+    public int getNextBeeStingerRemoval() {
+        return this.getHandle().removeStingerTime;
+    }
+    // Paper end - Bee Stinger API
 
     @Override
     public void damage(double amount) {
@@ -490,6 +522,11 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
     }
 
     @Override
+    public boolean addPotionEffect(PotionEffect effect) {
+        return this.addPotionEffect(effect, false);
+    }
+
+    @Override
     public boolean addPotionEffect(PotionEffect effect, boolean force) {
         org.spigotmc.AsyncCatcher.catchOp("effect add"); // Paper
         this.getHandle().addEffect(org.bukkit.craftbukkit.potion.CraftPotionUtil.fromBukkit(effect), EntityPotionEffectEvent.Cause.PLUGIN); // Paper - Don't ignore icon
@@ -536,8 +573,20 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
     }
 
     @Override
+    public <T extends Projectile> T launchProjectile(Class<? extends T> projectile) {
+        return this.launchProjectile(projectile, null);
+    }
+
+    @Override
+    public <T extends Projectile> T launchProjectile(Class<? extends T> projectile, Vector velocity) {
+        // Paper start - launchProjectile consumer
+        return this.launchProjectile(projectile, velocity, null);
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <T extends Projectile> T launchProjectile(Class<? extends T> projectile, Vector velocity, java.util.function.Consumer<? super T> function) {
+        // Paper end - launchProjectile consumer
         Preconditions.checkState(!this.getHandle().generation, "Cannot launch projectile during world generation");
 
         net.minecraft.world.level.Level world = ((CraftWorld) this.getWorld()).getHandle();
@@ -601,6 +650,7 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
             }
 
             launch.projectileSource = this;
+            launch.preserveMotion = true; // Paper - Fix Entity Teleportation and cancel velocity if teleported
             launch.snapTo(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
         } else if (LlamaSpit.class.isAssignableFrom(projectile)) {
             Location location = this.getEyeLocation();
@@ -644,7 +694,7 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
         Preconditions.checkArgument(launch != null, "Projectile (%s) not supported", projectile.getName());
 
         if (velocity != null) {
-            launch.getBukkitEntity().setVelocity(velocity);
+            ((T) launch.getBukkitEntity()).setVelocity(velocity);
         }
         if (function != null) {
             function.accept((T) launch.getBukkitEntity());
@@ -689,7 +739,7 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
     }
 
     @Override
-    public @NonNull EntityEquipment getEquipment() {
+    public EntityEquipment getEquipment() {
         return this.equipment;
     }
 
@@ -712,6 +762,15 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
     }
 
     @Override
+    public boolean teleport(Location location, PlayerTeleportEvent.TeleportCause cause) {
+        if (this.getHealth() == 0) {
+            return false;
+        }
+
+        return super.teleport(location, cause);
+    }
+
+    @Override
     public boolean isLeashed() {
         return false; // Paper - implement in CraftMob & PaperLeashable
     }
@@ -728,7 +787,7 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
 
     @Override
     public boolean isGliding() {
-        return this.getHandle().isFallFlying();
+        return this.getHandle().getSharedFlag(7);
     }
 
     @Override
@@ -826,7 +885,7 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
             float actualYaw = yaw + 90;
             ClientboundHurtAnimationPacket packet = new ClientboundHurtAnimationPacket(this.getEntityId(), actualYaw);
 
-            world.getChunkSource().sendToTrackingPlayersAndSelf(this.getHandle(), packet);
+            world.getChunkSource().broadcastAndSend(this.getHandle(), packet);
         }
     }
 
@@ -930,6 +989,26 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
     @Override
     public float getUpwardsMovement() {
         return this.getHandle().yya;
+    }
+
+    @Override
+    public int getArrowsStuck() {
+        return this.getHandle().getArrowCount();
+    }
+
+    @Override
+    public void setArrowsStuck(final int arrows) {
+        this.getHandle().setArrowCount(arrows);
+    }
+
+    @Override
+    public int getShieldBlockingDelay() {
+        return this.getHandle().shieldBlockingDelay;
+    }
+
+    @Override
+    public void setShieldBlockingDelay(int delay) {
+        this.getHandle().shieldBlockingDelay = delay;
     }
 
     @Override

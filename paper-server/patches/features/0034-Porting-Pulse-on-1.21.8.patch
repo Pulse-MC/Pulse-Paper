@@ -1,0 +1,200 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: tizis0 <hexgames84@gmail.com>
+Date: Tue, 20 Jan 2026 20:19:17 +0600
+Subject: [PATCH] Porting Pulse on 1.21.8
+
+
+diff --git a/net/minecraft/commands/Commands.java b/net/minecraft/commands/Commands.java
+index ec1cced129ef42be65d7b2b622638bfae8bd895e..e80a58bb9a2c7c21583c2615ef2e73cea3446ff8 100644
+--- a/net/minecraft/commands/Commands.java
++++ b/net/minecraft/commands/Commands.java
+@@ -145,6 +145,7 @@ import net.minecraft.world.flag.FeatureFlagSet;
+ import net.minecraft.world.flag.FeatureFlags;
+ import net.minecraft.world.level.GameRules;
+ import org.slf4j.Logger;
++import dev.pulsemc.command.PulseCommands;
+ 
+ public class Commands {
+     public static final String COMMAND_PREFIX = "/";
+@@ -248,6 +249,11 @@ public class Commands {
+         WaypointCommand.register(this.dispatcher, context);
+         WeatherCommand.register(this.dispatcher);
+         WorldBorderCommand.register(this.dispatcher);
++
++        // Pulse start - Register new vanilla command
++        PulseCommands.register(this.dispatcher);
++        // Pulse end - Register new vanilla command
++
+         if (JvmProfiler.INSTANCE.isAvailable()) {
+             JfrCommand.register(this.dispatcher);
+         }
+diff --git a/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java b/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java
+index 10b46c59d83d1274cf491f217df2355d13b594c1..34d05debaa58b5a9d4bcb141516dee9afd23d904 100644
+--- a/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java
++++ b/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java
+@@ -17,8 +17,8 @@ public class ClientboundSectionBlocksUpdatePacket implements Packet<ClientGamePa
+         ClientboundSectionBlocksUpdatePacket::write, ClientboundSectionBlocksUpdatePacket::new
+     );
+     private static final int POS_IN_SECTION_BITS = 12;
+-    private final SectionPos sectionPos;
+-    private final short[] positions;
++    public final SectionPos sectionPos;
++    public final short[] positions;
+     private final BlockState[] states;
+ 
+     public ClientboundSectionBlocksUpdatePacket(SectionPos sectionPos, ShortSet positions, LevelChunkSection section) {
+diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
+index 98927d4a5fba2a0dcdb147ac10b82c3286ccdc6b..cefacc2a96a193f7c48f9640a70b51a724b1ffec 100644
+--- a/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -58,7 +58,7 @@ import net.minecraft.world.level.Level;
+ import net.minecraft.world.level.block.entity.SkullBlockEntity;
+ import net.minecraft.world.level.storage.LevelStorageSource;
+ import org.slf4j.Logger;
+-
++// PULSE_MODIFIED
+ public class DedicatedServer extends MinecraftServer implements ServerInterface {
+     static final Logger LOGGER = LogUtils.getLogger();
+     private static final int CONVERSION_RETRY_DELAY_MS = 5000;
+@@ -231,6 +231,12 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+             return false;
+         }
+ 
++        // Pulse start - Init Config and Commands
++        dev.pulsemc.config.ConfigManager.load();
++        dev.pulsemc.network.PulseMetrics.start();
++        dev.pulsemc.network.PulseBar.start();
++        // Pulse end
++
+         // CraftBukkit start
+         this.server.loadPlugins();
+         this.server.enablePlugins(org.bukkit.plugin.PluginLoadOrder.STARTUP);
+diff --git a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
+index f02800e4e941b05bde6f0d5fac76e2b6ec5b9832..21d3d6ff65b8afb1bfce1f46c0740ba054330c83 100644
+--- a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
++++ b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
+@@ -28,6 +28,9 @@ import net.minecraft.server.level.ClientInformation;
+ import net.minecraft.util.VisibleForDebug;
+ import net.minecraft.util.profiling.Profiler;
+ import org.slf4j.Logger;
++import dev.pulsemc.network.PulseBuffer;
++import io.papermc.paper.util.KeepAlive;
++// PULSE_MODIFIED
+ 
+ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPacketListener {
+     private static final Logger LOGGER = LogUtils.getLogger();
+@@ -44,7 +47,7 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+     private long closedListenerTime;
+     private boolean closed = false;
+     private volatile int latency; // Paper - improve keepalives - make volatile
+-    private final io.papermc.paper.util.KeepAlive keepAlive; // Paper - improve keepalives
++    // private final io.papermc.paper.util.KeepAlive keepAlive; // Paper - improve keepalives
+     private volatile boolean suspendFlushingOnServerThread = false;
+     // CraftBukkit start
+     public final org.bukkit.craftbukkit.CraftServer cserver;
+@@ -57,6 +60,8 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+     public @Nullable String playerBrand;
+     public final java.util.Set<String> pluginMessagerChannels;
+     // Paper end - retain certain values
++    public PulseBuffer pulseBuffer; // Pulse
++    private final KeepAlive keepAlive; // Pulse
+ 
+     public ServerCommonPacketListenerImpl(MinecraftServer server, Connection connection, CommonListenerCookie cookie) {
+         this.server = server;
+@@ -68,8 +73,10 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+         this.playerBrand = cookie.brandName();
+         this.cserver = server.server;
+         this.pluginMessagerChannels = cookie.channels();
+-        this.keepAlive = cookie.keepAlive();
++        // this.keepAlive = cookie.keepAlive();
+         // Paper end
++        this.pulseBuffer = new PulseBuffer(this); // Pulse
++        this.keepAlive = cookie.keepAlive();
+     }
+ 
+     // Paper start - configuration phase API
+@@ -310,28 +317,35 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+         this.send(packet, null);
+     }
+ 
+-    public void send(Packet<?> packet, @Nullable ChannelFutureListener channelFutureListener) {
+-        // CraftBukkit start
+-        if (packet == null || this.processedDisconnect) { // Spigot
++    public void send(Packet<?> packet, @Nullable ChannelFutureListener sendListener) {
++        if (packet == null || this.processedDisconnect) return;
++
++        // Pulse start - Smart Batching V3 (Delegation)
++        if (this.pulseBuffer != null) {
++            // We just send packet to buffer
++            this.pulseBuffer.add(packet, sendListener);
++
++            // If packet close connection send it as "Instant"
++            if (packet.isTerminal()) {
++                this.pulseBuffer.flush();
++                this.close();
++            }
+             return;
+-        } else if (packet instanceof net.minecraft.network.protocol.game.ClientboundSetDefaultSpawnPositionPacket defaultSpawnPositionPacket && this instanceof ServerGamePacketListenerImpl serverGamePacketListener) {
+-            serverGamePacketListener.player.compassTarget = org.bukkit.craftbukkit.util.CraftLocation.toBukkit(defaultSpawnPositionPacket.getPos(), serverGamePacketListener.getCraftPlayer().getWorld());
+-        }
+-        // CraftBukkit end
+-        if (packet.isTerminal()) {
+-            this.close();
+         }
+ 
+-        boolean flag = !this.suspendFlushingOnServerThread || !this.server.isSameThread();
++        // Fallback if buffer doesnt created
++        if (packet instanceof net.minecraft.network.protocol.game.ClientboundSetDefaultSpawnPositionPacket p && this instanceof ServerGamePacketListenerImpl s) {
++            // Мы убрали .respawnData(), так как в 1.21.10 метод .pos() вызывается напрямую у пакета
++            s.player.compassTarget = org.bukkit.craftbukkit.util.CraftLocation.toBukkit(p.getPos(), s.getPlayer().level());
++        }
++        if (packet.isTerminal()) this.close();
+ 
+         try {
+-            this.connection.send(packet, channelFutureListener, flag);
++            this.connection.send(packet, sendListener, true);
+         } catch (Throwable var7) {
+-            CrashReport crashReport = CrashReport.forThrowable(var7, "Sending packet");
+-            CrashReportCategory crashReportCategory = crashReport.addCategory("Packet being sent");
+-            crashReportCategory.setDetail("Packet class", () -> packet.getClass().getCanonicalName());
+-            throw new ReportedException(crashReport);
++            throw new net.minecraft.ReportedException(net.minecraft.CrashReport.forThrowable(var7, "Sending packet"));
+         }
++        // Pulse end
+     }
+ 
+     @Deprecated @io.papermc.paper.annotation.DoNotUse // Paper - kick event causes
+@@ -459,6 +473,6 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+     }
+ 
+     protected CommonListenerCookie createCookie(ClientInformation clientInformation) {
+-        return new CommonListenerCookie(this.playerProfile(), this.latency, clientInformation, this.transferred, this.playerBrand, this.pluginMessagerChannels, this.keepAlive); // Paper
++        return new CommonListenerCookie(this.playerProfile(), this.latency, clientInformation, this.transferred, this.playerBrand, this.pluginMessagerChannels, this.keepAlive); // Paper // Pulse - add keepAlive
+     }
+ }
+diff --git a/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+index ca13dd72f173be6714965c506f2d48dcd3c9e569..37e15ac7dffaf80f3b01f29cea89d29d28fea850 100644
+--- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
++++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+@@ -364,6 +364,8 @@ public class ServerGamePacketListenerImpl
+             this.aboveGroundTickCount = 0;
+         }
+ 
++
++
+         this.lastVehicle = this.player.getRootVehicle();
+         if (this.lastVehicle != this.player && this.lastVehicle.getControllingPassenger() == this.player) {
+             this.vehicleFirstGoodX = this.lastVehicle.getX();
+@@ -405,6 +407,12 @@ public class ServerGamePacketListenerImpl
+             this.hasLoggedExpiry = true;
+         }
+         // Paper end - Prevent causing expired keys from impacting new joins
++
++        // Pulse start
++        if (this.pulseBuffer != null) {
++            this.pulseBuffer.flush();
++        }
++        // Pulse end
+     }
+ 
+     private int getMaximumFlyingTicks(Entity entity) {

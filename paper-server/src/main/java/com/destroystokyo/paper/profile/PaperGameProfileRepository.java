@@ -4,13 +4,11 @@ import com.destroystokyo.paper.event.profile.LookupProfileEvent;
 import com.destroystokyo.paper.event.profile.PreLookupProfileEvent;
 import com.google.common.collect.Sets;
 import com.mojang.authlib.Environment;
+import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.ProfileLookupCallback;
 import com.mojang.authlib.yggdrasil.YggdrasilGameProfileRepository;
-import com.mojang.authlib.yggdrasil.response.NameAndId;
 import java.net.Proxy;
-import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 public class PaperGameProfileRepository extends YggdrasilGameProfileRepository {
     public PaperGameProfileRepository(Proxy proxy, Environment environment) {
@@ -25,7 +23,15 @@ public class PaperGameProfileRepository extends YggdrasilGameProfileRepository {
             event.callEvent();
             if (event.getUUID() != null) {
                 // Plugin provided UUID, we can skip network call.
-                callback.onProfileLookupSucceeded(name, event.getUUID());
+                GameProfile gameprofile = new GameProfile(event.getUUID(), name);
+                // We might even have properties!
+                Set<ProfileProperty> profileProperties = event.getProfileProperties();
+                if (!profileProperties.isEmpty()) {
+                    for (ProfileProperty property : profileProperties) {
+                        gameprofile.getProperties().put(property.getName(), CraftPlayerProfile.asAuthlib(property));
+                    }
+                }
+                callback.onProfileLookupSucceeded(gameprofile);
             } else {
                 unfoundNames.add(name);
             }
@@ -38,23 +44,12 @@ public class PaperGameProfileRepository extends YggdrasilGameProfileRepository {
         }
     }
 
-    @Override
-    public Optional<NameAndId> findProfileByName(final String name) {
-        PreLookupProfileEvent event = new PreLookupProfileEvent(name);
-        event.callEvent();
-        if (event.getUUID() != null) {
-            // Plugin provided UUID, we can skip network call.
-            return Optional.of(new NameAndId(event.getUUID(), name));
-        }
-        return super.findProfileByName(name);
-    }
-
     private record PreProfileLookupCallback(ProfileLookupCallback callback) implements ProfileLookupCallback {
         @Override
-        public void onProfileLookupSucceeded(final String  profileName, final UUID profileId) {
-            PlayerProfile from = new CraftPlayerProfile(profileId, profileName);
+        public void onProfileLookupSucceeded(GameProfile gameProfile) {
+            PlayerProfile from = CraftPlayerProfile.asBukkitMirror(gameProfile);
             new LookupProfileEvent(from).callEvent();
-            this.callback.onProfileLookupSucceeded(profileName, profileId);
+            this.callback.onProfileLookupSucceeded(gameProfile);
         }
 
         @Override

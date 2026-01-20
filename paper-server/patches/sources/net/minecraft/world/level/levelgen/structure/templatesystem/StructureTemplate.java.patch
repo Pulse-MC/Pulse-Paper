@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate.java
 +++ b/net/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate.java
-@@ -80,6 +_,10 @@
+@@ -79,6 +_,10 @@
      public final List<StructureTemplate.StructureEntityInfo> entityInfoList = Lists.newArrayList();
      private Vec3i size = Vec3i.ZERO;
      private String author = "?";
@@ -11,16 +11,16 @@
  
      public Vec3i getSize() {
          return this.size;
-@@ -256,6 +_,19 @@
+@@ -255,6 +_,19 @@
          if (this.palettes.isEmpty()) {
              return false;
          } else {
 +            // CraftBukkit start
 +            // We only want the TransformerGeneratorAccess at certain locations because in here are many "block update" calls that shouldn't be transformed
-+            ServerLevelAccessor wrappedAccess = level;
++            ServerLevelAccessor wrappedAccess = serverLevel;
 +            org.bukkit.craftbukkit.util.CraftStructureTransformer structureTransformer = null;
 +            if (wrappedAccess instanceof org.bukkit.craftbukkit.util.TransformerGeneratorAccess transformerAccess) {
-+                level = transformerAccess.getDelegate();
++                serverLevel = transformerAccess.getDelegate();
 +                structureTransformer = transformerAccess.getStructureTransformer();
 +                // The structureTransformer is not needed if we can not transform blocks therefore we can save a little bit of performance doing this
 +                if (structureTransformer != null && !structureTransformer.canTransformBlocks()) {
@@ -31,13 +31,13 @@
              List<StructureTemplate.StructureBlockInfo> list = settings.getRandomPalette(this.palettes, offset).blocks();
              if ((!list.isEmpty() || !settings.isIgnoreEntities() && !this.entityInfoList.isEmpty())
                  && this.size.getX() >= 1
-@@ -283,6 +_,21 @@
-                                 level.setBlock(blockPos, Blocks.BARRIER.defaultBlockState(), Block.UPDATE_SKIP_ALL_SIDEEFFECTS | Block.UPDATE_NONE);
+@@ -282,6 +_,21 @@
+                                 serverLevel.setBlock(blockPos, Blocks.BARRIER.defaultBlockState(), 820);
                              }
  
 +                            // CraftBukkit start
 +                            if (structureTransformer != null) {
-+                                org.bukkit.craftbukkit.block.CraftBlockState craftBlockState = (org.bukkit.craftbukkit.block.CraftBlockState) org.bukkit.craftbukkit.block.CraftBlockStates.getBlockState(level, blockPos, blockState, null);
++                                org.bukkit.craftbukkit.block.CraftBlockState craftBlockState = (org.bukkit.craftbukkit.block.CraftBlockState) org.bukkit.craftbukkit.block.CraftBlockStates.getBlockState(serverLevel, blockPos, blockState, null);
 +                                if (structureBlockInfo.nbt != null && craftBlockState instanceof org.bukkit.craftbukkit.block.CraftBlockEntityState<?> entityState) {
 +                                    entityState.loadData(structureBlockInfo.nbt);
 +                                    if (craftBlockState instanceof org.bukkit.craftbukkit.block.CraftLootable<?> craftLootable) {
@@ -50,41 +50,41 @@
 +                            }
 +                            // CraftBukkit end
 +
-                             if (level.setBlock(blockPos, blockState, flags)) {
+                             if (serverLevel.setBlock(blockPos, blockState, flags)) {
                                  i = Math.min(i, blockPos.getX());
                                  i1 = Math.min(i1, blockPos.getY());
-@@ -294,7 +_,7 @@
+@@ -293,7 +_,7 @@
                                  if (structureBlockInfo.nbt != null) {
-                                     BlockEntity blockEntity = level.getBlockEntity(blockPos);
+                                     BlockEntity blockEntity = serverLevel.getBlockEntity(blockPos);
                                      if (blockEntity != null) {
--                                        if (!SharedConstants.DEBUG_STRUCTURE_EDIT_MODE && blockEntity instanceof RandomizableContainer) {
-+                                        if (structureTransformer == null && !SharedConstants.DEBUG_STRUCTURE_EDIT_MODE && blockEntity instanceof RandomizableContainer) { // CraftBukkit - only process if don't have a transformer access (Was already set above) - SPIGOT-7520: Use structureTransformer as check, so that it is the same as above
+-                                        if (blockEntity instanceof RandomizableContainer) {
++                                        if (structureTransformer == null && blockEntity instanceof RandomizableContainer) { // CraftBukkit - only process if don't have a transformer access (Was already set above) - SPIGOT-7520: Use structureTransformer as check, so that it is the same as above
                                              structureBlockInfo.nbt.putLong("LootTableSeed", random.nextLong());
                                          }
  
-@@ -381,7 +_,11 @@
+@@ -380,7 +_,11 @@
                              if (pair1.getSecond() != null) {
-                                 BlockEntity blockEntity = level.getBlockEntity(blockPos4);
+                                 BlockEntity blockEntity = serverLevel.getBlockEntity(blockPos4);
                                  if (blockEntity != null) {
 -                                    blockEntity.setChanged();
 +                                    // Paper start - Fix NBT pieces overriding a block entity during worldgen deadlock
-+                                    if (!(level instanceof net.minecraft.world.level.WorldGenLevel)) {
++                                    if (!(serverLevel instanceof net.minecraft.world.level.WorldGenLevel)) {
 +                                        blockEntity.setChanged();
 +                                    }
 +                                    // Paper end - Fix NBT pieces overriding a block entity during worldgen deadlock
                                  }
                              }
                          }
-@@ -389,7 +_,7 @@
+@@ -388,7 +_,7 @@
  
                      if (!settings.isIgnoreEntities()) {
                          this.placeEntities(
--                            level,
+-                            serverLevel,
 +                            wrappedAccess, // CraftBukkit
                              offset,
                              settings.getMirror(),
                              settings.getRotation(),
-@@ -502,14 +_,17 @@
+@@ -499,14 +_,17 @@
                  });
              }
          }
@@ -107,7 +107,7 @@
      }
  
      public Vec3i getSize(Rotation rotation) {
-@@ -702,6 +_,11 @@
+@@ -699,6 +_,11 @@
  
          tag.put("entities", listTag3);
          tag.put("size", this.newIntegerList(this.size.getX(), this.size.getY(), this.size.getZ()));
@@ -119,7 +119,7 @@
          return NbtUtils.addCurrentDataVersion(tag);
      }
  
-@@ -732,6 +_,11 @@
+@@ -729,6 +_,11 @@
                          .ifPresent(compoundTag1 -> this.entityInfoList.add(new StructureTemplate.StructureEntityInfo(vec3, blockPos, compoundTag1)));
                  }
              );
@@ -131,7 +131,7 @@
      }
  
      private void loadPalette(HolderGetter<Block> blockGetter, ListTag paletteTag, ListTag blocksTag) {
-@@ -831,7 +_,7 @@
+@@ -828,7 +_,7 @@
  
      public static final class Palette {
          private final List<StructureTemplate.StructureBlockInfo> blocks;

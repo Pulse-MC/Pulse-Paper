@@ -1,6 +1,5 @@
 package org.bukkit.entity;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -10,7 +9,6 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -33,7 +31,7 @@ public interface HumanEntity extends LivingEntity, AnimalTamer, InventoryHolder 
 
     // Paper start
     @Override
-    EntityEquipment getEquipment();
+    org.bukkit.inventory.EntityEquipment getEquipment();
     // Paper end
 
     /**
@@ -178,9 +176,7 @@ public interface HumanEntity extends LivingEntity, AnimalTamer, InventoryHolder 
      */
     @Deprecated(since = "1.21.4")
     @Nullable
-    default InventoryView openMerchant(Villager trader, boolean force) {
-        return this.openMerchant((Merchant) trader, force);
-    }
+    public InventoryView openMerchant(Villager trader, boolean force);
 
     /**
      * Starts a trade between the player and the merchant.
@@ -386,9 +382,7 @@ public interface HumanEntity extends LivingEntity, AnimalTamer, InventoryHolder 
      * @param ticks the amount of ticks to set or 0 to remove
      * @throws IllegalArgumentException if the material is not an item
      */
-    default void setCooldown(Material material, int ticks) {
-        this.setCooldown(ItemStack.of(material), ticks);
-    }
+    public void setCooldown(Material material, int ticks);
 
     /**
      * Sets player hurt direction
@@ -620,9 +614,7 @@ public interface HumanEntity extends LivingEntity, AnimalTamer, InventoryHolder 
      *
      * @return whether or not the recipe was newly discovered
      */
-    default boolean discoverRecipe(NamespacedKey recipe) {
-        return this.discoverRecipes(Arrays.asList(recipe)) != 0;
-    }
+    public boolean discoverRecipe(NamespacedKey recipe);
 
     /**
      * Discover a collection of recipes for this player such that they have not
@@ -648,9 +640,7 @@ public interface HumanEntity extends LivingEntity, AnimalTamer, InventoryHolder 
      * @return whether or not the recipe was successfully undiscovered (i.e. it
      * was previously discovered)
      */
-    default boolean undiscoverRecipe(NamespacedKey recipe) {
-        return this.undiscoverRecipes(Arrays.asList(recipe)) != 0;
-    }
+    public boolean undiscoverRecipe(NamespacedKey recipe);
 
     /**
      * Undiscover a collection of recipes for this player such that they have

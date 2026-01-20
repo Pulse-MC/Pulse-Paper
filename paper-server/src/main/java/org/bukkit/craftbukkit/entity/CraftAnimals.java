@@ -29,7 +29,7 @@ public class CraftAnimals extends CraftAgeable implements Animals {
 
     @Override
     public void setBreedCause(UUID uuid) {
-        this.getHandle().loveCause = uuid == null ? null : EntityReference.of(uuid);
+        this.getHandle().loveCause = uuid == null ? null : new EntityReference<>(uuid);
     }
 
     @Override

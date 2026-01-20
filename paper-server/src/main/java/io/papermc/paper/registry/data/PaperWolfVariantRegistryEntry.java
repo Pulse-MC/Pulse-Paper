@@ -3,7 +3,6 @@ package io.papermc.paper.registry.data;
 import io.papermc.paper.registry.PaperRegistryBuilder;
 import io.papermc.paper.registry.data.client.ClientTextureAsset;
 import io.papermc.paper.registry.data.util.Conversions;
-import net.minecraft.core.ClientAsset;
 import net.minecraft.world.entity.animal.wolf.WolfVariant;
 import net.minecraft.world.entity.variant.SpawnPrioritySelectors;
 import org.bukkit.entity.Wolf;
@@ -14,9 +13,9 @@ import static io.papermc.paper.registry.data.util.Checks.asConfigured;
 
 public class PaperWolfVariantRegistryEntry implements WolfVariantRegistryEntry {
 
-    protected ClientAsset.@Nullable ResourceTexture angryClientTextureAsset;
-    protected ClientAsset.@Nullable ResourceTexture wildClientTextureAsset;
-    protected ClientAsset.@Nullable ResourceTexture tameClientTextureAsset;
+    protected net.minecraft.core.@Nullable ClientAsset angryClientTextureAsset;
+    protected net.minecraft.core.@Nullable ClientAsset wildClientTextureAsset;
+    protected net.minecraft.core.@Nullable ClientAsset tameClientTextureAsset;
     protected SpawnPrioritySelectors spawnConditions;
 
     protected final Conversions conversions;

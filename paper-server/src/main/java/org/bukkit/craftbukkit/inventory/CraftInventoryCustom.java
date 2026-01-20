@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
-import net.minecraft.world.entity.ContainerUser;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.bukkit.Location;
@@ -215,11 +214,11 @@ public class CraftInventoryCustom extends CraftInventory {
         }
 
         @Override
-        public void startOpen(ContainerUser player) {
+        public void startOpen(Player player) {
         }
 
         @Override
-        public void stopOpen(ContainerUser player) {
+        public void stopOpen(Player player) {
         }
 
         @Override

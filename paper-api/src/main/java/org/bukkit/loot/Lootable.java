@@ -27,7 +27,7 @@ public interface Lootable {
      * Gets the Loot Table attached to this block or entity.
      * <br>
      *
-     * If a block/entity does not have a loot table, this will return null, NOT
+     * If an block/entity does not have a loot table, this will return null, NOT
      * an empty loot table.
      *
      * @return the Loot Table attached to this block or entity.

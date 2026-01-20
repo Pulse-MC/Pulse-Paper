@@ -1,8 +1,8 @@
 package org.bukkit.event;
 
-public class TestEvent extends Event {
 
-    private static final HandlerList HANDLER_LIST = new HandlerList();
+public class TestEvent extends Event {
+    private static final HandlerList handlers = new HandlerList();
 
     public TestEvent(boolean async) {
         super(async);
@@ -10,10 +10,10 @@ public class TestEvent extends Event {
 
     @Override
     public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        return handlers;
     }
 
     public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
+        return handlers;
     }
 }

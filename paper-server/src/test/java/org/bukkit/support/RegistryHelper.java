@@ -23,7 +23,6 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagLoader;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.chunk.PalettedContainerFactory;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 
@@ -32,7 +31,6 @@ public final class RegistryHelper {
     private static ReloadableServerResources dataPack;
     private static RegistryAccess.Frozen registry;
     private static Registry<Biome> biomes;
-    private static PalettedContainerFactory palettedContainerFactory;
 
     private RegistryHelper() {
     }
@@ -56,13 +54,6 @@ public final class RegistryHelper {
             RegistryHelper.throwError("biomes");
         }
         return RegistryHelper.biomes;
-    }
-
-    public static PalettedContainerFactory palettedContainerFactory() {
-        if (RegistryHelper.palettedContainerFactory == null) {
-            RegistryHelper.throwError("palettedContainerFactory");
-        }
-        return RegistryHelper.palettedContainerFactory;
     }
 
     public static RegistryAccess.Frozen createRegistry(FeatureFlagSet featureFlagSet) {
@@ -107,8 +98,6 @@ public final class RegistryHelper {
         RegistryHelper.dataPack.updateStaticRegistryTags();
         // Biome shortcut
         RegistryHelper.biomes = RegistryHelper.registry.lookupOrThrow(Registries.BIOME);
-        // PalettedContainerFactory shortcut
-        RegistryHelper.palettedContainerFactory = PalettedContainerFactory.create(RegistryHelper.registry);
     }
 
     public static <T extends Keyed> Class<T> updateClass(Class<T> aClass, NamespacedKey key) {

@@ -29,7 +29,7 @@ if (!file(".git").exists()) {
     error(errorText)
 }
 
-rootProject.name = "paper"
+rootProject.name = "Pulse"
 
 for (name in listOf("paper-api", "paper-server")) {
     include(name)

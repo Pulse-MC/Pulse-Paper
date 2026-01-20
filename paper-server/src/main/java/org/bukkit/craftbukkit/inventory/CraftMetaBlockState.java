@@ -18,9 +18,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.util.ProblemReporter;
-import net.minecraft.world.item.component.TypedEntityData;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.storage.TagValueOutput;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
@@ -56,21 +55,20 @@ public class CraftMetaBlockState extends CraftMetaItem implements BlockStateMeta
     );
 
     @ItemMetaKey.Specific(ItemMetaKey.Specific.To.NBT)
-    static final ItemMetaKeyType<TypedEntityData<BlockEntityType<?>>> BLOCK_ENTITY_TAG = new ItemMetaKeyType<>(DataComponents.BLOCK_ENTITY_DATA, "BlockEntityTag");
+    static final ItemMetaKeyType<CustomData> BLOCK_ENTITY_TAG = new ItemMetaKeyType<>(DataComponents.BLOCK_ENTITY_DATA, "BlockEntityTag");
     static final ItemMetaKey BLOCK_ENTITY_TAG_CUSTOM_DATA = new ItemMetaKey("block-entity-tag");
     static final ItemMetaKey BLOCK_ENTITY_COMPONENTS = new ItemMetaKey("block-entity-components");
-    private static final CompoundTag EMPTY_TAG = new CompoundTag();
 
     final Material material;
     // Paper start - store data separately
     DataComponentMap components;
-    CompoundTag blockEntityTag;
+    CustomData blockEntityTag;
     {
         // this is because the fields are possibly assigned in the super constructor (via deserializeInternal)
         // and a direct field initialization happens **after** the super constructor. So we only want to
         // set them to empty if they weren't assigned by the super constructor (via deserializeInternal)
         this.components = this.components != null ? this.components : DataComponentMap.EMPTY;
-        this.blockEntityTag = this.blockEntityTag != null ? this.blockEntityTag : EMPTY_TAG;
+        this.blockEntityTag = this.blockEntityTag != null ? this.blockEntityTag : CustomData.EMPTY;
     }
     private Material materialForBlockEntityType() {
         return this.material;
@@ -85,7 +83,7 @@ public class CraftMetaBlockState extends CraftMetaItem implements BlockStateMeta
         if (!(meta instanceof final CraftMetaBlockState metaBlockState) ||
             metaBlockState.material != material) {
             this.components = DataComponentMap.EMPTY;
-            this.blockEntityTag = EMPTY_TAG;
+            this.blockEntityTag = CustomData.EMPTY;
             return;
         }
 
@@ -104,7 +102,7 @@ public class CraftMetaBlockState extends CraftMetaItem implements BlockStateMeta
     private void updateBlockState(final DataComponentPatch tag) {
         // Paper end
         getOrEmpty(tag, CraftMetaBlockState.BLOCK_ENTITY_TAG).ifPresent((nbt) -> {
-            this.blockEntityTag = nbt.copyTagWithBlockEntityId();
+            this.blockEntityTag = nbt;
         });
 
         if (!tag.isEmpty()) {
@@ -147,19 +145,19 @@ public class CraftMetaBlockState extends CraftMetaItem implements BlockStateMeta
         // Paper start - general item meta fixes - parse spigot legacy position and merge into block entity tag
         final BlockVector legacyPosition = SerializableMeta.getObject(BlockVector.class, map, "blockPosition", true);
         if (legacyPosition != null) {
-            CompoundTag blockEntityTag = this.blockEntityTag.copy();
-            try (final ProblemReporter.ScopedCollector problemReporter = new ProblemReporter.ScopedCollector(
-                () -> "blockEntityTag", LOGGER
-            )) {
-                final TagValueOutput output = TagValueOutput.createWrappingWithContext(problemReporter, CraftRegistry.getMinecraftRegistry(), blockEntityTag);
-                if (blockEntityTag.isEmpty()) {
-                    BlockEntity.addEntityType(output, java.util.Objects.requireNonNull(CraftBlockStates.getBlockEntityType(this.materialForBlockEntityType())));
+            this.blockEntityTag = this.blockEntityTag.update(blockEntityTag -> {
+                try (final ProblemReporter.ScopedCollector problemReporter = new ProblemReporter.ScopedCollector(
+                    () -> "blockEntityTag", LOGGER
+                )) {
+                    final TagValueOutput output = TagValueOutput.createWrappingWithContext(problemReporter, CraftRegistry.getMinecraftRegistry(), blockEntityTag);
+                    if (blockEntityTag.isEmpty()) {
+                        BlockEntity.addEntityType(output, java.util.Objects.requireNonNull(CraftBlockStates.getBlockEntityType(this.materialForBlockEntityType())));
+                    }
+                    output.putInt("x", legacyPosition.getBlockX());
+                    output.putInt("y", legacyPosition.getBlockY());
+                    output.putInt("z", legacyPosition.getBlockZ());
                 }
-                output.putInt("x", legacyPosition.getBlockX());
-                output.putInt("y", legacyPosition.getBlockY());
-                output.putInt("z", legacyPosition.getBlockZ());
-            }
-            this.blockEntityTag = blockEntityTag;
+            });
         }
         // Paper end - general item meta fixes - parse spigot legacy position and merge into block entity tag
     }
@@ -170,7 +168,7 @@ public class CraftMetaBlockState extends CraftMetaItem implements BlockStateMeta
 
         // Paper start - accurately replicate logic for creating ItemStack from BlockEntity
         // taken from BlockItem#setBlockEntityData
-        final CompoundTag nbt = this.blockEntityTag.copy();
+        final CompoundTag nbt = this.blockEntityTag.copyTag();
         if (!nbt.isEmpty()) {
             if (nbt.getString("id").isEmpty()) {
                 try (final ProblemReporter.ScopedCollector problemReporter = new ProblemReporter.ScopedCollector(
@@ -182,7 +180,7 @@ public class CraftMetaBlockState extends CraftMetaItem implements BlockStateMeta
                     );
                 }
             }
-            tag.put(CraftMetaBlockState.BLOCK_ENTITY_TAG, TypedEntityData.decodeBlockEntity(nbt));
+            tag.put(CraftMetaBlockState.BLOCK_ENTITY_TAG, CustomData.of(nbt));
         }
 
         for (final TypedDataComponent<?> component : this.components) {
@@ -204,7 +202,7 @@ public class CraftMetaBlockState extends CraftMetaItem implements BlockStateMeta
 
         // Paper start - new serialization format
         tag.getCompound(CraftMetaBlockState.BLOCK_ENTITY_TAG_CUSTOM_DATA.NBT).ifPresent(blockEntityCustomTag -> {
-            this.blockEntityTag = blockEntityCustomTag.copy();
+            this.blockEntityTag = CustomData.of(blockEntityCustomTag);
         });
         tag.getCompound(CraftMetaBlockState.BLOCK_ENTITY_COMPONENTS.NBT).ifPresent(components -> {
             this.components = DataComponentMap.CODEC.parse(CraftRegistry.getMinecraftRegistry().createSerializationContext(NbtOps.INSTANCE), components).getOrThrow();
@@ -216,7 +214,7 @@ public class CraftMetaBlockState extends CraftMetaItem implements BlockStateMeta
     void serializeInternal(final Map<String, Tag> internalTags) {
         // Paper start - new serialization format
         if (!this.blockEntityTag.isEmpty()) {
-            internalTags.put(CraftMetaBlockState.BLOCK_ENTITY_TAG_CUSTOM_DATA.NBT, this.blockEntityTag); // unsafe because it's serialized right away
+            internalTags.put(CraftMetaBlockState.BLOCK_ENTITY_TAG_CUSTOM_DATA.NBT, this.blockEntityTag.getUnsafe()); // unsafe because it's serialized right away
         }
         if (!this.components.isEmpty()) {
             final Tag componentsTag = DataComponentMap.CODEC.encodeStart(CraftRegistry.getMinecraftRegistry().createSerializationContext(NbtOps.INSTANCE), this.components).getOrThrow();
@@ -286,7 +284,7 @@ public class CraftMetaBlockState extends CraftMetaItem implements BlockStateMeta
     // Paper start - add method to clear block state
     @Override
     public void clearBlockState() {
-        this.blockEntityTag = EMPTY_TAG;
+        this.blockEntityTag = CustomData.EMPTY;
         this.components = DataComponentMap.EMPTY;
     }
     // Paper end - add method to clear block state
@@ -298,13 +296,13 @@ public class CraftMetaBlockState extends CraftMetaItem implements BlockStateMeta
         final Material stateMaterial = this.materialForBlockEntityType();
         if (!this.blockEntityTag.isEmpty()) {
             // Paper "id" field is always present now
-            pos = BlockEntity.getPosFromTag(null, this.blockEntityTag); // unsafe is fine here, just querying
+            pos = BlockEntity.getPosFromTag(null, this.blockEntityTag.getUnsafe()); // unsafe is fine here, just querying
         }
         final net.minecraft.world.level.block.entity.BlockEntityType<?> type = java.util.Objects.requireNonNull(CraftBlockStates.getBlockEntityType(stateMaterial));
         final net.minecraft.world.level.block.state.BlockState nmsBlockState = ((org.bukkit.craftbukkit.block.data.CraftBlockData) this.getBlockData(stateMaterial)).getState();
         final net.minecraft.world.level.block.entity.BlockEntity blockEntity = java.util.Objects.requireNonNull(type.create(pos, nmsBlockState));
         if (!this.blockEntityTag.isEmpty()) {
-            TypedEntityData.decodeBlockEntity(this.blockEntityTag).loadInto(blockEntity, CraftRegistry.getMinecraftRegistry());
+            this.blockEntityTag.loadInto(blockEntity, CraftRegistry.getMinecraftRegistry());
         }
         final PatchedDataComponentMap patchedMap = new PatchedDataComponentMap(nmsBlockState.getBlock().asItem().components());
         patchedMap.setAll(this.components);
@@ -353,12 +351,12 @@ public class CraftMetaBlockState extends CraftMetaItem implements BlockStateMeta
         final net.minecraft.core.component.DataComponentMap map = craftBlockState.collectComponents();
         patchedMap.setAll(map);
         if (!data.isEmpty()) {
-            patchedMap.set(BLOCK_ENTITY_TAG.TYPE, TypedEntityData.decodeBlockEntity(data));
+            patchedMap.set(BLOCK_ENTITY_TAG.TYPE, CustomData.of(data));
         }
         final DataComponentPatch patch = patchedMap.asPatch();
         this.updateFromPatch(patch, null);
         // we have to reset the fields because this should be like a "new" block entity is being used
-        this.blockEntityTag = EMPTY_TAG;
+        this.blockEntityTag = CustomData.EMPTY;
         this.components = DataComponentMap.EMPTY;
         this.updateBlockState(patch);
         // Paper end

@@ -11,15 +11,14 @@ import org.bukkit.craftbukkit.damage.CraftDamageType;
 import org.bukkit.damage.DamageEffect;
 import org.jspecify.annotations.Nullable;
 
-import static io.papermc.paper.registry.data.util.Checks.asArgument;
 import static io.papermc.paper.registry.data.util.Checks.asConfigured;
 
 public class PaperDamageTypeRegistryEntry implements DamageTypeRegistryEntry {
 
     protected @Nullable String messageId;
-    protected @Nullable DamageScaling scaling;
     protected @Nullable Float exhaustion;
-    protected DamageEffects effects = DamageEffects.HURT;
+    protected @Nullable DamageScaling damageScaling;
+    protected DamageEffects damageEffects = DamageEffects.HURT;
     protected DeathMessageType deathMessageType = DeathMessageType.DEFAULT;
 
     protected final Conversions conversions;
@@ -32,35 +31,35 @@ public class PaperDamageTypeRegistryEntry implements DamageTypeRegistryEntry {
         if (internal == null) return;
 
         this.messageId = internal.msgId();
-        this.scaling = internal.scaling();
         this.exhaustion = internal.exhaustion();
-        this.effects = internal.effects();
+        this.damageScaling = internal.scaling();
+        this.damageEffects = internal.effects();
         this.deathMessageType = internal.deathMessageType();
     }
 
     @Override
     public String messageId() {
-        return asConfigured(this.messageId, "messageId");
-    }
-
-    @Override
-    public org.bukkit.damage.DamageScaling damageScaling() {
-        return CraftDamageType.damageScalingToBukkit(asConfigured(this.scaling, "scaling"));
+        return asConfigured(messageId, "messsageId");
     }
 
     @Override
     public float exhaustion() {
-        return asConfigured(this.exhaustion, "exhaustion");
+        return asConfigured(exhaustion, "exhaustion");
+    }
+
+    @Override
+    public org.bukkit.damage.DamageScaling damageScaling() {
+        return CraftDamageType.damageScalingToBukkit(asConfigured(this.damageScaling, "damageScaling"));
     }
 
     @Override
     public DamageEffect damageEffect() {
-        return CraftDamageEffect.toBukkit(this.effects);
+        return CraftDamageEffect.toBukkit(damageEffects);
     }
 
     @Override
     public org.bukkit.damage.DeathMessageType deathMessageType() {
-        return CraftDamageType.deathMessageTypeToBukkit(this.deathMessageType);
+        return CraftDamageType.deathMessageTypeToBukkit(deathMessageType);
     }
 
     public static final class PaperBuilder extends PaperDamageTypeRegistryEntry implements DamageTypeRegistryEntry.Builder, PaperRegistryBuilder<DamageType, org.bukkit.damage.DamageType> {
@@ -71,13 +70,7 @@ public class PaperDamageTypeRegistryEntry implements DamageTypeRegistryEntry {
 
         @Override
         public Builder messageId(final String messageId) {
-            this.messageId = asArgument(messageId, "messageId");
-            return this;
-        }
-
-        @Override
-        public Builder damageScaling(final org.bukkit.damage.DamageScaling scaling) {
-            this.scaling = CraftDamageType.damageScalingToNMS(asArgument(scaling, "scaling"));
+            this.messageId = messageId;
             return this;
         }
 
@@ -88,24 +81,30 @@ public class PaperDamageTypeRegistryEntry implements DamageTypeRegistryEntry {
         }
 
         @Override
+        public Builder damageScaling(final org.bukkit.damage.DamageScaling scaling) {
+            this.damageScaling = CraftDamageType.damageScalingToNMS(scaling);
+            return this;
+        }
+
+        @Override
         public Builder damageEffect(final DamageEffect effect) {
-            this.effects = ((CraftDamageEffect) asArgument(effect, "effects")).getHandle();
+            this.damageEffects = ((CraftDamageEffect) effect).getHandle();
             return this;
         }
 
         @Override
         public Builder deathMessageType(final org.bukkit.damage.DeathMessageType deathMessageType) {
-            this.deathMessageType = CraftDamageType.deathMessageTypeToNMS(asArgument(deathMessageType, "deathMessageType"));
+            this.deathMessageType = CraftDamageType.deathMessageTypeToNMS(deathMessageType);
             return this;
         }
 
         @Override
         public DamageType build() {
             return new DamageType(
-                asConfigured(this.messageId, "messageId"),
-                asConfigured(this.scaling, "scaling"),
+                asConfigured(this.messageId, "messsageId"),
+                asConfigured(this.damageScaling, "scaling"),
                 asConfigured(this.exhaustion, "exhaustion"),
-                this.effects,
+                this.damageEffects,
                 this.deathMessageType
             );
         }

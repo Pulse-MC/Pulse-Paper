@@ -9,6 +9,6 @@
 +                return;
 +            }
 +            // CraftBukkit end
-             level.setBlock(pos, this.deadBlock.defaultBlockState(), Block.UPDATE_CLIENTS);
+             level.setBlock(pos, this.deadBlock.defaultBlockState(), 2);
          }
      }

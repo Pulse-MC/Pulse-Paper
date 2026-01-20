@@ -3,7 +3,6 @@ package io.papermc.paper.registry.data;
 import io.papermc.paper.registry.PaperRegistryBuilder;
 import io.papermc.paper.registry.data.client.ClientTextureAsset;
 import io.papermc.paper.registry.data.util.Conversions;
-import net.minecraft.core.ClientAsset;
 import net.minecraft.world.entity.animal.ChickenVariant;
 import net.minecraft.world.entity.variant.ModelAndTexture;
 import net.minecraft.world.entity.variant.SpawnPrioritySelectors;
@@ -16,7 +15,7 @@ import static io.papermc.paper.registry.data.util.Checks.asConfigured;
 public class PaperChickenVariantRegistryEntry implements ChickenVariantRegistryEntry {
 
     protected ChickenVariant.@Nullable ModelType model;
-    protected ClientAsset.@Nullable ResourceTexture clientTextureAsset;
+    protected net.minecraft.core.@Nullable ClientAsset clientTextureAsset;
     protected SpawnPrioritySelectors spawnConditions;
 
     protected final Conversions conversions;

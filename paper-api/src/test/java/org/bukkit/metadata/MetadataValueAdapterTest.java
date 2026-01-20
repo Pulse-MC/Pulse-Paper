@@ -2,11 +2,11 @@ package org.bukkit.metadata;
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.BukkitTestPlugin;
+import org.bukkit.plugin.TestPlugin;
 import org.junit.jupiter.api.Test;
 
 public class MetadataValueAdapterTest {
-    private BukkitTestPlugin plugin = new BukkitTestPlugin("x");
+    private TestPlugin plugin = new TestPlugin("x");
 
     @Test
     public void testAdapterBasics() {

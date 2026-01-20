@@ -82,12 +82,12 @@ public class CraftBlockType<B extends @NonNull BlockData> extends HolderableBase
     private static boolean isInteractable(Block block) {
         Class<?> clazz = block.getClass();
 
-        boolean hasMethod = false;
+        boolean hasMethod = CraftBlockType.hasMethod(clazz, CraftBlockType.USE_WITHOUT_ITEM_ARGS) || CraftBlockType.hasMethod(clazz, CraftBlockType.USE_ITEM_ON_ARGS);
 
-        while (!hasMethod && clazz != BlockBehaviour.class && clazz != null) {
-            hasMethod = CraftBlockType.hasMethod(clazz, CraftBlockType.USE_WITHOUT_ITEM_ARGS) || CraftBlockType.hasMethod(clazz, CraftBlockType.USE_ITEM_ON_ARGS);
-
+        if (!hasMethod && clazz.getSuperclass() != BlockBehaviour.class) {
             clazz = clazz.getSuperclass();
+
+            hasMethod = CraftBlockType.hasMethod(clazz, CraftBlockType.USE_WITHOUT_ITEM_ARGS) || CraftBlockType.hasMethod(clazz, CraftBlockType.USE_ITEM_ON_ARGS);
         }
 
         return hasMethod;

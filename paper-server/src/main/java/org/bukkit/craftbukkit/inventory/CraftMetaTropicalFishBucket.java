@@ -7,9 +7,7 @@ import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.TypedEntityData;
 import org.bukkit.DyeColor;
 import org.bukkit.configuration.serialization.DelegateDeserialization;
 import org.bukkit.craftbukkit.entity.CraftTropicalFish;
@@ -20,7 +18,7 @@ import org.bukkit.inventory.meta.TropicalFishBucketMeta;
 class CraftMetaTropicalFishBucket extends CraftMetaItem implements TropicalFishBucketMeta {
 
     static final ItemMetaKey VARIANT = new ItemMetaKey("BucketVariantTag", "fish-variant");
-    static final ItemMetaKeyType<TypedEntityData<EntityType<?>>> ENTITY_TAG = new ItemMetaKeyType<>(DataComponents.ENTITY_DATA, "entity-tag");
+    static final ItemMetaKeyType<CustomData> ENTITY_TAG = new ItemMetaKeyType<>(DataComponents.ENTITY_DATA, "entity-tag");
     static final ItemMetaKeyType<CustomData> BUCKET_ENTITY_TAG = new ItemMetaKeyType<>(DataComponents.BUCKET_ENTITY_DATA, "bucket-entity-tag");
 
     private Integer variant;
@@ -43,7 +41,7 @@ class CraftMetaTropicalFishBucket extends CraftMetaItem implements TropicalFishB
         super(tag, extraHandledDcts);
 
         getOrEmpty(tag, CraftMetaTropicalFishBucket.ENTITY_TAG).ifPresent((nbt) -> {
-            this.entityTag = nbt.copyTagWithEntityId();
+            this.entityTag = nbt.copyTag();
             this.entityTag.getInt(CraftMetaTropicalFishBucket.VARIANT.NBT).ifPresent(variant -> this.variant = variant);
         });
         getOrEmpty(tag, CraftMetaTropicalFishBucket.BUCKET_ENTITY_TAG).ifPresent((nbt) -> {
@@ -84,7 +82,7 @@ class CraftMetaTropicalFishBucket extends CraftMetaItem implements TropicalFishB
         super.applyToItem(tag);
 
         if (this.entityTag != null) {
-            tag.put(CraftMetaTropicalFishBucket.ENTITY_TAG, TypedEntityData.decodeEntity(this.entityTag));
+            tag.put(CraftMetaTropicalFishBucket.ENTITY_TAG, CustomData.of(this.entityTag));
         }
 
         CompoundTag bucketEntityTag = (this.bucketEntityTag != null) ? this.bucketEntityTag.copy() : null;

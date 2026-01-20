@@ -28,12 +28,10 @@ import org.jspecify.annotations.NullMarked;
 public class UncheckedSignChangeEvent extends PlayerEvent implements Cancellable {
 
     private static final HandlerList HANDLER_LIST = new HandlerList();
-
+    private boolean cancel = false;
     private final BlockPosition editedBlockPosition;
     private final Side side;
     private final List<Component> lines;
-
-    private boolean cancelled;
 
     @ApiStatus.Internal
     public UncheckedSignChangeEvent(
@@ -54,7 +52,7 @@ public class UncheckedSignChangeEvent extends PlayerEvent implements Cancellable
      * @return location where the change happened
      */
     public BlockPosition getEditedBlockPosition() {
-        return this.editedBlockPosition;
+        return editedBlockPosition;
     }
 
     /**
@@ -63,7 +61,7 @@ public class UncheckedSignChangeEvent extends PlayerEvent implements Cancellable
      * @return {@link Side} that was edited
      */
     public Side getSide() {
-        return this.side;
+        return side;
     }
 
     /**
@@ -72,17 +70,17 @@ public class UncheckedSignChangeEvent extends PlayerEvent implements Cancellable
      * @return the lines
      */
     public @Unmodifiable List<Component> lines() {
-        return Collections.unmodifiableList(this.lines);
+        return Collections.unmodifiableList(lines);
     }
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancel;
     }
 
     @Override
     public void setCancelled(final boolean cancel) {
-        this.cancelled = cancel;
+        this.cancel = cancel;
     }
 
     @Override

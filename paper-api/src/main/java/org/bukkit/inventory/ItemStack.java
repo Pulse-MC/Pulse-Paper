@@ -543,7 +543,7 @@ public class ItemStack implements Cloneable, ConfigurationSerializable, Translat
 
         ItemStack result = new ItemStack(type, amount, damage);
 
-        if (args.containsKey("enchantments")) { // Backward compatibility, @deprecated
+        if (args.containsKey("enchantments")) { // Backward compatiblity, @deprecated
             Object raw = args.get("enchantments");
 
             if (raw instanceof Map) {

@@ -68,12 +68,12 @@ public final class FeedbackForwardingSender extends ServerCommandSender {
     }
 
     public CommandSourceStack asVanilla() {
-        final @Nullable ServerLevel respawnDimension = this.server.getServer().findRespawnDimension();
+        final @Nullable ServerLevel overworld = this.server.getServer().overworld();
         return new CommandSourceStack(
             new Source(this),
-            respawnDimension == null ? Vec3.ZERO : Vec3.atLowerCornerOf(respawnDimension.getRespawnData().pos()),
+            overworld == null ? Vec3.ZERO : Vec3.atLowerCornerOf(overworld.getSharedSpawnPos()),
             Vec2.ZERO,
-            respawnDimension,
+            overworld,
             4,
             this.getName(),
             net.minecraft.network.chat.Component.literal(this.getName()),

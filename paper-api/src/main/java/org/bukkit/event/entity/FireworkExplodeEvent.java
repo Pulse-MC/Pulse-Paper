@@ -36,6 +36,8 @@ public class FireworkExplodeEvent extends EntityEvent implements Cancellable {
      * <p>
      * If the firework explosion is cancelled, the firework will
      * still be removed, but no particles will be displayed.
+     *
+     * @param cancel whether to cancel or not.
      */
     @Override
     public void setCancelled(boolean cancel) {

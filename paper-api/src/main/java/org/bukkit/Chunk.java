@@ -87,14 +87,12 @@ public interface Chunk extends PersistentDataHolder {
      * @return ChunkSnapshot
      */
     @NotNull
-    default ChunkSnapshot getChunkSnapshot() {
-        return this.getChunkSnapshot(true, false, false);
-    }
+    ChunkSnapshot getChunkSnapshot();
 
     /**
      * Capture thread-safe read-only snapshot of chunk data
      *
-     * @param includeMaxBlockY - if true, snapshot includes per-coordinate
+     * @param includeMaxblocky - if true, snapshot includes per-coordinate
      *     maximum Y values
      * @param includeBiome - if true, snapshot includes per-coordinate biome
      *     type
@@ -103,15 +101,13 @@ public interface Chunk extends PersistentDataHolder {
      * @return ChunkSnapshot
      */
     @NotNull
-    default ChunkSnapshot getChunkSnapshot(boolean includeMaxBlockY, boolean includeBiome, boolean includeBiomeTempRain) {
-        return this.getChunkSnapshot(includeMaxBlockY, includeBiome, includeBiomeTempRain, true);
-    }
+    ChunkSnapshot getChunkSnapshot(boolean includeMaxblocky, boolean includeBiome, boolean includeBiomeTempRain);
 
     // Paper start - Add getChunkSnapshot includeLightData parameter
     /**
      * Capture thread-safe read-only snapshot of chunk data
      *
-     * @param includeMaxBlockY if true, snapshot includes per-coordinate
+     * @param includeMaxblocky if true, snapshot includes per-coordinate
      *     maximum Y values
      * @param includeBiome if true, snapshot includes per-coordinate biome
      *     type
@@ -121,7 +117,7 @@ public interface Chunk extends PersistentDataHolder {
      * @return ChunkSnapshot
      */
     @NotNull
-    ChunkSnapshot getChunkSnapshot(boolean includeMaxBlockY, boolean includeBiome, boolean includeBiomeTempRain, boolean includeLightData);
+    ChunkSnapshot getChunkSnapshot(boolean includeMaxblocky, boolean includeBiome, boolean includeBiomeTempRain, boolean includeLightData);
     // Paper end - Add getChunkSnapshot includeLightData parameter
 
     /**

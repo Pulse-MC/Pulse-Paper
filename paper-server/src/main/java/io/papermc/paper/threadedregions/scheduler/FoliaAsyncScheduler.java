@@ -1,10 +1,11 @@
 package io.papermc.paper.threadedregions.scheduler;
 
+import ca.spottedleaf.concurrentutil.util.Validate;
 import com.mojang.logging.LogUtils;
 import org.bukkit.plugin.IllegalPluginAccessException;
 import org.bukkit.plugin.Plugin;
 import org.slf4j.Logger;
-import java.util.Objects;
+
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -62,8 +63,8 @@ public final class FoliaAsyncScheduler implements AsyncScheduler {
 
     @Override
     public ScheduledTask runNow(final Plugin plugin, final Consumer<ScheduledTask> task) {
-        Objects.requireNonNull(plugin, "Plugin may not be null");
-        Objects.requireNonNull(task, "Task may not be null");
+        Validate.notNull(plugin, "Plugin may not be null");
+        Validate.notNull(task, "Task may not be null");
 
         if (!plugin.isEnabled()) {
             throw new IllegalPluginAccessException("Plugin attempted to register task while disabled");
@@ -85,9 +86,9 @@ public final class FoliaAsyncScheduler implements AsyncScheduler {
     @Override
     public ScheduledTask runDelayed(final Plugin plugin, final Consumer<ScheduledTask> task, final long delay,
                                     final TimeUnit unit) {
-        Objects.requireNonNull(plugin, "Plugin may not be null");
-        Objects.requireNonNull(task, "Task may not be null");
-        Objects.requireNonNull(unit, "Time unit may not be null");
+        Validate.notNull(plugin, "Plugin may not be null");
+        Validate.notNull(task, "Task may not be null");
+        Validate.notNull(unit, "Time unit may not be null");
         if (delay < 0L) {
             throw new IllegalArgumentException("Delay may not be < 0");
         }
@@ -102,9 +103,9 @@ public final class FoliaAsyncScheduler implements AsyncScheduler {
     @Override
     public ScheduledTask runAtFixedRate(final Plugin plugin, final Consumer<ScheduledTask> task, final long initialDelay,
                                         final long period, final TimeUnit unit) {
-        Objects.requireNonNull(plugin, "Plugin may not be null");
-        Objects.requireNonNull(task, "Task may not be null");
-        Objects.requireNonNull(unit, "Time unit may not be null");
+        Validate.notNull(plugin, "Plugin may not be null");
+        Validate.notNull(task, "Task may not be null");
+        Validate.notNull(unit, "Time unit may not be null");
         if (initialDelay < 0L) {
             throw new IllegalArgumentException("Initial delay may not be < 0");
         }
@@ -143,7 +144,7 @@ public final class FoliaAsyncScheduler implements AsyncScheduler {
 
     @Override
     public void cancelTasks(final Plugin plugin) {
-        Objects.requireNonNull(plugin, "Plugin may not be null");
+        Validate.notNull(plugin, "Plugin may not be null");
 
         for (final AsyncScheduledTask task : this.tasks) {
             if (task.plugin == plugin) {

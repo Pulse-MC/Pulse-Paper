@@ -1,5 +1,6 @@
 package com.destroystokyo.paper.entity.ai;
 
+
 import java.util.Collection;
 import org.bukkit.entity.Mob;
 import org.jspecify.annotations.NullMarked;

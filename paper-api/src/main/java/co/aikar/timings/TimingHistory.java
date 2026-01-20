@@ -51,7 +51,8 @@ import static co.aikar.timings.TimingsManager.MINUTE_REPORTS;
 import static co.aikar.util.JSONUtil.*;
 
 /**
- * @hidden
+ * Internal.
+ *
  * @deprecated Timings will be removed in the future
  */
 @Deprecated(forRemoval = true)

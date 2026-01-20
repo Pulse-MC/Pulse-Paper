@@ -11,9 +11,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-/**
- * @hidden
- */
 @NullMarked
 @ApiStatus.Internal
 public final class JarManifests {

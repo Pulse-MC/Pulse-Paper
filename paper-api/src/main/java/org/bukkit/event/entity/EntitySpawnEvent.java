@@ -16,7 +16,7 @@ public class EntitySpawnEvent extends EntityEvent implements Cancellable {
 
     private static final HandlerList HANDLER_LIST = new HandlerList();
 
-    private boolean cancelled;
+    private boolean canceled;
 
     @ApiStatus.Internal
     public EntitySpawnEvent(@NotNull final Entity spawnee) {
@@ -35,12 +35,12 @@ public class EntitySpawnEvent extends EntityEvent implements Cancellable {
 
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return this.canceled;
     }
 
     @Override
     public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+        this.canceled = cancel;
     }
 
     @NotNull
