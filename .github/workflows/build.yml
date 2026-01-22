@@ -39,15 +39,18 @@ jobs:
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             MODE="release"
             VERSION="${{ inputs.version }}"
+            
             echo "MANUAL_CHANGELOG<<EOF" >> $GITHUB_ENV
-            echo "${{ inputs.changelog }}" >> $GITHUB_ENV
+            echo "${{ inputs.changelog }}" | sed 's/<n>/\n/g' >> $GITHUB_ENV
             echo "EOF" >> $GITHUB_ENV
+
           else
             MSG="${{ github.event.head_commit.message }}"
             if [[ "$MSG" == *"[pulse:devbuild:"* ]]; then
                CUSTOM=$(echo "$MSG" | sed -n 's/.*\[pulse:devbuild:\([^]]*\)\].*/\1/p')
                if [ ! -z "$CUSTOM" ]; then VERSION="$CUSTOM"; fi
             fi
+            
             COMMIT_MSG=$(echo "$MSG" | tr -d '"' | head -n 1)
             echo "MANUAL_CHANGELOG=$COMMIT_MSG" >> $GITHUB_ENV
           fi
