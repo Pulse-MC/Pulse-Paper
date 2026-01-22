@@ -15,9 +15,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
 import java.util.OptionalInt;
-import java.util.Set;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -32,7 +30,7 @@ import org.slf4j.Logger;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.TextColor.color;
 import static io.papermc.paper.ServerBuildInfo.StringRepresentation.VERSION_SIMPLE;
-// PULSE_MIDIFIED
+// PULSE_MODIFIED
 
 @DefaultQualifier(NonNull.class)
 public class PaperVersionFetcher implements VersionFetcher {
@@ -86,7 +84,6 @@ public class PaperVersionFetcher implements VersionFetcher {
             COMPONENT_LOGGER.warn(text("* WARNING: YOU ARE RUNNING A DEVELOPMENT BUILD OF PULSE!   *", NamedTextColor.RED));
             COMPONENT_LOGGER.warn(text("* Build ID: " + result.currentBuild, NamedTextColor.RED));
             COMPONENT_LOGGER.warn(text("* This version may contain bugs or unstable features.      *", NamedTextColor.RED));
-            COMPONENT_LOGGER.warn(text("* PLEASE MAKE SURE YOU HAVE BACKUPS OF YOUR SERVER!        *", NamedTextColor.RED));
             COMPONENT_LOGGER.warn(text("************************************************************", NamedTextColor.RED));
         }
 
@@ -98,7 +95,7 @@ public class PaperVersionFetcher implements VersionFetcher {
                 COMPONENT_LOGGER.warn(text("************************************************************"));
                 COMPONENT_LOGGER.warn(text("* You are running an outdated version of Pulse (" + result.type + ")!"));
                 COMPONENT_LOGGER.warn(text("* You are " + result.distance + " build(s) behind."));
-                COMPONENT_LOGGER.warn(text("* Latest build: " + result.latestBuild));
+                COMPONENT_LOGGER.warn(text("* Latest build for your version: " + result.latestBuild));
                 COMPONENT_LOGGER.warn(text("* Download the latest build:"));
                 COMPONENT_LOGGER.warn(text("* " + DOWNLOAD_PAGE));
                 COMPONENT_LOGGER.warn(text("************************************************************"));
@@ -138,11 +135,13 @@ public class PaperVersionFetcher implements VersionFetcher {
         }
 
         int currentBuildId = buildNumberOpt.getAsInt();
+        String currentMcVersion = BUILD_INFO.minecraftVersionId();
 
-        Set<Integer> devBuilds = new HashSet<>();
-        Set<Integer> releaseBuilds = new HashSet<>();
-        int maxDev = -1;
-        int maxRelease = -1;
+        boolean isDev = false;
+        boolean isRelease = false;
+
+        int maxDevForThisVersion = -1;
+        int maxReleaseForThisVersion = -1;
 
         // Fetch Dev Builds
         try {
@@ -150,9 +149,14 @@ public class PaperVersionFetcher implements VersionFetcher {
             if (devJson != null) {
                 for (JsonElement el : devJson) {
                     int id = extractId(el);
-                    if (id != -1) {
-                        devBuilds.add(id);
-                        if (id > maxDev) maxDev = id;
+                    String version = extractMcVersion(el);
+
+                    if (id == currentBuildId) {
+                        isDev = true;
+                    }
+
+                    if (version != null && version.equals(currentMcVersion)) {
+                        if (id > maxDevForThisVersion) maxDevForThisVersion = id;
                     }
                 }
             }
@@ -167,9 +171,14 @@ public class PaperVersionFetcher implements VersionFetcher {
             if (releaseJson != null) {
                 for (JsonElement el : releaseJson) {
                     int id = extractId(el);
-                    if (id != -1) {
-                        releaseBuilds.add(id);
-                        if (id > maxRelease) maxRelease = id;
+                    String version = extractMcVersion(el);
+
+                    if (id == currentBuildId) {
+                        isRelease = true;
+                    }
+
+                    if (version != null && version.equals(currentMcVersion)) {
+                        if (id > maxReleaseForThisVersion) maxReleaseForThisVersion = id;
                     }
                 }
             }
@@ -177,13 +186,15 @@ public class PaperVersionFetcher implements VersionFetcher {
             LOGGER.debug("Failed to fetch releases from Pulse API", e);
         }
 
-        if (releaseBuilds.contains(currentBuildId)) {
-            int distance = (maxRelease > 0) ? (maxRelease - currentBuildId) : 0;
-            return new PulseVersionResult(BuildType.STABLE, distance, currentBuildId, maxRelease);
+        if (isRelease) {
+            int distance = (maxReleaseForThisVersion > 0) ? (maxReleaseForThisVersion - currentBuildId) : 0;
+            if (distance < 0) distance = 0;
+            return new PulseVersionResult(BuildType.STABLE, distance, currentBuildId, maxReleaseForThisVersion);
         }
-        else if (devBuilds.contains(currentBuildId)) {
-            int distance = (maxDev > 0) ? (maxDev - currentBuildId) : 0;
-            return new PulseVersionResult(BuildType.DEV, distance, currentBuildId, maxDev);
+        else if (isDev) {
+            int distance = (maxDevForThisVersion > 0) ? (maxDevForThisVersion - currentBuildId) : 0;
+            if (distance < 0) distance = 0;
+            return new PulseVersionResult(BuildType.DEV, distance, currentBuildId, maxDevForThisVersion);
         }
 
         return new PulseVersionResult(BuildType.UNKNOWN, DISTANCE_UNKNOWN, currentBuildId, -1);
@@ -203,6 +214,20 @@ public class PaperVersionFetcher implements VersionFetcher {
         } catch (NumberFormatException ignored) {
         }
         return -1;
+    }
+
+    private static @Nullable String extractMcVersion(JsonElement el) {
+        try {
+            if (el.isJsonObject()) {
+                JsonObject obj = el.getAsJsonObject();
+                if (obj.has("minecraft_version")) return obj.get("minecraft_version").getAsString();
+                if (obj.has("mc_version")) return obj.get("mc_version").getAsString();
+                if (obj.has("version")) return obj.get("version").getAsString();
+                if (obj.has("game_version")) return obj.get("game_version").getAsString();
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
     }
 
     private static @Nullable JsonArray fetchJsonArray(String urlString) throws IOException {
