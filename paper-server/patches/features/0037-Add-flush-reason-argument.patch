@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: tizis0 <hexgames84@gmail.com>
+Date: Fri, 23 Jan 2026 18:12:59 +0600
+Subject: [PATCH] Add flush() reason argument
+
+
+diff --git a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
+index 3a4de7ec7d0f8b29cf5c74b65df69ecb2781f53b..7d3aee4e2cd9b5de87d1618284b5416f91b918ff 100644
+--- a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
++++ b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
+@@ -297,7 +297,7 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+ 
+             // If packet close connection send it as "Instant"
+             if (packet.isTerminal()) {
+-                this.pulseBuffer.flush();
++                this.pulseBuffer.flush(dev.pulsemc.api.enums.FlushReason.INSTANT);
+                 this.close();
+             }
+             return;
+diff --git a/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+index 8a0225f153280990be4e1c939ebe6b120267f72f..bd2f4f92b2c8e0107c2ebf66dcb9e2bc9747ac63 100644
+--- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
++++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+@@ -369,7 +369,7 @@ public class ServerGamePacketListenerImpl
+         }
+         // Pulse start
+         if (this.pulseBuffer != null) {
+-            this.pulseBuffer.flush();
++            this.pulseBuffer.flush(dev.pulsemc.api.enums.FlushReason.TICK);
+         }
+         // Pulse end
+     }

@@ -18,7 +18,7 @@ public class PulseBar {
         Component.empty(),
         1.0f,
         BossBar.Color.GREEN,
-        BossBar.Overlay.PROGRESS
+        BossBar.Overlay.NOTCHED_20
     );
 
     private static final Set<UUID> viewers = new HashSet<>();

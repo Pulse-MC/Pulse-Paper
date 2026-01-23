@@ -18,6 +18,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import dev.pulsemc.api.enums.FlushReason;
+import dev.pulsemc.api.events.PulseBufferFlushEvent;
+import dev.pulsemc.api.events.PulseChunkOptimizationEvent;
 
 public class PulseBuffer {
     private final ServerCommonPacketListenerImpl listener;
@@ -65,8 +68,16 @@ public class PulseBuffer {
             if (bukkitPlayer != null) {
                 PulsePacketSendEvent event = new PulsePacketSendEvent(bukkitPlayer, packet);
                 Bukkit.getPluginManager().callEvent(event);
+
                 if (event.isCancelled()) return;
+
                 packet = event.getPacket();
+                if (event.isForceSendImmediately()) {
+                    flush(FlushReason.INSTANT);
+                    listener.connection.send(packet, sendListener, true);
+                    PulseMetrics.physicalCounter.incrementAndGet();
+                    return;
+                }
             }
         }
 
@@ -77,7 +88,7 @@ public class PulseBuffer {
 
         // Instant Packets
         if (isCritical(packet) || ConfigManager.instantPackets.contains(packetName)) {
-            flush();
+            flush(FlushReason.INSTANT);
             listener.connection.send(packet, sendListener, true);
             PulseMetrics.physicalCounter.incrementAndGet();
             return;
@@ -85,36 +96,51 @@ public class PulseBuffer {
 
         // Flushing the buffer when it is full.
         if (getPendingBytes() > (ConfigManager.maxBatchBytes - ConfigManager.safety_margin)) {
-            flush();
+            flush(FlushReason.LIMIT_BYTES); // PulseMC - API Integration
         }
+
         // Batching
         listener.connection.send(packet, sendListener, false);
 
         // Count limit
         if (bufferedCount.incrementAndGet() >= HARD_CAP_COUNT) {
-            flush();
+            flush(FlushReason.LIMIT_COUNT); // PulseMC - API Integration
         }
     }
 
     /**
      * Sends all packets accumulated in the buffer to the client.
+     * @param reason The reason for the flush (API/Network/Tick)
      */
-    public void flush() {
+    public void flush(FlushReason reason) {
         if (!blockQueue.isEmpty()) {
             processBlockQueue();
         }
 
         long pending = getPendingBytes();
+        int count = bufferedCount.get();
 
-        if (bufferedCount.get() == 0 && pending == 0) return;
+        if (count == 0 && pending == 0) return;
+
+        // API Event
+        if (listener instanceof ServerGamePacketListenerImpl gameListener && gameListener.player != null) {
+            if (PulseBufferFlushEvent.getHandlerList().getRegisteredListeners().length > 0) {
+                Bukkit.getPluginManager().callEvent(new PulseBufferFlushEvent(
+                    gameListener.getCraftPlayer(), reason, count, pending
+                ));
+            }
+        }
 
         PulseMetrics.totalBytesSent.addAndGet(pending);
-
         listener.connection.flushChannel();
 
         bufferedCount.set(0);
         currentBatchBytes.set(0);
         PulseMetrics.physicalCounter.incrementAndGet();
+    }
+
+    public void flush() {
+        flush(FlushReason.MANUAL);
     }
 
     private boolean isChatPacket(Packet<?> packet) {
@@ -181,11 +207,26 @@ public class PulseBuffer {
                 LevelChunk chunk = gameListener.player.level().getChunkIfLoaded(x, z);
 
                 if (chunk != null) {
-                    PulseMetrics.optimizedChunks.incrementAndGet();
 
-                    ClientboundLevelChunkWithLightPacket chunkPacket = new ClientboundLevelChunkWithLightPacket(chunk, gameListener.player.level().getLightEngine(), null, null);
-                    // send ONE chunk packet, without listener
-                    queuePacketToNetty(chunkPacket, null);
+                    // API Event
+                    boolean shouldOptimize = true;
+                    if (PulseChunkOptimizationEvent.getHandlerList().getRegisteredListeners().length > 0) {
+                        PulseChunkOptimizationEvent event = new PulseChunkOptimizationEvent(
+                            gameListener.getCraftPlayer(),
+                            gameListener.getCraftPlayer().getWorld().getChunkAt(x, z),
+                            totalChanges
+                        );
+                        Bukkit.getPluginManager().callEvent(event);
+                        if (event.isCancelled()) shouldOptimize = false;
+                    }
+
+                    if (shouldOptimize) {
+                        PulseMetrics.optimizedChunks.incrementAndGet();
+                        ClientboundLevelChunkWithLightPacket chunkPacket = new ClientboundLevelChunkWithLightPacket(chunk, gameListener.player.level().getLightEngine(), null, null);
+                        queuePacketToNetty(chunkPacket, null);
+                    } else {
+                        entries.forEach(e -> queuePacketToNetty(e.packet(), e.listener()));
+                    }
                 } else {
                     entries.forEach(e -> queuePacketToNetty(e.packet(), e.listener()));
                 }

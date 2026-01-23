@@ -73,6 +73,18 @@ public class PulseMetrics {
             // RAM Impact
             savedAllocationsBytes += (long) (savedPerSec * 512 * interval);
 
+            // API Event
+            try {
+                if (dev.pulsemc.api.events.PulseMetricUpdateEvent.getHandlerList().getRegisteredListeners().length > 0) {
+                    double savings = Math.max(0, vanillaCpuEst - cpuUsage);
+                    org.bukkit.Bukkit.getPluginManager().callEvent(
+                        new dev.pulsemc.api.events.PulseMetricUpdateEvent(ppsLogical, ppsPhysical, networkSpeedKbs, savings)
+                    );
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         }, 1, ConfigManager.metricsUpdateInterval, TimeUnit.SECONDS);
     }
 }

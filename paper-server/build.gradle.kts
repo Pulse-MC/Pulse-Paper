@@ -372,3 +372,30 @@ fill {
         }
     }
 }
+
+tasks.register<Javadoc>("pulseJavadoc") {
+    group = "documentation"
+    description = "Generates Javadoc for Pulse API."
+    source = sourceSets.main.get().allJava.matching {
+        include("dev/pulsemc/api/**")
+    }
+    classpath = sourceSets.main.get().compileClasspath + sourceSets.main.get().output
+
+    destinationDir = layout.buildDirectory.dir("docs/pulse-api").get().asFile
+
+    val options = options as StandardJavadocDocletOptions
+    options.apply {
+        windowTitle = "Pulse API Documentation"
+        docTitle = "Pulse Networking Engine API"
+        header = "<b>Pulse</b>"
+
+        memberLevel = JavadocMemberLevel.PUBLIC
+        encoding = "UTF-8"
+        charSet = "UTF-8"
+        addStringOption("Xdoclint:none", "-quiet")
+
+        links("https://docs.oracle.com/en/java/javase/21/docs/api/")
+        links("https://jd.papermc.io/paper/1.21.11/")
+    }
+    dependsOn(tasks.compileJava)
+}
