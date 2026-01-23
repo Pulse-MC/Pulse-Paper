@@ -4,7 +4,6 @@ import dev.pulsemc.config.ConfigManager;
 import dev.pulsemc.api.events.PulsePacketSendEvent;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
-import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket;
 import net.minecraft.server.network.ServerCommonPacketListenerImpl;
@@ -14,8 +13,6 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import org.bukkit.Bukkit;
 import io.netty.channel.ChannelFutureListener;
 import org.jspecify.annotations.Nullable;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -122,7 +119,7 @@ public class PulseBuffer {
 
     private boolean isChatPacket(Packet<?> packet) {
         String name = packet.getClass().getSimpleName();
-        return name.contains("Chat") || name.contains("Message") || name.contains("Disguised") || name.contains("SystemChat");
+        return name.contains("Chat") || name.contains("Message") || name.contains("Disguised");
     }
 
 
@@ -206,9 +203,8 @@ public class PulseBuffer {
     private void queuePacketToNetty(Packet<?> packet, ChannelFutureListener listenerCb) {
         listener.connection.send(packet, listenerCb, false);
 
-        if (getPendingBytes() > (ConfigManager.maxBatchBytes - ConfigManager.safety_margin)) {
-            flush();
-        } else if (bufferedCount.incrementAndGet() >= HARD_CAP_COUNT) {
+        if (getPendingBytes() > (ConfigManager.maxBatchBytes - ConfigManager.safety_margin)
+            || bufferedCount.incrementAndGet() >= HARD_CAP_COUNT) {
             flush();
         }
     }

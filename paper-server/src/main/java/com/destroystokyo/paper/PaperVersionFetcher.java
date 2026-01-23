@@ -108,9 +108,9 @@ public class PaperVersionFetcher implements VersionFetcher {
 
         Component baseMessage;
         if (result.type == BuildType.DEV) {
-            baseMessage = text("You are running a DEVELOPMENT build (#" + result.currentBuild + ")", NamedTextColor.RED);
+            baseMessage = text("You are running a Pulse(Paper) DEVELOPMENT build (#" + result.currentBuild + ")", NamedTextColor.RED);
         } else {
-            baseMessage = text("You are running a Stable build", NamedTextColor.GREEN);
+            baseMessage = text("You are running a Pulse(Paper) Stable build", NamedTextColor.GREEN);
         }
 
         return switch (result.distance) {
