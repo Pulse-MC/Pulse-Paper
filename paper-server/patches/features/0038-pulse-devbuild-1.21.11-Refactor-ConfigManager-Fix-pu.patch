@@ -1,0 +1,20 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: tizis0 <hexgames84@gmail.com>
+Date: Sun, 25 Jan 2026 01:27:40 +0600
+Subject: [PATCH] [pulse:devbuild:1.21.11] Refactor ConfigManager & Fix
+ pulsebar does not updates interval
+
+
+diff --git a/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java b/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java
+index 99dd8f94614a134db75e4e07c9217772c2e7bd46..1c7f7e47fc62793c7c1b012ac6d2ce10a13fbf35 100644
+--- a/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java
++++ b/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java
+@@ -21,7 +21,7 @@ public class ClientboundSectionBlocksUpdatePacket implements Packet<ClientGamePa
+     public final SectionPos sectionPos;
+     public final short[] positions;
+     // Pulse end
+-    private final BlockState[] states;
++    public final BlockState[] states;
+ 
+     public ClientboundSectionBlocksUpdatePacket(SectionPos sectionPos, ShortSet positions, LevelChunkSection section) {
+         this.sectionPos = sectionPos;
