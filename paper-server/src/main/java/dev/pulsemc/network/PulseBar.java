@@ -1,5 +1,6 @@
 package dev.pulsemc.network;
 
+import dev.pulsemc.config.ConfigManager;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -10,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class PulseBar {
@@ -25,6 +27,8 @@ public class PulseBar {
     // Native Java Timer
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
+    private static ScheduledFuture<?> currentTask;
+
     public static void toggle(Player player) {
         if (viewers.contains(player.getUniqueId())) {
             viewers.remove(player.getUniqueId());
@@ -37,15 +41,25 @@ public class PulseBar {
         }
     }
 
+    public static void reload() {
+        start();
+    }
+
     public static void start() {
-        scheduler.scheduleAtFixedRate(() -> {
+        if (currentTask != null && !currentTask.isCancelled()) {
+            currentTask.cancel(false);
+        }
+
+        int interval = Math.max(1, ConfigManager.metricsUpdateInterval);
+
+        currentTask = scheduler.scheduleAtFixedRate(() -> {
             if (viewers.isEmpty()) return;
             try {
                 updateBar();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }, 1, 1, TimeUnit.SECONDS);
+        }, 1, interval, TimeUnit.SECONDS);
     }
 
     private static void updateBar() {

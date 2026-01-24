@@ -52,12 +52,24 @@ public class PulseCommands {
 
 
     private static int reload(CommandContext<CommandSourceStack> ctx) {
-        String err = ConfigManager.load();
         CommandSender sender = ctx.getSource().getBukkitSender();
-        if (err != null) {
-            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <red>Error: " + err));
+
+        boolean hasIssues = ConfigManager.load();
+
+        PulseMetrics.reload();
+        PulseBar.reload();
+
+        if (!hasIssues) {
+            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <green>Configuration reloaded successfully!"));
         } else {
-            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <green>Configuration reloaded!"));
+            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <red>Configuration reloaded with ISSUES:"));
+            sender.sendMessage(" ");
+
+            for (net.kyori.adventure.text.Component line : ConfigManager.lastLoadReport) {
+                sender.sendMessage(line);
+            }
+
+            sender.sendMessage(mm.deserialize("<grey>Safe default values were used for invalid settings."));
         }
         return 1;
     }

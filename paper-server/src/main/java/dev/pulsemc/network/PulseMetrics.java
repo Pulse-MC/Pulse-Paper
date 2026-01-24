@@ -5,6 +5,7 @@ import java.lang.management.ManagementFactory;
 import com.sun.management.OperatingSystemMXBean;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -36,14 +37,21 @@ public class PulseMetrics {
     public static final AtomicLong flushReasonTick = new AtomicLong(0);
     public static final AtomicLong flushReasonInstant = new AtomicLong(0);
 
+    private static ScheduledFuture<?> currentTask;
+
 
     public static void start() {
+        if (currentTask != null && !currentTask.isCancelled()) {
+            currentTask.cancel(false);
+        }
+
+        int interval = Math.max(1, ConfigManager.metricsUpdateInterval);
+
         scheduler.scheduleAtFixedRate(() -> {
             if (!ConfigManager.metricsEnabled) return;
 
             long currentLogical = logicalCounter.get();
             long currentPhysical = physicalCounter.get();
-            int interval = ConfigManager.metricsUpdateInterval;
             long currentBytes = totalBytesSent.get();
 
             // Calculating PPS
@@ -85,6 +93,10 @@ public class PulseMetrics {
                 e.printStackTrace();
             }
 
-        }, 1, ConfigManager.metricsUpdateInterval, TimeUnit.SECONDS);
+        }, 1, interval, TimeUnit.SECONDS);
+    }
+
+    public static void reload() {
+        start();
     }
 }
