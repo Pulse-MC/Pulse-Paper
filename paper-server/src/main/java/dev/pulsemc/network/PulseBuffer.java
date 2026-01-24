@@ -37,6 +37,10 @@ public class PulseBuffer {
     private record PacketEntry(Packet<?> packet, @Nullable ChannelFutureListener listener) {}
     private final List<PacketEntry> blockQueue = new ArrayList<>();
 
+    private boolean manualFakeMode = false;
+    private final Map<Long, Long> chunksWithFakes = new HashMap<>();
+    private static final long FAKE_MARK_TTL = 30_000L;
+
     public void add(Packet<?> packet, @Nullable ChannelFutureListener sendListener) {
         if (packet == null) return;
         String packetName = packet.getClass().getSimpleName();
@@ -63,15 +67,18 @@ public class PulseBuffer {
         PulseMetrics.logicalCounter.incrementAndGet();
 
         // compatibility.emulate-events
+        boolean canOptimize = true;
+
         if (ConfigManager.emulateEvents) {
             org.bukkit.entity.Player bukkitPlayer = ((ServerGamePacketListenerImpl) listener).getCraftPlayer();
             if (bukkitPlayer != null) {
                 PulsePacketSendEvent event = new PulsePacketSendEvent(bukkitPlayer, packet);
                 Bukkit.getPluginManager().callEvent(event);
-
                 if (event.isCancelled()) return;
 
                 packet = event.getPacket();
+                canOptimize = event.canBeOptimized();
+
                 if (event.isForceSendImmediately()) {
                     flush(FlushReason.INSTANT);
                     listener.connection.send(packet, sendListener, true);
@@ -81,7 +88,8 @@ public class PulseBuffer {
             }
         }
 
-        if (ConfigManager.optExplosions && isBlockUpdate(packet)) {
+        // Explosion Optimization
+        if (ConfigManager.optExplosions && isBlockUpdate(packet) && canOptimize) {
             handleBlockUpdate(packet, sendListener);
             return;
         }
@@ -169,8 +177,40 @@ public class PulseBuffer {
         return 0;
     }
 
-    private void handleBlockUpdate(Packet<?> packet, ChannelFutureListener listener) {
+    private void handleBlockUpdate(Packet<?> packet, @Nullable ChannelFutureListener listener) {
+        long key = getChunkKey(packet);
+
+        if (manualFakeMode || isFakeBlock(packet)) {
+            chunksWithFakes.put(key, System.currentTimeMillis());
+            queuePacketToNetty(packet, listener);
+            return;
+        }
+
         blockQueue.add(new PacketEntry(packet, listener));
+    }
+
+    /**
+     * Automatically detects if a block update is "fake" by comparing it with the actual world state.
+     * This keeps plugins like Denizen working out-of-the-box.
+     */
+    private boolean isFakeBlock(Packet<?> packet) {
+        if (!(this.listener instanceof ServerGamePacketListenerImpl gameListener)) return false;
+        try {
+            if (packet instanceof net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket p) {
+                return !p.getBlockState().equals(gameListener.player.level().getBlockState(p.getPos()));
+            }
+            if (packet instanceof net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket p) {
+                if (p.positions.length > 0) {
+                    var pos = p.sectionPos.relativeToBlockPos(p.positions[0]);
+                    return !p.states[0].equals(gameListener.player.level().getBlockState(pos));
+                }
+            }
+        } catch (Exception ignored) {}
+        return false;
+    }
+
+    public void setManualFakeMode(boolean state) {
+        this.manualFakeMode = state;
     }
 
     private void processBlockQueue() {
@@ -204,6 +244,15 @@ public class PulseBuffer {
             int totalChanges = chunkBlockCounts.getOrDefault(chunkKey, 0);
 
             if (totalChanges >= ConfigManager.optExplosionThreshold) {
+
+                long now = System.currentTimeMillis();
+                Long lastFake = chunksWithFakes.get(chunkKey);
+
+                if (lastFake != null && (now - lastFake < FAKE_MARK_TTL)) {
+                    entries.forEach(e -> queuePacketToNetty(e.packet(), e.listener()));
+                    continue;
+                }
+
                 int x = ChunkPos.getX(chunkKey);
                 int z = ChunkPos.getZ(chunkKey);
                 LevelChunk chunk = gameListener.player.level().getChunkIfLoaded(x, z);

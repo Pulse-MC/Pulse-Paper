@@ -52,6 +52,28 @@ public class PulsePacketSendEvent extends Event implements Cancellable {
     }
 
     /**
+     * Whether this packet is allowed to be optimized (e.g. replaced by a full chunk update).
+     * Default is true. Set to false for fake blocks or packets that must remain individual.
+     */
+    private boolean canBeOptimized = true;
+
+    /**
+     * Sets whether this packet can be optimized by the engine.
+     * @param can true to allow optimization, false to force individual sending.
+     */
+    public void setCanBeOptimized(boolean can) {
+        this.canBeOptimized = can;
+    }
+
+    /**
+     * Checks if this packet is allowed to be optimized.
+     * @return true if optimization is allowed.
+     */
+    public boolean canBeOptimized() {
+        return canBeOptimized;
+    }
+
+    /**
      * Sets whether this packet should bypass the buffer and be sent immediately.
      * If true, Pulse will flush the current buffer and send this packet instantly.
      * Use this for latency-sensitive packets.
