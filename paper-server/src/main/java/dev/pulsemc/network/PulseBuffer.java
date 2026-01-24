@@ -96,7 +96,7 @@ public class PulseBuffer {
 
         // Flushing the buffer when it is full.
         if (getPendingBytes() > (ConfigManager.maxBatchBytes - ConfigManager.safety_margin)) {
-            flush(FlushReason.LIMIT_BYTES); // PulseMC - API Integration
+            flush(FlushReason.LIMIT_BYTES); // Pulse - API Integration
         }
 
         // Batching
@@ -104,8 +104,10 @@ public class PulseBuffer {
 
         // Count limit
         if (bufferedCount.incrementAndGet() >= HARD_CAP_COUNT) {
-            flush(FlushReason.LIMIT_COUNT); // PulseMC - API Integration
+            flush(FlushReason.LIMIT_COUNT); // Pulse - API Integration
         }
+
+
     }
 
     /**
