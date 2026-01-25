@@ -21,15 +21,15 @@ public class ConfigManager {
     // Batching
     public static BatchingMode batchingMode = BatchingMode.SMART_EXECUTION;
     public static int flushInterval = 25;
-    public static int maxBatchSize = 50;
+    public static int maxBatchSize = 4096;
     public static int maxBatchBytes = 1460;
-    public static int safetyMargin = 256;
+    public static int safetyMargin = 64;
     public static List<String> instantPackets = new ArrayList<>();
 
     // Optimization
     public static boolean optOffsets = true;
     public static boolean optExplosions = true;
-    public static int optExplosionThreshold = 64;
+    public static int optExplosionThreshold = 512;
 
     // Compatibility
     public static boolean emulateEvents = true;
@@ -37,7 +37,7 @@ public class ConfigManager {
 
     // Metrics
     public static boolean metricsEnabled = true;
-    public static int metricsUpdateInterval = 5;
+    public static int metricsUpdateInterval = 1;
     public static boolean moduleNetwork = true;
     public static boolean moduleCPU = true;
     public static boolean moduleRAM = true;
@@ -63,7 +63,6 @@ public class ConfigManager {
 
 
             // Batching
-
             maxBatchSize = new Setting<>(config, "batching.max-batch-size", 50)
                 .validateType(Integer.class)
                 .validate(val -> val > 0, "Batch size must be > 0!")
@@ -81,21 +80,29 @@ public class ConfigManager {
                 .get();
 
             instantPackets = config.getStringList("batching.instant-packets");
-            if (instantPackets.isEmpty()) instantPackets = List.of("ClientboundHurtAnimationPacket", "ClientboundSetEntityMotionPacket");
+            if (instantPackets.isEmpty()) instantPackets = List.of("ClientboundHurtAnimationPacket", "ClientboundDamageEventPacket");
 
             // Optimizations
-            optExplosions = new Setting<>(config, "optimization.explosions.enabled", true).validateType(Boolean.class).get();
-            optExplosionThreshold = new Setting<>(config, "optimization.explosions.block-change-threshold", 64).validateType(Integer.class).get();
+            optExplosions = new Setting<>(config, "optimization.explosions.enabled", true)
+                .validateType(Boolean.class)
+                .get();
+            optExplosionThreshold = new Setting<>(config, "optimization.explosions.block-change-threshold", 512)
+                .validateType(Integer.class)
+                .get();
 
             // Metrics
-            metricsEnabled = new Setting<>(config, "metrics.enabled", true).validateType(Boolean.class).get();
-            metricsUpdateInterval = new Setting<>(config, "metrics.update-interval", 5)
+            metricsEnabled = new Setting<>(config, "metrics.enabled", true)
+                .validateType(Boolean.class)
+                .get();
+            metricsUpdateInterval = new Setting<>(config, "metrics.update-interval", 1)
                 .validateType(Integer.class)
                 .validate(val -> val >= 1, "Interval must be at least 1 second! Provided: %s")
                 .get();
 
             // Compatibility
-            emulateEvents = new Setting<>(config, "compatibility.emulate-events", true).validateType(Boolean.class).get();
+            emulateEvents = new Setting<>(config, "compatibility.emulate-events", true)
+                .validateType(Boolean.class)
+                .get();
             ignoredPackets = config.getStringList("compatibility.ignored-packets");
 
             return !lastLoadReport.isEmpty();
@@ -178,16 +185,16 @@ public class ConfigManager {
         }
 
         private void reportError(Object wrongValue, String msg) {
-            lastLoadReport.add(mm.deserialize("  <grey>on <yellow>" + path));
-            lastLoadReport.add(mm.deserialize("  Value: <red>" + wrongValue + "<red><italic><--[HERE]"));
-            lastLoadReport.add(mm.deserialize("  <red>ERROR: <grey>" + msg + " <grey>(Reset to: <green>" + def + "<grey>)"));
+            lastLoadReport.add(mm.deserialize("  <grey>on <yellow>" + path + "<grey>:"));
+            lastLoadReport.add(mm.deserialize("    Value: <red>" + wrongValue + "<red><italic><--[HERE]"));
+            lastLoadReport.add(mm.deserialize("    <red>ERROR: <grey>" + msg + " <grey>(Reset to: <green>" + def + "<grey>)"));
             lastLoadReport.add(Component.text(" "));
         }
 
         private void reportWarning(Object riskyValue, String msg) {
-            lastLoadReport.add(mm.deserialize("  <grey>on <yellow>" + path));
-            lastLoadReport.add(mm.deserialize("  Value: <gold>" + riskyValue + "<red><italic><--[HERE]"));
-            lastLoadReport.add(mm.deserialize("  <gold>WARNING: <grey>" + msg));
+            lastLoadReport.add(mm.deserialize("  <grey>on <yellow>" + path + "<grey>:"));
+            lastLoadReport.add(mm.deserialize("    Value: <gold>" + riskyValue + "<red><italic><--[HERE]"));
+            lastLoadReport.add(mm.deserialize("    <gold>WARNING: <grey>" + msg));
             lastLoadReport.add(Component.text(" "));
         }
     }
@@ -211,6 +218,9 @@ public class ConfigManager {
               # MTU safety limit.
               # Buffer is flushed immediately if this size is exceeded.
               max-batch-bytes: 1460
+            
+              # Number of packets in batch limit
+              max-batch-size: 4096
             
               # Packets that bypass batching (critical for PvP)
               instant-packets:
@@ -249,7 +259,7 @@ public class ConfigManager {
               enabled: true
             
               # Metrics update interval (in seconds).
-              update-interval: 5
+              update-interval: 1
             
               # Metric modules to collect
               modules:

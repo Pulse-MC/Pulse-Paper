@@ -16,7 +16,6 @@ public class PulseMetrics {
     public static final AtomicLong logicalCounter = new AtomicLong(0);
     public static final AtomicLong physicalCounter = new AtomicLong(0);
 
-    // Snapshots for PPS
     private static long lastLogical = 0;
     private static long lastPhysical = 0;
     private static long lastBytes = 0;
@@ -24,7 +23,6 @@ public class PulseMetrics {
     public static final AtomicLong optimizedChunks = new AtomicLong(0);
     public static final AtomicLong totalBytesSent = new AtomicLong(0);
 
-    // Results
     public static double ppsLogical = 0;
     public static double ppsPhysical = 0;
     public static double cpuUsage = 0;
@@ -64,10 +62,8 @@ public class PulseMetrics {
             lastPhysical = currentPhysical;
             lastBytes = currentBytes;
 
-            // Calculating CPU
             cpuUsage = osBean.getProcessCpuLoad() * 100.0 * Runtime.getRuntime().availableProcessors();
 
-            // Overhead model - 8.5 microseconds
             double savedPerSec = ppsLogical - ppsPhysical;
             if (savedPerSec > 0) {
                 totalSavedSyscalls += (long) (savedPerSec * interval);
@@ -78,7 +74,6 @@ public class PulseMetrics {
                 vanillaCpuEst = cpuUsage;
             }
 
-            // RAM Impact
             savedAllocationsBytes += (long) (savedPerSec * 512 * interval);
 
             // API Event

@@ -21,14 +21,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import dev.pulsemc.api.enums.FlushReason;
 import dev.pulsemc.api.events.PulseBufferFlushEvent;
 import dev.pulsemc.api.events.PulseChunkOptimizationEvent;
+import dev.pulsemc.config.ConfigManager;
 
 public class PulseBuffer {
     private final ServerCommonPacketListenerImpl listener;
     private final AtomicInteger bufferedCount = new AtomicInteger(0);
     private final AtomicInteger currentBatchBytes = new AtomicInteger(0);
 
-    // Hardcode packets bundle size limit
-    private static final int HARD_CAP_COUNT = 4096;
 
     public PulseBuffer(ServerCommonPacketListenerImpl listener) {
         this.listener = listener;
@@ -111,7 +110,7 @@ public class PulseBuffer {
         listener.connection.send(packet, sendListener, false);
 
         // Count limit
-        if (bufferedCount.incrementAndGet() >= HARD_CAP_COUNT) {
+        if (bufferedCount.incrementAndGet() >= ConfigManager.maxBatchSize) {
             flush(FlushReason.LIMIT_COUNT); // Pulse - API Integration
         }
 
@@ -296,7 +295,7 @@ public class PulseBuffer {
         listener.connection.send(packet, listenerCb, false);
 
         if (getPendingBytes() > (ConfigManager.maxBatchBytes - ConfigManager.safetyMargin)
-            || bufferedCount.incrementAndGet() >= HARD_CAP_COUNT) {
+            || bufferedCount.incrementAndGet() >= ConfigManager.maxBatchSize) {
             flush();
         }
     }

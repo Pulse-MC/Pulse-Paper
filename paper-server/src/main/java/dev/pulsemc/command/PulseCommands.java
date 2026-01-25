@@ -33,9 +33,9 @@ public class PulseCommands {
                 )
 
                 .then(Commands.literal("stats")
-                    .executes(ctx -> sendStats(ctx, "all")) // Вызов если ввели просто /pulse stats
+                    .executes(ctx -> sendStats(ctx, "all"))
                     .then(Commands.argument("type", StringArgumentType.word())
-                        .suggests(PulseCommands::suggestStatsTypes) // Подсказки с описанием
+                        .suggests(PulseCommands::suggestStatsTypes)
                         .executes(ctx -> sendStats(ctx, StringArgumentType.getString(ctx, "type")))
                     )
                 )

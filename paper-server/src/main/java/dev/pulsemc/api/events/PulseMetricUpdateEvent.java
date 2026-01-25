@@ -5,7 +5,7 @@ import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Triggered periodically (default: 5s) when PulseMetrics updates its statistics.
+ * Triggered periodically (default: 1s) when PulseMetrics updates its statistics.
  * Useful for plugins that want to display server performance data (e.g., TabList or Scoreboard).
  */
 public class PulseMetricUpdateEvent extends Event {

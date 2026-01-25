@@ -24,7 +24,6 @@ public class PulseBar {
     );
 
     private static final Set<UUID> viewers = new HashSet<>();
-    // Native Java Timer
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     private static ScheduledFuture<?> currentTask;
@@ -91,7 +90,6 @@ public class PulseBar {
             speedStr
         );
 
-        // Update bar
         bossBar.name(mm.deserialize(title));
         bossBar.progress((float) efficiency);
         bossBar.color(color);
