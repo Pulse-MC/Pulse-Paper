@@ -1,0 +1,11 @@
+jdk:
+  - openjdk21
+
+before_install:
+  - chmod +x ./gradlew
+  - git config --global user.email "jitpack@example.com"
+  - ./gradlew applyPatches
+
+install:
+  - ./gradlew :paper-api:publishToMavenLocal -x test
+  - ./gradlew :paper-server:publishToMavenLocal -x test
