@@ -1,4 +1,4 @@
-package dev.pulsemc.api;
+package dev.pulsemc.api.network;
 
 import dev.pulsemc.network.PulseBuffer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The main API entry point for interacting with the PulseMC network engine.
  */
-public class PulseEngine {
+public class PulseNetwork {
 
     /**
      * Gets the PulsePlayer instance.
@@ -29,29 +29,6 @@ public class PulseEngine {
         if (buffer != null) {
             buffer.flush();
         }
-    }
-
-    /**
-     * Begins a "Fake Block Context" for the player.
-     * While active, all block updates are marked as fake and protected from chunk optimization.
-     * <p>
-     * Use this for sending client-side only blocks (schematics, visual effects).
-     *
-     * @param player the target player
-     */
-    public static void beginFakeContext(org.bukkit.entity.Player player) {
-        PulsePlayer pp = getPlayer(player);
-        if (pp != null) pp.getBuffer().setManualFakeMode(true);
-    }
-
-    /**
-     * Ends the fake block context and returns to normal batching behavior.
-     *
-     * @param player the target player
-     */
-    public static void endFakeContext(org.bukkit.entity.Player player) {
-        PulsePlayer pp = getPlayer(player);
-        if (pp != null) pp.getBuffer().setManualFakeMode(false);
     }
 
     /**

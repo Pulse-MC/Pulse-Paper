@@ -1,6 +1,7 @@
-package dev.pulsemc.api;
+package dev.pulsemc.api.network;
 
 import dev.pulsemc.network.PulseBuffer;
+import dev.pulsemc.network.PulseVirtualView;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -20,6 +21,13 @@ public class PulsePlayer {
      */
     public PulseBuffer getBuffer() {
         return buffer;
+    }
+
+    /**
+     * Internal method to get the Virtual View (fake data).
+     */
+    public PulseVirtualView getVirtualView() {
+        return buffer.getVirtualView();
     }
 
     /**

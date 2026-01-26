@@ -21,12 +21,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import dev.pulsemc.api.enums.FlushReason;
 import dev.pulsemc.api.events.PulseBufferFlushEvent;
 import dev.pulsemc.api.events.PulseChunkOptimizationEvent;
-import dev.pulsemc.config.ConfigManager;
 
 public class PulseBuffer {
     private final ServerCommonPacketListenerImpl listener;
     private final AtomicInteger bufferedCount = new AtomicInteger(0);
     private final AtomicInteger currentBatchBytes = new AtomicInteger(0);
+
+    private final PulseVirtualView virtualView = new PulseVirtualView();
+    private boolean manualFakeMode = false;
 
 
     public PulseBuffer(ServerCommonPacketListenerImpl listener) {
@@ -36,13 +38,17 @@ public class PulseBuffer {
     private record PacketEntry(Packet<?> packet, @Nullable ChannelFutureListener listener) {}
     private final List<PacketEntry> blockQueue = new ArrayList<>();
 
-    private boolean manualFakeMode = false;
-    private final Map<Long, Long> chunksWithFakes = new HashMap<>();
-    private static final long FAKE_MARK_TTL = 30_000L;
 
     public void add(Packet<?> packet, @Nullable ChannelFutureListener sendListener) {
         if (packet == null) return;
         String packetName = packet.getClass().getSimpleName();
+
+        // Restore fake blocks
+        if (packet instanceof net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket p) {
+            listener.connection.send(packet, sendListener, true);
+            restoreVirtualBlocks(p.getX(), p.getZ());
+            return;
+        }
 
         // Ignored Packets
         if (ConfigManager.ignoredPackets.contains(packetName)) {
@@ -177,14 +183,16 @@ public class PulseBuffer {
     }
 
     private void handleBlockUpdate(Packet<?> packet, @Nullable ChannelFutureListener listener) {
-        long key = getChunkKey(packet);
+        if (isFakeBlock(packet) || manualFakeMode) {
+            long key = getChunkKey(packet);
 
-        if (manualFakeMode || isFakeBlock(packet)) {
-            chunksWithFakes.put(key, System.currentTimeMillis());
+            if (packet instanceof net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket p) {
+                virtualView.registerBlock(p.getPos(), p.getBlockState());
+            }
+
             queuePacketToNetty(packet, listener);
             return;
         }
-
         blockQueue.add(new PacketEntry(packet, listener));
     }
 
@@ -243,11 +251,7 @@ public class PulseBuffer {
             int totalChanges = chunkBlockCounts.getOrDefault(chunkKey, 0);
 
             if (totalChanges >= ConfigManager.optExplosionThreshold) {
-
-                long now = System.currentTimeMillis();
-                Long lastFake = chunksWithFakes.get(chunkKey);
-
-                if (lastFake != null && (now - lastFake < FAKE_MARK_TTL)) {
+                if (virtualView.isChunkProtected(chunkKey)) {
                     entries.forEach(e -> queuePacketToNetty(e.packet(), e.listener()));
                     continue;
                 }
@@ -307,5 +311,20 @@ public class PulseBuffer {
             return sectionPacket.sectionPos.chunk().toLong();
         }
         return 0;
+    }
+
+    private void restoreVirtualBlocks(int chunkX, int chunkZ) {
+        Map<net.minecraft.core.BlockPos, net.minecraft.world.level.block.state.BlockState> blocks = virtualView.getBlocksInChunk(chunkX, chunkZ);
+        if (blocks == null) return;
+
+        blocks.forEach((pos, state) -> {
+            net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket repair =
+                new net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket(pos, state);
+            listener.connection.send(repair, null, true);
+        });
+    }
+
+    public PulseVirtualView getVirtualView() {
+        return virtualView;
     }
 }
