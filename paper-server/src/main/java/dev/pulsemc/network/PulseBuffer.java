@@ -87,7 +87,7 @@ public class PulseBuffer {
         }
 
         // Flushing the buffer when it is full.
-        if (getPendingBytes() > (ConfigManager.maxBatchBytes - ConfigManager.safety_margin)) {
+        if (getPendingBytes() > (ConfigManager.maxBatchBytes - ConfigManager.safetyMargin)) {
             flush();
         }
         // Batching
@@ -206,7 +206,7 @@ public class PulseBuffer {
     private void queuePacketToNetty(Packet<?> packet, ChannelFutureListener listenerCb) {
         listener.connection.send(packet, listenerCb, false);
 
-        if (getPendingBytes() > (ConfigManager.maxBatchBytes - ConfigManager.safety_margin)) {
+        if (getPendingBytes() > (ConfigManager.maxBatchBytes - ConfigManager.safetyMargin)) {
             flush();
         } else if (bufferedCount.incrementAndGet() >= HARD_CAP_COUNT) {
             flush();

@@ -1,103 +1,201 @@
 package dev.pulsemc.config;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.configuration.file.YamlConfiguration;
+
 import java.io.File;
 import java.nio.file.Files;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
 
 public class ConfigManager {
     private static final File FILE = new File("pulse.yml");
+    private static final MiniMessage mm = MiniMessage.miniMessage();
 
-    public enum BatchingMode { SMART_EXECUTION, STRICT_TICK, INTERVAL }
+    public static final List<Component> lastLoadReport = new ArrayList<>();
 
-    // --- Core ---
     public static boolean enabled = true;
 
-    // --- Batching ---
+    // Batching
     public static BatchingMode batchingMode = BatchingMode.SMART_EXECUTION;
     public static int flushInterval = 25;
-    public static int maxBatchBytes = 1460; // MTU Safety
+    public static int maxBatchSize = 4096;
+    public static int maxBatchBytes = 1460;
+    public static int safetyMargin = 64;
     public static List<String> instantPackets = new ArrayList<>();
-    public static int safety_margin = 256;
 
-    // --- Optimization ---
+    // Optimization
     public static boolean optOffsets = true;
     public static boolean optExplosions = true;
     public static int optExplosionThreshold = 512;
 
-    // --- Compression ---
-    public static int compressionLevel = 4;
-    public static int compressionThreshold = 256;
-
-    // --- Compatibility ---
-    public static boolean hybridMode = true;
+    // Compatibility
     public static boolean emulateEvents = true;
     public static List<String> ignoredPackets = new ArrayList<>();
 
-    // --- Mod ---
-    public static boolean modHandshake = true;
-    public static boolean modRequire = false;
-    public static String modKickMessage = "<red>To play on this server, the <bold>Pulse Fabric</bold> mod is required!";
-
-    // --- Metrics ---
+    // Metrics
     public static boolean metricsEnabled = true;
-    public static int metricsUpdateInterval = 5;
-    public static boolean metricNetwork = true;
-    public static boolean metricCpu = true;
-    public static boolean metricRam = true;
+    public static int metricsUpdateInterval = 1;
+    public static boolean moduleNetwork = true;
+    public static boolean moduleCPU = true;
+    public static boolean moduleRAM = true;
 
-    public static String load() {
+    public enum BatchingMode { SMART_EXECUTION, STRICT_TICK, INTERVAL }
+
+    /**
+     * Loads config and generates error messages
+     * @return true if config has errors or warnings
+     */
+    public static boolean load() {
+        lastLoadReport.clear();
         try {
-            if (!FILE.exists()) {
-                createDefaultConfig();
-            }
+            if (!FILE.exists()) createDefaultConfig();
 
             YamlConfiguration config = YamlConfiguration.loadConfiguration(FILE);
 
+
             // Core
-            enabled = config.getBoolean("core.enabled", true);
+            enabled = new Setting<>(config, "core.enabled", true)
+                .validateType(Boolean.class)
+                .get();
+
 
             // Batching
-            try {
-                batchingMode = BatchingMode.valueOf(config.getString("batching.mode", "SMART_EXECUTION"));
-            } catch (IllegalArgumentException e) {
-                batchingMode = BatchingMode.SMART_EXECUTION;
-            }
-            flushInterval = config.getInt("batching.interval", 25);
-            maxBatchBytes = config.getInt("batching.max-buffer-size-bytes", 1460);
+            maxBatchSize = new Setting<>(config, "batching.max-batch-size", 50)
+                .validateType(Integer.class)
+                .validate(val -> val > 0, "Batch size must be > 0!")
+                .warn(val -> val <= 4096, "Values > 4096 may cause packet loss/disconnects!")
+                .get();
+
+            maxBatchBytes = new Setting<>(config, "batching.max-batch-bytes", 1460)
+                .validateType(Integer.class)
+                .validate(val -> val >= 512, "MTU limit too low (<512)! Network may stall.")
+                .warn(val -> val <= 32000, "> 32000 bytes is dangerous due to multiple exceeding of MTU standard")
+                .get();
+
+            safetyMargin = new Setting<>(config, "batching.safety-margin-bytes", 64)
+                .validateType(Integer.class)
+                .get();
+
             instantPackets = config.getStringList("batching.instant-packets");
-            safety_margin = config.getInt("batching.safety-margin");
+            if (instantPackets.isEmpty()) instantPackets = List.of("ClientboundHurtAnimationPacket", "ClientboundDamageEventPacket");
 
-            // Optimization
-            optOffsets = config.getBoolean("optimization.enable-offsets", true);
-            optExplosions = config.getBoolean("optimization.explosions.enabled", true);
-            optExplosionThreshold = config.getInt("optimization.explosions.block-change-threshold", 512);
-
-            // Compression
-            compressionLevel = config.getInt("compression.level", 4);
-            compressionThreshold = config.getInt("compression.threshold", 256);
-
-            // Compatibility
-            hybridMode = config.getBoolean("compatibility.enable-hybrid-mode", true);
-            emulateEvents = config.getBoolean("compatibility.emulate-events", true);
-            ignoredPackets = config.getStringList("compatibility.ignored-packets");
-
-            // Mod
-            modHandshake = config.getBoolean("mod.allow-handshake", true);
-            modRequire = config.getBoolean("mod.require-mod", false);
-            modKickMessage = config.getString("mod.kick-message", modKickMessage);
+            // Optimizations
+            optExplosions = new Setting<>(config, "optimization.explosions.enabled", true)
+                .validateType(Boolean.class)
+                .get();
+            optExplosionThreshold = new Setting<>(config, "optimization.explosions.block-change-threshold", 512)
+                .validateType(Integer.class)
+                .get();
 
             // Metrics
-            metricsEnabled = config.getBoolean("metrics.enabled", true);
-            metricsUpdateInterval = config.getInt("metrics.update-interval", 5);
-            metricNetwork = config.getBoolean("metrics.modules.network", true);
-            metricCpu = config.getBoolean("metrics.modules.cpu-estimation", true);
-            metricRam = config.getBoolean("metrics.modules.memory-impact", true);
+            metricsEnabled = new Setting<>(config, "metrics.enabled", true)
+                .validateType(Boolean.class)
+                .get();
+            metricsUpdateInterval = new Setting<>(config, "metrics.update-interval", 1)
+                .validateType(Integer.class)
+                .validate(val -> val >= 1, "Interval must be at least 1 second! Provided: %s")
+                .get();
 
-            return null;
+            // Compatibility
+            emulateEvents = new Setting<>(config, "compatibility.emulate-events", true)
+                .validateType(Boolean.class)
+                .get();
+            ignoredPackets = config.getStringList("compatibility.ignored-packets");
+
+            return !lastLoadReport.isEmpty();
+
         } catch (Exception e) {
-            return "Pulse Config Error: " + e.getMessage();
+            lastLoadReport.add(mm.deserialize("<red><bold>CRITICAL ERROR:</bold> Config file is broken! " + e.getMessage()));
+            e.printStackTrace();
+            return true;
+        }
+    }
+
+    private static class Setting<T> {
+        private final YamlConfiguration config;
+        private final String path;
+        private final T def;
+        private T value;
+        private boolean hasError = false;
+
+        public Setting(YamlConfiguration config, String path, T def) {
+            this.config = config;
+            this.path = path;
+            this.def = def;
+            this.value = (T) config.get(path, def);
+        }
+
+        public Setting<T> validateType(Class<?> expected) {
+            Object raw = config.get(path);
+            if (raw != null && !expected.isAssignableFrom(raw.getClass())) {
+                if (Number.class.isAssignableFrom(expected) && raw instanceof Number) {
+                    return this;
+                }
+
+                reportError(raw, "Must be " + expected.getSimpleName() + "! Provided: " + raw.getClass().getSimpleName());
+                this.value = def;
+                this.hasError = true;
+            }
+            return this;
+        }
+
+        public Setting<T> validate(Predicate<T> condition, String errorMsg) {
+            if (hasError) return this;
+            if (!condition.test(value)) {
+                reportError(value, String.format(errorMsg, value));
+                this.value = def;
+                this.hasError = true;
+            }
+            return this;
+        }
+
+        public Setting<T> warn(Predicate<T> condition, String warnMsg) {
+            if (hasError) return this;
+            if (!condition.test(value)) {
+                reportWarning(value, warnMsg);
+            }
+            return this;
+        }
+
+        public Setting<T> parser(java.util.function.Function<Object, T> parser) {
+            try {
+                Object raw = config.get(path);
+                if (raw != null) {
+                    this.value = parser.apply(raw);
+                }
+            } catch (Exception e) {
+                this.hasError = true;
+            }
+            return this;
+        }
+
+        public Setting<T> onError(String msg) {
+            if (hasError) {
+                reportError(config.get(path), msg);
+                this.value = def;
+            }
+            return this;
+        }
+
+        public T get() {
+            return value;
+        }
+
+        private void reportError(Object wrongValue, String msg) {
+            lastLoadReport.add(mm.deserialize("  <grey>on <yellow>" + path + "<grey>:"));
+            lastLoadReport.add(mm.deserialize("    Value: <red>" + wrongValue + "<red><italic><--[HERE]"));
+            lastLoadReport.add(mm.deserialize("    <red>ERROR: <grey>" + msg + " <grey>(Reset to: <green>" + def + "<grey>)"));
+            lastLoadReport.add(Component.text(" "));
+        }
+
+        private void reportWarning(Object riskyValue, String msg) {
+            lastLoadReport.add(mm.deserialize("  <grey>on <yellow>" + path + "<grey>:"));
+            lastLoadReport.add(mm.deserialize("    Value: <gold>" + riskyValue + "<red><italic><--[HERE]"));
+            lastLoadReport.add(mm.deserialize("    <gold>WARNING: <grey>" + msg));
+            lastLoadReport.add(Component.text(" "));
         }
     }
 
@@ -116,18 +214,13 @@ public class ConfigManager {
             
             # Packet batching (core Pulse feature)
             batching:
-              # Flush mode:
-              # SMART_EXECUTION – flush after plugin/script execution (recommended)
-              # STRICT_TICK     – flush at end of each server tick (50ms)
-              # INTERVAL        – flush every N milliseconds (Not fully implemented yet)
-              mode: SMART_EXECUTION
-            
-              # Flush interval (ms), only for INTERVAL mode
-              interval: 25
             
               # MTU safety limit.
               # Buffer is flushed immediately if this size is exceeded.
-              max-buffer-size-bytes: 1460
+              max-batch-bytes: 1460
+            
+              # Number of packets in batch limit
+              max-batch-size: 4096
             
               # Packets that bypass batching (critical for PvP)
               instant-packets:
@@ -136,7 +229,7 @@ public class ConfigManager {
             
               # Pulse will flush the buffer BEFORE adding a new packet if remaining space is less than this.
               # Prevents MTU overflow without expensive per-packet size calculation.
-              safety-margin: 64
+              safety-margin-bytes: 64
             
             # Protocol-level optimizations
             optimization:
@@ -161,12 +254,27 @@ public class ConfigManager {
             
             
             metrics:
+              # Enable internal Pulse metrics collection.
+              # Used for "/pulse stats".
               enabled: true
-              update-interval: 5
+            
+              # Metrics update interval (in seconds).
+              update-interval: 1
+            
+              # Metric modules to collect
               modules:
+                # Network-level statistics:
+                # logical vs physical packets, batching efficiency, saved calls.
                 network: true
+            
+                # CPU usage estimation:
+                # compares Pulse execution cost against vanilla packet sending.
                 cpu-estimation: true
+            
+                # Memory & GC impact analysis:
+                # tracks reduced allocations
                 memory-impact: true
+            
             """;
         Files.writeString(FILE.toPath(), template);
     }
