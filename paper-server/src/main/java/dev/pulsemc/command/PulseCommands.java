@@ -6,6 +6,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.pulsemc.config.ConfigManager;
+import dev.pulsemc.config.PulseMessages;
 import dev.pulsemc.network.PulseBar;
 import dev.pulsemc.network.PulseMetrics;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -57,18 +58,19 @@ public class PulseCommands {
         boolean hasIssues = ConfigManager.load();
 
         PulseBar.reload();
+        dev.pulsemc.network.PulseBuffer.reload();
 
         if (!hasIssues) {
-            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <green>Configuration reloaded successfully!"));
+            sender.sendMessage(PulseMessages.get(PulseMessages.reloadSuccess));
         } else {
-            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <red>Configuration reloaded with ISSUES:"));
+            sender.sendMessage(PulseMessages.get(PulseMessages.reloadError));
             sender.sendMessage(" ");
 
             for (net.kyori.adventure.text.Component line : ConfigManager.lastLoadReport) {
                 sender.sendMessage(line);
             }
 
-            sender.sendMessage(mm.deserialize("<grey>Safe default values were used for invalid settings."));
+            sender.sendMessage(PulseMessages.getRaw(PulseMessages.reloadSafeDefault));
         }
         return 1;
     }
@@ -78,7 +80,7 @@ public class PulseCommands {
             PulseBar.toggle(nmsPlayer.getBukkitEntity());
         } else {
             CommandSender sender = ctx.getSource().getBukkitSender();
-            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <red>Only for players!"));
+            sender.sendMessage(PulseMessages.get(PulseMessages.onlyPlayers));
         }
         return 1;
     }

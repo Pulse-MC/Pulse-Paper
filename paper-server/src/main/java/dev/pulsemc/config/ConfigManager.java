@@ -50,6 +50,7 @@ public class ConfigManager {
      */
     public static boolean load() {
         lastLoadReport.clear();
+        PulseMessages.load();
         try {
             if (!FILE.exists()) createDefaultConfig();
 
@@ -63,7 +64,7 @@ public class ConfigManager {
 
 
             // Batching
-            maxBatchSize = new Setting<>(config, "batching.max-batch-size", 50)
+            maxBatchSize = new Setting<>(config, "batching.max-batch-size", 4096)
                 .validateType(Integer.class)
                 .validate(val -> val > 0, "Batch size must be > 0!")
                 .warn(val -> val <= 4096, "Values > 4096 may cause packet loss/disconnects!")

@@ -1,6 +1,7 @@
 package dev.pulsemc.network;
 
 import dev.pulsemc.config.ConfigManager;
+import dev.pulsemc.config.PulseMessages;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -32,11 +33,11 @@ public class PulseBar {
         if (viewers.contains(player.getUniqueId())) {
             viewers.remove(player.getUniqueId());
             player.hideBossBar(bossBar);
-            player.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <grey>Metrics bar <red>disabled<grey>."));
+            player.sendMessage(PulseMessages.get(PulseMessages.barDisabled));
         } else {
             viewers.add(player.getUniqueId());
             player.showBossBar(bossBar);
-            player.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <grey>Metrics bar <green>enabled<grey>."));
+            player.sendMessage(PulseMessages.get(PulseMessages.barEnabled));
         }
     }
 

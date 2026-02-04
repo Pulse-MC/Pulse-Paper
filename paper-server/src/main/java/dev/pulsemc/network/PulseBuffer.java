@@ -2,6 +2,8 @@ package dev.pulsemc.network;
 
 import dev.pulsemc.config.ConfigManager;
 import dev.pulsemc.api.events.PulsePacketSendEvent;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
@@ -27,11 +29,63 @@ public class PulseBuffer {
     private final AtomicInteger bufferedCount = new AtomicInteger(0);
     private final AtomicInteger currentBatchBytes = new AtomicInteger(0);
 
-    // Hardcode packets bundle size limit
-    private static final int HARD_CAP_COUNT = 4096;
+    private static volatile java.util.Set<Class<?>> instantPacketClasses = java.util.Collections.emptySet();
+    private static volatile java.util.Set<Class<?>> ignoredPacketClasses = java.util.Collections.emptySet();
+    private static volatile boolean classesInitialized = false;
 
     public PulseBuffer(ServerCommonPacketListenerImpl listener) {
         this.listener = listener;
+        if (!classesInitialized) {
+            initializeClasses();
+        }
+    }
+
+    public static void reload() {
+        classesInitialized = false;
+    }
+
+    private synchronized static void initializeClasses() {
+        if (classesInitialized) return;
+        
+        java.util.Set<Class<?>> instant = new java.util.HashSet<>();
+        java.util.Set<Class<?>> ignored = new java.util.HashSet<>();
+        
+        // We will try to resolve classes from ConfigManager names
+        resolveClasses(ConfigManager.instantPackets, instant);
+        resolveClasses(ConfigManager.ignoredPackets, ignored);
+        
+        instantPacketClasses = java.util.Collections.unmodifiableSet(instant);
+        ignoredPacketClasses = java.util.Collections.unmodifiableSet(ignored);
+        classesInitialized = true;
+    }
+
+    private static void resolveClasses(List<String> names, java.util.Set<Class<?>> into) {
+        for (String name : names) {
+            try {
+                // This is a bit hacky as we don't know the full package, but most packets are in these packages
+                String[] packages = {
+                    "net.minecraft.network.protocol.game.",
+                    "net.minecraft.network.protocol.common.",
+                    "net.minecraft.network.protocol.login.",
+                    "net.minecraft.network.protocol.status.",
+                    "net.minecraft.network.protocol.handshake."
+                };
+                boolean found = false;
+                for (String pkg : packages) {
+                    try {
+                        into.add(Class.forName(pkg + name));
+                        found = true;
+                        break;
+                    } catch (ClassNotFoundException ignored) {}
+                }
+                if (!found) {
+                    // Try without package if it's already full
+                    into.add(Class.forName(name));
+                }
+            } catch (Exception e) {
+                // Ignore if not found
+            }
+        }
     }
 
     private record PacketEntry(Packet<?> packet, @Nullable PacketSendListener listener) {}
@@ -39,23 +93,28 @@ public class PulseBuffer {
 
     public void add(Packet<?> packet, @Nullable PacketSendListener sendListener){
         if (packet == null) return;
-        String packetName = packet.getClass().getSimpleName();
-
-        // Ignored Packets
-        if (ConfigManager.ignoredPackets.contains(packetName)) {
+        
+        if (!ConfigManager.enabled) {
             listener.connection.send(packet, sendListener, true);
             return;
         }
 
-        // Chat Safety
-        if (!Bukkit.isPrimaryThread() || isChatPacket(packet) || !ConfigManager.enabled) {
+        Class<?> packetClass = packet.getClass();
+
+        // Ignored Packets
+        if (ignoredPacketClasses.contains(packetClass)) {
+            listener.connection.send(packet, sendListener, true);
+            return;
+        }
+
+        // Chat Safety & Thread Safety
+        if (!Bukkit.isPrimaryThread() || isChatPacket(packet)) {
             listener.connection.send(packet, sendListener, true);
             return;
         }
 
         // Join Safety
-        boolean isIngame = (listener instanceof ServerGamePacketListenerImpl);
-        if (!isIngame) {
+        if (!(listener instanceof ServerGamePacketListenerImpl)) {
             listener.connection.send(packet, sendListener, true);
             return;
         }
@@ -79,7 +138,7 @@ public class PulseBuffer {
         }
 
         // Instant Packets
-        if (isCritical(packet) || ConfigManager.instantPackets.contains(packetName)) {
+        if (isCritical(packet) || instantPacketClasses.contains(packetClass)) {
             flush();
             listener.connection.send(packet, sendListener, true);
             PulseMetrics.physicalCounter.incrementAndGet();
@@ -94,7 +153,7 @@ public class PulseBuffer {
         listener.connection.send(packet, sendListener, false);
 
         // Count limit
-        if (bufferedCount.incrementAndGet() >= HARD_CAP_COUNT) {
+        if (bufferedCount.incrementAndGet() >= ConfigManager.maxBatchSize) {
             flush();
         }
     }
@@ -121,16 +180,20 @@ public class PulseBuffer {
     }
 
     private boolean isChatPacket(Packet<?> packet) {
-        String name = packet.getClass().getSimpleName();
-        return name.contains("Chat") || name.contains("Message") || name.contains("Disguised") || name.contains("SystemChat");
+        return packet instanceof net.minecraft.network.protocol.game.ClientboundPlayerChatPacket ||
+               packet instanceof net.minecraft.network.protocol.game.ClientboundSystemChatPacket ||
+               packet instanceof net.minecraft.network.protocol.game.ClientboundDisguisedChatPacket ||
+               packet instanceof net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket; // Not chat but usually needs to be fast
     }
 
 
     private boolean isCritical(Packet<?> packet) {
-        String name = packet.getClass().getSimpleName();
-        return name.contains("KeepAlive") || name.contains("Disconnect") ||
-            name.contains("Login") || name.contains("Handshake") ||
-            name.contains("Status");
+        // Use instanceof for speed
+        return packet instanceof net.minecraft.network.protocol.common.ClientboundKeepAlivePacket ||
+               packet instanceof net.minecraft.network.protocol.common.ClientboundDisconnectPacket ||
+               packet instanceof net.minecraft.network.protocol.login.ClientboundLoginDisconnectPacket ||
+               packet instanceof net.minecraft.network.protocol.status.ClientboundStatusResponsePacket ||
+               packet instanceof net.minecraft.network.protocol.common.ClientboundPingPacket;
     }
 
     /**
@@ -155,12 +218,12 @@ public class PulseBuffer {
         blockQueue.clear();
 
         if (!(listener instanceof ServerGamePacketListenerImpl gameListener) || gameListener.player == null) {
-            processingQueue.forEach(e -> queuePacketToNetty(e.packet(), e.listener()));
+            for (PacketEntry e : processingQueue) queuePacketToNetty(e.packet(), e.listener());
             return;
         }
 
-        Map<Long, List<PacketEntry>> batchMap = new HashMap<>();
-        Map<Long, Integer> chunkBlockCounts = new HashMap<>();
+        Long2ObjectOpenHashMap<List<PacketEntry>> batchMap = new Long2ObjectOpenHashMap<>();
+        Long2IntOpenHashMap chunkBlockCounts = new Long2IntOpenHashMap();
 
         for (PacketEntry entry : processingQueue) {
             long key = getChunkKey(entry.packet());
@@ -173,10 +236,10 @@ public class PulseBuffer {
             chunkBlockCounts.merge(key, count, Integer::sum);
         }
 
-        for (Map.Entry<Long, List<PacketEntry>> entry : batchMap.entrySet()) {
-            long chunkKey = entry.getKey();
+        for (Long2ObjectOpenHashMap.Entry<List<PacketEntry>> entry : batchMap.long2ObjectEntrySet()) {
+            long chunkKey = entry.getLongKey();
             List<PacketEntry> entries = entry.getValue();
-            int totalChanges = chunkBlockCounts.getOrDefault(chunkKey, 0);
+            int totalChanges = chunkBlockCounts.get(chunkKey);
 
             if (totalChanges >= ConfigManager.optExplosionThreshold) {
                 int x = ChunkPos.getX(chunkKey);
@@ -187,13 +250,12 @@ public class PulseBuffer {
                     PulseMetrics.optimizedChunks.incrementAndGet();
 
                     ClientboundLevelChunkWithLightPacket chunkPacket = new ClientboundLevelChunkWithLightPacket(chunk, gameListener.player.level().getLightEngine(), null, null);
-                    // send ONE chunk packet, without listener
                     queuePacketToNetty(chunkPacket, null);
                 } else {
-                    entries.forEach(e -> queuePacketToNetty(e.packet(), e.listener()));
+                    for (PacketEntry e : entries) queuePacketToNetty(e.packet(), e.listener());
                 }
             } else {
-                entries.forEach(e -> queuePacketToNetty(e.packet(), e.listener()));
+                for (PacketEntry e : entries) queuePacketToNetty(e.packet(), e.listener());
             }
         }
     }
@@ -208,7 +270,7 @@ public class PulseBuffer {
 
         if (getPendingBytes() > (ConfigManager.maxBatchBytes - ConfigManager.safetyMargin)) {
             flush();
-        } else if (bufferedCount.incrementAndGet() >= HARD_CAP_COUNT) {
+        } else if (bufferedCount.incrementAndGet() >= ConfigManager.maxBatchSize) {
             flush();
         }
     }
