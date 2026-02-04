@@ -33,9 +33,9 @@ public class PulseCommands {
                 )
 
                 .then(Commands.literal("stats")
-                    .executes(ctx -> sendStats(ctx, "all")) // Вызов если ввели просто /pulse stats
+                    .executes(ctx -> sendStats(ctx, "all"))
                     .then(Commands.argument("type", StringArgumentType.word())
-                        .suggests(PulseCommands::suggestStatsTypes) // Подсказки с описанием
+                        .suggests(PulseCommands::suggestStatsTypes)
                         .executes(ctx -> sendStats(ctx, StringArgumentType.getString(ctx, "type")))
                     )
                 )
@@ -52,12 +52,23 @@ public class PulseCommands {
 
 
     private static int reload(CommandContext<CommandSourceStack> ctx) {
-        String err = ConfigManager.load();
         CommandSender sender = ctx.getSource().getBukkitSender();
-        if (err != null) {
-            sender.sendMessage(mm.deserialize("<#ff2929>Error: " + err));
+
+        boolean hasIssues = ConfigManager.load();
+
+        PulseBar.reload();
+
+        if (!hasIssues) {
+            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <green>Configuration reloaded successfully!"));
         } else {
-            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold><gray>: <green>Configuration reloaded!"));
+            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <red>Configuration reloaded with ISSUES:"));
+            sender.sendMessage(" ");
+
+            for (net.kyori.adventure.text.Component line : ConfigManager.lastLoadReport) {
+                sender.sendMessage(line);
+            }
+
+            sender.sendMessage(mm.deserialize("<grey>Safe default values were used for invalid settings."));
         }
         return 1;
     }
@@ -66,7 +77,8 @@ public class PulseCommands {
         if (ctx.getSource().getEntity() instanceof net.minecraft.server.level.ServerPlayer nmsPlayer) {
             PulseBar.toggle(nmsPlayer.getBukkitEntity());
         } else {
-            ctx.getSource().sendFailure(Component.literal("Only for players!"));
+            CommandSender sender = ctx.getSource().getBukkitSender();
+            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <red>Only for players!"));
         }
         return 1;
     }

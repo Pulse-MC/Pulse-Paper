@@ -1,5 +1,6 @@
 package dev.pulsemc.network;
 
+import dev.pulsemc.config.ConfigManager;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -10,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class PulseBar {
@@ -18,34 +20,45 @@ public class PulseBar {
         Component.empty(),
         1.0f,
         BossBar.Color.GREEN,
-        BossBar.Overlay.PROGRESS
+        BossBar.Overlay.NOTCHED_20
     );
 
     private static final Set<UUID> viewers = new HashSet<>();
-    // Native Java Timer
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+    private static ScheduledFuture<?> currentTask;
 
     public static void toggle(Player player) {
         if (viewers.contains(player.getUniqueId())) {
             viewers.remove(player.getUniqueId());
             player.hideBossBar(bossBar);
-            player.sendMessage(mm.deserialize("<#ff2929>PulseMC: <grey>Metrics bar disabled."));
+            player.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <grey>Metrics bar <red>disabled<grey>."));
         } else {
             viewers.add(player.getUniqueId());
             player.showBossBar(bossBar);
-            player.sendMessage(mm.deserialize("<green>PulseMC: <grey>Metrics bar enabled."));
+            player.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <grey>Metrics bar <green>enabled<grey>."));
         }
     }
 
+    public static void reload() {
+        start();
+    }
+
     public static void start() {
-        scheduler.scheduleAtFixedRate(() -> {
+        if (currentTask != null && !currentTask.isCancelled()) {
+            currentTask.cancel(false);
+        }
+
+        int interval = Math.max(1, ConfigManager.metricsUpdateInterval);
+
+        currentTask = scheduler.scheduleAtFixedRate(() -> {
             if (viewers.isEmpty()) return;
             try {
                 updateBar();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }, 1, 1, TimeUnit.SECONDS);
+        }, 1, interval, TimeUnit.SECONDS);
     }
 
     private static void updateBar() {
@@ -77,7 +90,6 @@ public class PulseBar {
             speedStr
         );
 
-        // Update bar
         bossBar.name(mm.deserialize(title));
         bossBar.progress((float) efficiency);
         bossBar.color(color);
