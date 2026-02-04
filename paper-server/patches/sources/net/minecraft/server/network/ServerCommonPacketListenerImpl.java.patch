@@ -1,6 +1,6 @@
 --- a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
-@@ -27,30 +_,67 @@
+@@ -27,30 +_,69 @@
  import net.minecraft.util.profiling.Profiler;
  import org.slf4j.Logger;
  
@@ -28,6 +28,7 @@
 +    protected final org.bukkit.craftbukkit.CraftServer cserver;
 +    public boolean processedDisconnect;
 +    // CraftBukkit end
++    public dev.pulsemc.network.PulseBuffer pulseBuffer; // Pulse
 +    public final java.util.Map<java.util.UUID, net.kyori.adventure.resource.ResourcePackCallback> packCallbacks = new java.util.concurrent.ConcurrentHashMap<>(); // Paper - adventure resource pack callbacks
 +    private static final long KEEPALIVE_LIMIT = Long.getLong("paper.playerconnection.keepalive", 30) * 1000; // Paper - provide property to set keepalive limit
 +    protected static final net.minecraft.resources.ResourceLocation MINECRAFT_BRAND = net.minecraft.resources.ResourceLocation.withDefaultNamespace("brand"); // Paper - Brand support
@@ -44,6 +45,7 @@
 +        this.player = player;
 +        this.player.transferCookieConnection = this;
 +        this.cserver = server.server;
++        this.pulseBuffer = new dev.pulsemc.network.PulseBuffer(this); // Pulse
 +    }
 +
 +    public org.bukkit.craftbukkit.entity.CraftPlayer getCraftPlayer() {
@@ -73,10 +75,14 @@
  
      private void close() {
          if (!this.closed) {
-@@ -61,6 +_,12 @@
+@@ -61,6 +_,10 @@
  
      @Override
      public void onDisconnect(DisconnectionDetails details) {
++        if (this.pulseBuffer != null) {
++            this.pulseBuffer.stop();
++        }
++
 +        // Paper start - Fix kick event leave message not being sent
 +        this.onDisconnect(details, null);
 +    }

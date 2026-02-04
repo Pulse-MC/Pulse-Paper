@@ -64,6 +64,21 @@ public class ConfigManager {
 
 
             // Batching
+            batchingMode = new Setting<>(config, "batching.mode", BatchingMode.SMART_EXECUTION)
+                .parser(val -> {
+                    try {
+                        return BatchingMode.valueOf(val.toString().toUpperCase());
+                    } catch (Exception e) {
+                        return BatchingMode.SMART_EXECUTION;
+                    }
+                })
+                .get();
+
+            flushInterval = new Setting<>(config, "batching.flush-interval", 25)
+                .validateType(Integer.class)
+                .validate(val -> val >= 1, "Flush interval must be at least 1ms!")
+                .get();
+
             maxBatchSize = new Setting<>(config, "batching.max-batch-size", 4096)
                 .validateType(Integer.class)
                 .validate(val -> val > 0, "Batch size must be > 0!")
@@ -215,6 +230,14 @@ public class ConfigManager {
             
             # Packet batching (core Pulse feature)
             batching:
+              # Mode of batching:
+              # SMART_EXECUTION - default, flushes when necessary or on tick end.
+              # STRICT_TICK     - flushes ONLY on tick end (max throughput, highest latency).
+              # INTERVAL        - flushes every X milliseconds (defined below).
+              mode: SMART_EXECUTION
+            
+              # Flush interval for INTERVAL mode (in milliseconds)
+              flush-interval: 25
             
               # MTU safety limit.
               # Buffer is flushed immediately if this size is exceeded.

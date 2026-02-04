@@ -4,6 +4,7 @@ import dev.pulsemc.config.ConfigManager;
 import dev.pulsemc.api.events.PulsePacketSendEvent;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
@@ -29,8 +30,15 @@ public class PulseBuffer {
     private final AtomicInteger bufferedCount = new AtomicInteger(0);
     private final AtomicInteger currentBatchBytes = new AtomicInteger(0);
 
+    private static final java.util.concurrent.ScheduledExecutorService scheduler = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(
+        new com.google.common.util.concurrent.ThreadFactoryBuilder().setNameFormat("pulse-interval-flusher").setDaemon(true).build()
+    );
+    private java.util.concurrent.ScheduledFuture<?> intervalTask;
+
     private static volatile java.util.Set<Class<?>> instantPacketClasses = java.util.Collections.emptySet();
     private static volatile java.util.Set<Class<?>> ignoredPacketClasses = java.util.Collections.emptySet();
+    private static volatile java.util.Set<Class<?>> chatPacketClasses = java.util.Collections.emptySet();
+    private static volatile java.util.Set<Class<?>> criticalPacketClasses = java.util.Collections.emptySet();
     private static volatile boolean classesInitialized = false;
 
     public PulseBuffer(ServerCommonPacketListenerImpl listener) {
@@ -38,31 +46,61 @@ public class PulseBuffer {
         if (!classesInitialized) {
             initializeClasses();
         }
+        setupIntervalTask();
+    }
+
+    private void setupIntervalTask() {
+        if (ConfigManager.batchingMode == ConfigManager.BatchingMode.INTERVAL) {
+            intervalTask = scheduler.scheduleAtFixedRate(this::flush, 
+                ConfigManager.flushInterval, ConfigManager.flushInterval, java.util.concurrent.TimeUnit.MILLISECONDS);
+        }
     }
 
     public static void reload() {
         classesInitialized = false;
     }
 
+    public void stop() {
+        if (intervalTask != null) {
+            intervalTask.cancel(false);
+        }
+    }
+
     private synchronized static void initializeClasses() {
         if (classesInitialized) return;
         
-        java.util.Set<Class<?>> instant = new java.util.HashSet<>();
-        java.util.Set<Class<?>> ignored = new java.util.HashSet<>();
+        java.util.Set<Class<?>> instant = new ReferenceOpenHashSet<>();
+        java.util.Set<Class<?>> ignored = new ReferenceOpenHashSet<>();
+        java.util.Set<Class<?>> chat = new ReferenceOpenHashSet<>();
+        java.util.Set<Class<?>> critical = new ReferenceOpenHashSet<>();
         
         // We will try to resolve classes from ConfigManager names
         resolveClasses(ConfigManager.instantPackets, instant);
         resolveClasses(ConfigManager.ignoredPackets, ignored);
+
+        // Pre-fill chat packets
+        chat.add(net.minecraft.network.protocol.game.ClientboundPlayerChatPacket.class);
+        chat.add(net.minecraft.network.protocol.game.ClientboundSystemChatPacket.class);
+        chat.add(net.minecraft.network.protocol.game.ClientboundDisguisedChatPacket.class);
+        chat.add(net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket.class);
+
+        // Pre-fill critical packets
+        critical.add(net.minecraft.network.protocol.common.ClientboundKeepAlivePacket.class);
+        critical.add(net.minecraft.network.protocol.common.ClientboundDisconnectPacket.class);
+        critical.add(net.minecraft.network.protocol.login.ClientboundLoginDisconnectPacket.class);
+        critical.add(net.minecraft.network.protocol.status.ClientboundStatusResponsePacket.class);
+        critical.add(net.minecraft.network.protocol.common.ClientboundPingPacket.class);
         
-        instantPacketClasses = java.util.Collections.unmodifiableSet(instant);
-        ignoredPacketClasses = java.util.Collections.unmodifiableSet(ignored);
+        instantPacketClasses = instant;
+        ignoredPacketClasses = ignored;
+        chatPacketClasses = chat;
+        criticalPacketClasses = critical;
         classesInitialized = true;
     }
 
     private static void resolveClasses(List<String> names, java.util.Set<Class<?>> into) {
         for (String name : names) {
             try {
-                // This is a bit hacky as we don't know the full package, but most packets are in these packages
                 String[] packages = {
                     "net.minecraft.network.protocol.game.",
                     "net.minecraft.network.protocol.common.",
@@ -79,12 +117,9 @@ public class PulseBuffer {
                     } catch (ClassNotFoundException ignored) {}
                 }
                 if (!found) {
-                    // Try without package if it's already full
                     into.add(Class.forName(name));
                 }
-            } catch (Exception e) {
-                // Ignore if not found
-            }
+            } catch (Exception e) {}
         }
     }
 
@@ -108,7 +143,7 @@ public class PulseBuffer {
         }
 
         // Chat Safety & Thread Safety
-        if (!Bukkit.isPrimaryThread() || isChatPacket(packet)) {
+        if (!Bukkit.isPrimaryThread() || chatPacketClasses.contains(packetClass)) {
             listener.connection.send(packet, sendListener, true);
             return;
         }
@@ -129,6 +164,7 @@ public class PulseBuffer {
                 Bukkit.getPluginManager().callEvent(event);
                 if (event.isCancelled()) return;
                 packet = event.getPacket();
+                packetClass = packet.getClass();
             }
         }
 
@@ -138,30 +174,42 @@ public class PulseBuffer {
         }
 
         // Instant Packets
-        if (isCritical(packet) || instantPacketClasses.contains(packetClass)) {
-            flush();
+        if (criticalPacketClasses.contains(packetClass) || instantPacketClasses.contains(packetClass)) {
+            if (ConfigManager.batchingMode != ConfigManager.BatchingMode.STRICT_TICK) {
+                flush();
+            }
             listener.connection.send(packet, sendListener, true);
             PulseMetrics.physicalCounter.incrementAndGet();
             return;
         }
 
-        // Flushing the buffer when it is full.
-        if (getPendingBytes() > (ConfigManager.maxBatchBytes - ConfigManager.safetyMargin)) {
+        // Mode handling
+        boolean forceFlush = false;
+        if (ConfigManager.batchingMode != ConfigManager.BatchingMode.STRICT_TICK) {
+            if (getPendingBytes() > (ConfigManager.maxBatchBytes - ConfigManager.safetyMargin)) {
+                forceFlush = true;
+            }
+        }
+
+        if (forceFlush) {
             flush();
         }
+
         // Batching
         listener.connection.send(packet, sendListener, false);
 
         // Count limit
         if (bufferedCount.incrementAndGet() >= ConfigManager.maxBatchSize) {
-            flush();
+            if (ConfigManager.batchingMode != ConfigManager.BatchingMode.STRICT_TICK) {
+                flush();
+            }
         }
     }
 
     /**
      * Sends all packets accumulated in the buffer to the client.
      */
-    public void flush() {
+    public synchronized void flush() {
         if (!blockQueue.isEmpty()) {
             processBlockQueue();
         }
@@ -180,20 +228,12 @@ public class PulseBuffer {
     }
 
     private boolean isChatPacket(Packet<?> packet) {
-        return packet instanceof net.minecraft.network.protocol.game.ClientboundPlayerChatPacket ||
-               packet instanceof net.minecraft.network.protocol.game.ClientboundSystemChatPacket ||
-               packet instanceof net.minecraft.network.protocol.game.ClientboundDisguisedChatPacket ||
-               packet instanceof net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket; // Not chat but usually needs to be fast
+        return chatPacketClasses.contains(packet.getClass());
     }
 
 
     private boolean isCritical(Packet<?> packet) {
-        // Use instanceof for speed
-        return packet instanceof net.minecraft.network.protocol.common.ClientboundKeepAlivePacket ||
-               packet instanceof net.minecraft.network.protocol.common.ClientboundDisconnectPacket ||
-               packet instanceof net.minecraft.network.protocol.login.ClientboundLoginDisconnectPacket ||
-               packet instanceof net.minecraft.network.protocol.status.ClientboundStatusResponsePacket ||
-               packet instanceof net.minecraft.network.protocol.common.ClientboundPingPacket;
+        return criticalPacketClasses.contains(packet.getClass());
     }
 
     /**
@@ -268,10 +308,14 @@ public class PulseBuffer {
     private void queuePacketToNetty(Packet<?> packet, @Nullable PacketSendListener listenerCb) {
         listener.connection.send(packet, listenerCb, false);
 
-        if (getPendingBytes() > (ConfigManager.maxBatchBytes - ConfigManager.safetyMargin)) {
-            flush();
-        } else if (bufferedCount.incrementAndGet() >= ConfigManager.maxBatchSize) {
-            flush();
+        if (ConfigManager.batchingMode != ConfigManager.BatchingMode.STRICT_TICK) {
+            if (getPendingBytes() > (ConfigManager.maxBatchBytes - ConfigManager.safetyMargin)) {
+                flush();
+            } else if (bufferedCount.incrementAndGet() >= ConfigManager.maxBatchSize) {
+                flush();
+            }
+        } else {
+            bufferedCount.incrementAndGet();
         }
     }
 
@@ -283,4 +327,6 @@ public class PulseBuffer {
         }
         return 0;
     }
+}
+
 }
