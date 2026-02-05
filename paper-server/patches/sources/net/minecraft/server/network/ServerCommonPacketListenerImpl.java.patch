@@ -75,7 +75,7 @@
  
      private void close() {
          if (!this.closed) {
-@@ -61,6 +_,10 @@
+@@ -61,6 +_,16 @@
  
      @Override
      public void onDisconnect(DisconnectionDetails details) {

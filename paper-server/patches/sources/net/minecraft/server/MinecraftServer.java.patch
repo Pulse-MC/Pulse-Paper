@@ -1,8 +1,10 @@
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
-@@ -174,11 +_,13 @@
+@@ -172,13 +_,16 @@
+ import net.minecraft.world.phys.Vec2;
+ import net.minecraft.world.phys.Vec3;
  import org.slf4j.Logger;
- import dev.pulsemc.config.ConfigManager;
++import dev.pulsemc.config.ConfigManager;
  
  public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTask> implements ServerInfo, ChunkIOErrorReporter, CommandSource {
 +    private static MinecraftServer SERVER; // Paper
@@ -690,7 +692,7 @@
          this.running = false;
          if (waitForServer) {
              try {
-@@ -671,6 +_,57 @@
+@@ -671,7 +_,59 @@
          }
      }
  
@@ -746,9 +748,10 @@
 +    // Paper end
 +
      protected void runServer() {
-         ConfigManager.load(); 
++        ConfigManager.load(); 
          try {
              if (!this.initServer()) {
+                 throw new IllegalStateException("Failed to initialize server");
 @@ -681,6 +_,35 @@
              this.statusIcon = this.loadStatusIcon().orElse(null);
              this.status = this.buildServerStatus();
@@ -1086,7 +1089,7 @@
      public Set<ResourceKey<Level>> levelKeys() {
          return this.levels.keySet();
      }
-@@ -1177,7 +_,7 @@
+@@ -1177,7 +_,8 @@
  
      @DontObfuscate
      public String getServerModName() {

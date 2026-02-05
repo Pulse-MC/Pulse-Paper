@@ -1,30 +1,21 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: tizis0 <hexgames84@gmail.com>
-Date: Tue, 20 Jan 2026 21:26:14 +0600
+From: ExTr1se <160177189+N1f-Angel@users.noreply.github.com>
+Date: Thu, 5 Feb 2026 10:56:29 +0200
 Subject: [PATCH] Porting Pulse on 1.21.4
 
 
 diff --git a/net/minecraft/commands/Commands.java b/net/minecraft/commands/Commands.java
-index f8969a68cd352ce4fe5109205e78f5e19ab6e020..ccae78e31d326d5d02b78191ed81557f1f81ee0c 100644
+index f8969a68cd352ce4fe5109205e78f5e19ab6e020..efc0b218e0ec901945ae5c19c7e5676b3197d4e0 100644
 --- a/net/minecraft/commands/Commands.java
 +++ b/net/minecraft/commands/Commands.java
-@@ -138,6 +138,7 @@ import net.minecraft.world.flag.FeatureFlagSet;
- import net.minecraft.world.flag.FeatureFlags;
- import net.minecraft.world.level.GameRules;
- import org.slf4j.Logger;
-+import dev.pulsemc.command.PulseCommands;
- 
- public class Commands {
-     private static final ThreadLocal<ExecutionContext<CommandSourceStack>> CURRENT_EXECUTION_CONTEXT = new ThreadLocal<>();
-@@ -217,6 +218,11 @@ public class Commands {
+@@ -217,6 +217,10 @@ public class Commands {
          TriggerCommand.register(this.dispatcher);
          WeatherCommand.register(this.dispatcher);
          WorldBorderCommand.register(this.dispatcher);
 +
 +        // Pulse start - Register new vanilla command
-+        PulseCommands.register(this.dispatcher);
++        dev.pulsemc.command.PulseCommands.register(this.dispatcher);
 +        // Pulse end - Register new vanilla command
-+
          if (JvmProfiler.INSTANCE.isAvailable()) {
              JfrCommand.register(this.dispatcher);
          }
@@ -44,18 +35,9 @@ index 10b46c59d83d1274cf491f217df2355d13b594c1..34d05debaa58b5a9d4bcb141516dee9a
  
      public ClientboundSectionBlocksUpdatePacket(SectionPos sectionPos, ShortSet positions, LevelChunkSection section) {
 diff --git a/net/minecraft/server/dedicated/DedicatedServer.java b/net/minecraft/server/dedicated/DedicatedServer.java
-index d2db6e3a4af13984b0a790fb38e83c253914a973..d630bca755b221e1f9ee66914b428059216c9d5b 100644
+index d2db6e3a4af13984b0a790fb38e83c253914a973..19a6e73a2d83d51f156dfb2652fb65bd7abb4781 100644
 --- a/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/net/minecraft/server/dedicated/DedicatedServer.java
-@@ -58,7 +58,7 @@ import net.minecraft.world.level.Level;
- import net.minecraft.world.level.block.entity.SkullBlockEntity;
- import net.minecraft.world.level.storage.LevelStorageSource;
- import org.slf4j.Logger;
--
-+// PULSE_MODIFIED
- public class DedicatedServer extends MinecraftServer implements ServerInterface {
-     static final Logger LOGGER = LogUtils.getLogger();
-     private static final int CONVERSION_RETRY_DELAY_MS = 5000;
 @@ -272,6 +272,12 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
              return false;
          }
@@ -70,45 +52,17 @@ index d2db6e3a4af13984b0a790fb38e83c253914a973..d630bca755b221e1f9ee66914b428059
          // this.setPlayerList(new DedicatedPlayerList(this, this.registries(), this.playerDataStorage)); // Spigot - moved up
          this.server.loadPlugins();
 diff --git a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
-index af75f1ca60dc01045f27cb550ac9e3deacf1a1cf..0ae42e0b228993bec151e2d52785ab7c9def8bf6 100644
+index 218b9bd9f869a7fafabf224d6c27b6ea7192cc5e..d894a901b8970729b6d14328b90d7ca36a76c56a 100644
 --- a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
-@@ -26,7 +26,8 @@ import net.minecraft.server.level.ClientInformation;
- import net.minecraft.util.VisibleForDebug;
- import net.minecraft.util.profiling.Profiler;
- import org.slf4j.Logger;
--
-+import dev.pulsemc.network.PulseBuffer;
-+// PULSE_MODIFIED
- public abstract class ServerCommonPacketListenerImpl implements ServerCommonPacketListener, org.bukkit.craftbukkit.entity.CraftPlayer.TransferCookieConnection { // CraftBukkit
-     private static final Logger LOGGER = LogUtils.getLogger();
-     public static final int LATENCY_CHECK_INTERVAL = 15000;
-@@ -52,6 +53,8 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
-     private static final long KEEPALIVE_LIMIT = Long.getLong("paper.playerconnection.keepalive", 30) * 1000; // Paper - provide property to set keepalive limit
-     protected static final net.minecraft.resources.ResourceLocation MINECRAFT_BRAND = net.minecraft.resources.ResourceLocation.withDefaultNamespace("brand"); // Paper - Brand support
- 
-+    public PulseBuffer pulseBuffer; // Pulse
-+
-     public ServerCommonPacketListenerImpl(MinecraftServer server, Connection connection, CommonListenerCookie cookie, net.minecraft.server.level.ServerPlayer player) { // CraftBukkit
-         this.server = server;
-         this.connection = connection;
-@@ -62,6 +65,8 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
-         this.player = player;
-         this.player.transferCookieConnection = this;
-         this.cserver = server.server;
-+
-+        this.pulseBuffer = new PulseBuffer(this); // Pulse
-     }
- 
-     public org.bukkit.craftbukkit.entity.CraftPlayer getCraftPlayer() {
-@@ -284,27 +289,32 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
+@@ -290,27 +290,32 @@ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPack
          this.send(packet, null);
      }
  
 -    public void send(Packet<?> packet, @Nullable PacketSendListener listener) {
 -        // CraftBukkit start
 -        if (packet == null || this.processedDisconnect) { // Spigot
-+    public void send(net.minecraft.network.protocol.Packet<?> packet, @Nullable net.minecraft.network.PacketSendListener sendListener) {
++    public void send(Packet<?> packet, @Nullable PacketSendListener sendListener) {
 +        if (packet == null || this.processedDisconnect) return;
 +
 +        // PulseMC start - Smart Batching V3 (1.21.4 Fix)

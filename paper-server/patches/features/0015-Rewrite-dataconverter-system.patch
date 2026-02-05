@@ -30621,10 +30621,10 @@ index 1110ca4075a1bbaa46b66686435dab91b275c945..c2218630c3074c8b3f82364e37503b12
          return structureTemplate.save(new CompoundTag());
      }
 diff --git a/net/minecraft/server/MinecraftServer.java b/net/minecraft/server/MinecraftServer.java
-index e54b5a165ad4dc4d2158dab34c5008512e5f7885..841a41485af62470d833aba578069b19a0bd1e8d 100644
+index f156159d83cc4a711829d3f7e6f4519fd1a43752..11e37983a91982a9a3d2b0b23f4c8bf2b95e1a15 100644
 --- a/net/minecraft/server/MinecraftServer.java
 +++ b/net/minecraft/server/MinecraftServer.java
-@@ -305,6 +305,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -306,6 +306,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
      public static final long SERVER_INIT = System.nanoTime(); // Paper - Lag compensation
  
      public static <S extends MinecraftServer> S spin(Function<Thread, S> threadFunction) {
