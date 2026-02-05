@@ -85,10 +85,10 @@ public class ConfigManager {
                 .warn(val -> val <= 4096, "Values > 4096 may cause packet loss/disconnects!")
                 .get();
 
-            maxBatchBytes = new Setting<>(config, "batching.max-batch-bytes", 1460)
+            maxBatchBytes = new Setting<>(config, "batching.max-batch-bytes", 32000)
                 .validateType(Integer.class)
                 .validate(val -> val >= 512, "MTU limit too low (<512)! Network may stall.")
-                .warn(val -> val <= 32000, "> 32000 bytes is dangerous due to multiple exceeding of MTU standard")
+                .warn(val -> val <= 64000, "> 64000 bytes is dangerous due to packet fragmentation risks")
                 .get();
 
             safetyMargin = new Setting<>(config, "batching.safety-margin-bytes", 64)
@@ -241,7 +241,7 @@ public class ConfigManager {
             
               # MTU safety limit.
               # Buffer is flushed immediately if this size is exceeded.
-              max-batch-bytes: 1460
+              max-batch-bytes: 32000
             
               # Number of packets in batch limit
               max-batch-size: 4096

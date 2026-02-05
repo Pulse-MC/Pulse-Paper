@@ -19,6 +19,7 @@ public class PulseMessages {
     public static String onlyPlayers = "<red>Only for players!";
     public static String barEnabled = "<grey>Metrics bar <green>enabled<grey>.";
     public static String barDisabled = "<grey>Metrics bar <red>disabled<grey>.";
+    public static String bossBarTitle = "<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <white>Eff: <color:%s>%d%%</color> <dark_gray>| <white>Vanilla: <aqua>%d p/s <dark_gray>| <white>Out: <aqua>%d p/s</aqua> <gray>(%s)";
 
     public static void load() {
         if (!FILE.exists()) {
@@ -37,6 +38,7 @@ public class PulseMessages {
         onlyPlayers = config.getString("commands.generic.only-players", onlyPlayers);
         barEnabled = config.getString("commands.bar.enabled", barEnabled);
         barDisabled = config.getString("commands.bar.disabled", barDisabled);
+        bossBarTitle = config.getString("visuals.bossbar.title", bossBarTitle);
     }
 
     private static void createDefault() throws IOException {
@@ -53,6 +55,10 @@ public class PulseMessages {
               bar:
                 enabled: "<grey>Metrics bar <green>enabled<grey>."
                 disabled: "<grey>Metrics bar <red>disabled<grey>."
+                
+            visuals:
+              bossbar:
+                title: "<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <white>Eff: <color:%s>%d%%</color> <dark_gray>| <white>Vanilla: <aqua>%d p/s <dark_gray>| <white>Out: <aqua>%d p/s</aqua> <gray>(%s)"
             """;
         Files.writeString(FILE.toPath(), template);
     }

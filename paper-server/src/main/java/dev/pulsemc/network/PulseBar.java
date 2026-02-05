@@ -83,7 +83,7 @@ public class PulseBar {
         }
 
         String title = String.format(
-            "<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <white>Eff: <color:%s>%d%%</color> <dark_gray>| <white>Vanilla: <aqua>%d p/s <dark_gray>| <white>Out: <aqua>%d p/s</aqua> <gray>(%s)",
+            PulseMessages.bossBarTitle,
             (efficiency > 0.75 ? "#55FF55" : (efficiency > 0.4 ? "#FFFF55" : "#FF5555")),
             (int)(efficiency * 100),
             (int) PulseMetrics.ppsLogical,
