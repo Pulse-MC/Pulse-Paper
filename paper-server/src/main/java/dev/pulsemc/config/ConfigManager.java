@@ -243,7 +243,7 @@ public class ConfigManager {
               enabled: true
             
               # Name in F3 Brand
-              serverBrandName: "Pulse"
+              server-brand-name: "Pulse"
             
               # Use io_uring (Linux only).
               # Provides better performance than epoll for high-traffic servers.
