@@ -1,16 +1,11 @@
-From f2fe9aa110a2b69d5c0a8770ede099130b327897 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: ExTr1se <160177189+N1f-Angel@users.noreply.github.com>
 Date: Thu, 5 Feb 2026 13:01:21 +0200
 Subject: [PATCH] Pulse Optimizations: io_uring, PooledByteBuf, Mth inlining
 
----
- net/minecraft/network/Connection.java           | 11 +++++++++--
- .../network/ServerConnectionListener.java       | 17 +++++++++++++++--
- net/minecraft/util/Mth.java                     | 14 +++++++++-----
- 3 files changed, 33 insertions(+), 9 deletions(-)
 
 diff --git a/net/minecraft/network/Connection.java b/net/minecraft/network/Connection.java
-index 4ed9611..3cb9713 100644
+index 4ed9611994c5c8da01fede690197527c5b3a5731..f38564699af4dddd1172786ce886d16b77e34b44 100644
 --- a/net/minecraft/network/Connection.java
 +++ b/net/minecraft/network/Connection.java
 @@ -5,6 +5,7 @@ import com.google.common.collect.Queues;
@@ -25,9 +20,9 @@ index 4ed9611..3cb9713 100644
  import io.netty.channel.epoll.Epoll;
  import io.netty.channel.epoll.EpollEventLoopGroup;
  import io.netty.channel.epoll.EpollSocketChannel;
-+import io.netty.channel.uring.IOUring;
-+import io.netty.channel.uring.IOUringEventLoopGroup;
-+import io.netty.channel.uring.IOUringSocketChannel;
++import io.netty.incubator.channel.uring.IOUring;
++import io.netty.incubator.channel.uring.IOUringEventLoopGroup;
++import io.netty.incubator.channel.uring.IOUringSocketChannel;
  import io.netty.channel.local.LocalChannel;
  import io.netty.channel.local.LocalServerChannel;
  import io.netty.channel.nio.NioEventLoopGroup;
@@ -60,7 +55,7 @@ index 4ed9611..3cb9713 100644
              protected void initChannel(Channel channel) {
                  ChannelPipeline channelPipeline = channel.pipeline();
 diff --git a/net/minecraft/server/network/ServerConnectionListener.java b/net/minecraft/server/network/ServerConnectionListener.java
-index bd07e6a..271679b 100644
+index bd07e6a5aa1883786d789ea71711a0c0c0a95c26..ceac63704931f996a9806f529c188458db942100 100644
 --- a/net/minecraft/server/network/ServerConnectionListener.java
 +++ b/net/minecraft/server/network/ServerConnectionListener.java
 @@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
@@ -75,9 +70,9 @@ index bd07e6a..271679b 100644
  import io.netty.channel.epoll.Epoll;
  import io.netty.channel.epoll.EpollEventLoopGroup;
  import io.netty.channel.epoll.EpollServerSocketChannel;
-+import io.netty.channel.uring.IOUring;
-+import io.netty.channel.uring.IOUringEventLoopGroup;
-+import io.netty.channel.uring.IOUringServerSocketChannel;
++import io.netty.incubator.channel.uring.IOUring;
++import io.netty.incubator.channel.uring.IOUringEventLoopGroup;
++import io.netty.incubator.channel.uring.IOUringServerSocketChannel;
  import io.netty.channel.local.LocalAddress;
  import io.netty.channel.local.LocalServerChannel;
  import io.netty.channel.nio.NioEventLoopGroup;
@@ -123,7 +118,7 @@ index bd07e6a..271679b 100644
                          @Override
                          protected void initChannel(Channel channel) {
 diff --git a/net/minecraft/util/Mth.java b/net/minecraft/util/Mth.java
-index d5d8134..cabe94f 100644
+index d5d8134da9423cec199cf44762460104677194d6..cabe94fca5120c9ed88a0fa03aa2c514263257da 100644
 --- a/net/minecraft/util/Mth.java
 +++ b/net/minecraft/util/Mth.java
 @@ -77,7 +77,7 @@ public class Mth {
@@ -163,6 +158,3 @@ index d5d8134..cabe94f 100644
      }
  
      public static double clampedLerp(double start, double end, double delta) {
--- 
-2.52.0
-
