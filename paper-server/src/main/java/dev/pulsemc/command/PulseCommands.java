@@ -51,7 +51,6 @@ public class PulseCommands {
         return builder.buildFuture();
     }
 
-
     private static int reload(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getBukkitSender();
 
@@ -120,4 +119,5 @@ public class PulseCommands {
 
         return 1;
     }
+
 }

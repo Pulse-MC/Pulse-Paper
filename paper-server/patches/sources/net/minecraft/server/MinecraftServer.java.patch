@@ -2,6 +2,7 @@
 +++ b/net/minecraft/server/MinecraftServer.java
 @@ -174,11 +_,13 @@
  import org.slf4j.Logger;
+ import dev.pulsemc.config.ConfigManager;
  
  public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTask> implements ServerInfo, ChunkIOErrorReporter, CommandSource {
 +    private static MinecraftServer SERVER; // Paper
@@ -745,6 +746,7 @@
 +    // Paper end
 +
      protected void runServer() {
+         ConfigManager.load(); 
          try {
              if (!this.initServer()) {
 @@ -681,6 +_,35 @@
@@ -1089,7 +1091,8 @@
      @DontObfuscate
      public String getServerModName() {
 -        return "vanilla";
-+        return io.papermc.paper.ServerBuildInfo.buildInfo().brandName(); // Paper
++        //return io.papermc.paper.ServerBuildInfo.buildInfo().brandName(); // Paper
++        return ConfigManager.serverBrandName;
      }
  
      public SystemReport fillSystemReport(SystemReport systemReport) {

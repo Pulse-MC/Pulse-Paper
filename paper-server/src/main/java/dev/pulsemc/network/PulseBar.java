@@ -95,4 +95,5 @@ public class PulseBar {
         bossBar.progress((float) efficiency);
         bossBar.color(color);
     }
+
 }

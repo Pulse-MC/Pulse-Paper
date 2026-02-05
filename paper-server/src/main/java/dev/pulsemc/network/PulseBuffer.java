@@ -119,7 +119,7 @@ public class PulseBuffer {
                 if (!found) {
                     into.add(Class.forName(name));
                 }
-            } catch (Exception e) {}
+            } catch (Exception ignored) {}
         }
     }
 
@@ -327,6 +327,5 @@ public class PulseBuffer {
         }
         return 0;
     }
-}
 
 }

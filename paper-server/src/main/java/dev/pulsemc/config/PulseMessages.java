@@ -70,4 +70,5 @@ public class PulseMessages {
     public static Component getRaw(String message) {
         return mm.deserialize(message);
     }
+
 }
