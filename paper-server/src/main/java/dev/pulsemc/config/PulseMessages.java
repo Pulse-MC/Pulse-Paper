@@ -102,7 +102,7 @@ public class PulseMessages {
                 ram:
                   header: "<grey>--- [ <white>Pulse Memory</white> ] ---"
                   saved-allocations: "<grey>Saved Allocations: <white>%d MB <grey>(Total)"
-                
+            
             visuals:
               bossbar:
                 title: "<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <white>Eff: <color:%s>%d%%</color> <dark_gray>| <white>Vanilla: <aqua>%d p/s <dark_gray>| <white>Out: <aqua>%d p/s</aqua> <gray>(%s)"

@@ -9,7 +9,6 @@ import dev.pulsemc.config.ConfigManager;
 import dev.pulsemc.config.PulseMessages;
 import dev.pulsemc.network.PulseBar;
 import dev.pulsemc.network.PulseMetrics;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -18,7 +17,6 @@ import org.bukkit.command.CommandSender;
 import java.util.concurrent.CompletableFuture;
 
 public class PulseCommands {
-    private static final MiniMessage mm = MiniMessage.miniMessage();
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(

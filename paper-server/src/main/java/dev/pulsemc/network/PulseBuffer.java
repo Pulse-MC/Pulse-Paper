@@ -8,7 +8,6 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
-import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket;
 import net.minecraft.server.network.ServerCommonPacketListenerImpl;
@@ -17,12 +16,8 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.bukkit.Bukkit;
 import org.jspecify.annotations.Nullable;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PulseBuffer {
@@ -158,7 +153,7 @@ public class PulseBuffer {
 
         // compatibility.emulate-events
         if (ConfigManager.emulateEvents) {
-            org.bukkit.entity.Player bukkitPlayer = ((ServerGamePacketListenerImpl) listener).getCraftPlayer();
+            org.bukkit.entity.Player bukkitPlayer = (listener).getCraftPlayer();
             if (bukkitPlayer != null) {
                 PulsePacketSendEvent event = new PulsePacketSendEvent(bukkitPlayer, packet);
                 Bukkit.getPluginManager().callEvent(event);

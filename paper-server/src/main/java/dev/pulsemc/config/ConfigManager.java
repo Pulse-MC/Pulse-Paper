@@ -73,9 +73,10 @@ public class ConfigManager {
                 .get();
 
             // Native Transport
-            useIoUring = new Setting<>(config, "core.use-io-uring", false)
+            useIoUring = false;
+            /*useIoUring = new Setting<>(config, "core.use-io-uring", false)
                 .validateType(Boolean.class)
-                .get();
+                .get();*/
 
             // Batching
             batchingMode = new Setting<>(config, "batching.mode", BatchingMode.SMART_EXECUTION)
@@ -244,10 +245,6 @@ public class ConfigManager {
             
               # Name in F3 Brand
               server-brand-name: "Pulse"
-            
-              # Use io_uring (Linux only).
-              # Provides better performance than epoll for high-traffic servers.
-              use-io-uring: false
             
             # Packet batching (core Pulse feature)
             batching:
