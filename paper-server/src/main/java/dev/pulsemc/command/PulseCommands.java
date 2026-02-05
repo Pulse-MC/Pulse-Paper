@@ -90,30 +90,30 @@ public class PulseCommands {
 
         if (type.equals("network") || type.equals("all")) {
             double efficiency = 100 - (PulseMetrics.ppsPhysical / Math.max(1, PulseMetrics.ppsLogical) * 100);
-            sender.sendMessage(mm.deserialize("<grey>--- [ <white>Pulse Network</white> ] ---"));
-            sender.sendMessage(mm.deserialize("<grey>PPS (Logical):  <white>" + (int)PulseMetrics.ppsLogical + " pkt/s <grey>(Vanilla)"));
-            sender.sendMessage(mm.deserialize("<grey>PPS (Physical): <white>" + (int)PulseMetrics.ppsPhysical + " pkt/s <#ff2929>(Pulse)"));
-            sender.sendMessage(mm.deserialize("<grey>Calls Saved:    <white>" + (int)(PulseMetrics.logicalCounter.get() - PulseMetrics.physicalCounter.get()) + "/s" + "+" + String.format("%.1f", efficiency) + "%)"));
+            sender.sendMessage(PulseMessages.getRaw(PulseMessages.statsNetworkHeader));
+            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsNetworkPpsLogical, (int) PulseMetrics.ppsLogical));
+            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsNetworkPpsPhysical, (int) PulseMetrics.ppsPhysical));
+            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsNetworkCallsSaved, (int) (PulseMetrics.logicalCounter.get() - PulseMetrics.physicalCounter.get()), efficiency));
             sender.sendMessage(" ");
-            sender.sendMessage(mm.deserialize("<grey>Bandwidth:      <green>" + String.format("%.2f", PulseMetrics.networkSpeedKbs) + "<white> kB/s"));
-            sender.sendMessage(mm.deserialize("<grey>Optimized Chunks: <gold>" + PulseMetrics.optimizedChunks.get() + " <grey>(mass updates prevented)"));
+            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsNetworkBandwidth, PulseMetrics.networkSpeedKbs));
+            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsNetworkOptimizedChunks, PulseMetrics.optimizedChunks.get()));
             sender.sendMessage(" ");
         }
 
         if (type.equals("cpu") || type.equals("all")) {
             double diff = PulseMetrics.vanillaCpuEst - PulseMetrics.cpuUsage;
             if (diff < 0) diff = 0;
-            sender.sendMessage(mm.deserialize("<grey>--- [ <white>Pulse CPU Analyzer</white> ] ---"));
-            sender.sendMessage(mm.deserialize("<grey>Current Usage: " + String.format("%.2f", PulseMetrics.cpuUsage) + "%"));
-            sender.sendMessage(mm.deserialize("<grey>Vanilla Est:   " + String.format("%.2f", PulseMetrics.vanillaCpuEst) + "%"));
+            sender.sendMessage(PulseMessages.getRaw(PulseMessages.statsCpuHeader));
+            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsCpuUsage, PulseMetrics.cpuUsage));
+            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsCpuVanillaEst, PulseMetrics.vanillaCpuEst));
             sender.sendMessage(" ");
-            sender.sendMessage(mm.deserialize("<white>Pulse Efficiency: <#ff2929>-" + String.format("%.3f", diff) + "% Total Load"));
+            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsCpuEfficiency, diff));
             sender.sendMessage(" ");
         }
 
         if (type.equals("ram") || type.equals("all")) {
-            sender.sendMessage(mm.deserialize("<grey>--- [ <white>Pulse Memory</white> ] ---"));
-            sender.sendMessage(mm.deserialize("<grey>Saved Allocations: <white>" + (PulseMetrics.savedAllocationsBytes / 1024 / 1024) + " MB <grey>(Total)"));
+            sender.sendMessage(PulseMessages.getRaw(PulseMessages.statsRamHeader));
+            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsRamSavedAllocations, (PulseMetrics.savedAllocationsBytes / 1024 / 1024)));
             sender.sendMessage(" ");
         }
 

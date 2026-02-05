@@ -20,6 +20,9 @@ public class ConfigManager {
 
     public static String serverBrandName = "Pulse";
 
+    // Native Transport
+    public static boolean useIoUring = false;
+
     // Batching
     public static BatchingMode batchingMode = BatchingMode.SMART_EXECUTION;
     public static int flushInterval = 25;
@@ -67,6 +70,11 @@ public class ConfigManager {
             // F3 Brand
             serverBrandName = new Setting<>(config, "core.server-brand-name", "Pulse")
                 .validateType(String.class)
+                .get();
+
+            // Native Transport
+            useIoUring = new Setting<>(config, "core.use-io-uring", false)
+                .validateType(Boolean.class)
                 .get();
 
             // Batching
@@ -235,7 +243,11 @@ public class ConfigManager {
               enabled: true
             
               # Name in F3 Brand
-              server-brand-name: "Pulse"
+              serverBrandName: "Pulse"
+            
+              # Use io_uring (Linux only).
+              # Provides better performance than epoll for high-traffic servers.
+              use-io-uring: false
             
             # Packet batching (core Pulse feature)
             batching:
