@@ -103,7 +103,7 @@ public class ConfigManager {
                 .get();
 
             instantPackets = config.getStringList("batching.instant-packets");
-            if (instantPackets.isEmpty()) instantPackets = List.of("ClientboundHurtAnimationPacket", "ClientboundDamageEventPacket");
+            if (instantPackets.isEmpty()) instantPackets = List.of("ClientboundHurtAnimationPacket", "ClientboundDamageEventPacket", "ClientboundBlockEntityDataPacket");
 
             // Optimizations
             optExplosions = new Setting<>(config, "optimization.explosions.enabled", true)
@@ -270,6 +270,7 @@ public class ConfigManager {
               instant-packets:
                 - ClientboundHurtAnimationPacket
                 - ClientboundDamageEventPacket
+                - ClientboundBlockEntityDataPacket
             
               # Pulse will flush the buffer BEFORE adding a new packet if remaining space is less than this.
               # Prevents MTU overflow without expensive per-packet size calculation.
