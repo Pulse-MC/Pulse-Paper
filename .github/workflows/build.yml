@@ -78,7 +78,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Apply Patches
-        run: ./gradlew applyPatches --build-cache --stacktrace
+        run: ./gradlew applyAllPatches --build-cache --stacktrace
 
       - name: Build Paperclip Jar
         env:
