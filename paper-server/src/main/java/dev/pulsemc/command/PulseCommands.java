@@ -6,9 +6,9 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.pulsemc.config.ConfigManager;
-import dev.pulsemc.config.PulseMessages;
 import dev.pulsemc.network.PulseBar;
 import dev.pulsemc.network.PulseMetrics;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -17,6 +17,8 @@ import org.bukkit.command.CommandSender;
 import java.util.concurrent.CompletableFuture;
 
 public class PulseCommands {
+    private static final String PREFIX = "<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| ";
+    private static final MiniMessage mm = MiniMessage.miniMessage();
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
@@ -58,16 +60,16 @@ public class PulseCommands {
         dev.pulsemc.network.PulseBuffer.reload();
 
         if (!hasIssues) {
-            sender.sendMessage(PulseMessages.get(PulseMessages.reloadSuccess));
+            sender.sendMessage(mm.deserialize(PREFIX + "<green>Configuration reloaded successfully!"));
         } else {
-            sender.sendMessage(PulseMessages.get(PulseMessages.reloadError));
+            sender.sendMessage(mm.deserialize(PREFIX + "<red>Configuration reloaded with ISSUES:"));
             sender.sendMessage(" ");
 
             for (net.kyori.adventure.text.Component line : ConfigManager.lastLoadReport) {
                 sender.sendMessage(line);
             }
 
-            sender.sendMessage(PulseMessages.getRaw(PulseMessages.reloadSafeDefault));
+            sender.sendMessage(mm.deserialize("<grey>Safe default values were used for invalid settings."));
         }
         return 1;
     }
@@ -77,7 +79,7 @@ public class PulseCommands {
             PulseBar.toggle(nmsPlayer.getBukkitEntity());
         } else {
             CommandSender sender = ctx.getSource().getBukkitSender();
-            sender.sendMessage(PulseMessages.get(PulseMessages.onlyPlayers));
+            sender.sendMessage(mm.deserialize(PREFIX + "<red>Only for players!"));
         }
         return 1;
     }
@@ -88,30 +90,30 @@ public class PulseCommands {
 
         if (type.equals("network") || type.equals("all")) {
             double efficiency = 100 - (PulseMetrics.ppsPhysical / Math.max(1, PulseMetrics.ppsLogical) * 100);
-            sender.sendMessage(PulseMessages.getRaw(PulseMessages.statsNetworkHeader));
-            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsNetworkPpsLogical, (int) PulseMetrics.ppsLogical));
-            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsNetworkPpsPhysical, (int) PulseMetrics.ppsPhysical));
-            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsNetworkCallsSaved, (int) (PulseMetrics.logicalCounter.get() - PulseMetrics.physicalCounter.get()), efficiency));
+            sender.sendMessage(mm.deserialize("<grey>--- [ <white>Pulse Network</white> ] ---"));
+            sender.sendMessage(mm.deserialize(String.format("<grey>PPS (Logical):  <white>%d pkt/s <grey>(Vanilla)", (int) PulseMetrics.ppsLogical)));
+            sender.sendMessage(mm.deserialize(String.format("<grey>PPS (Physical): <white>%d pkt/s <#ff2929>(Pulse)", (int) PulseMetrics.ppsPhysical)));
+            sender.sendMessage(mm.deserialize(String.format("<grey>Calls Saved:    <white>%d/s <grey>(+%.1f%%)", (int) (PulseMetrics.logicalCounter.get() - PulseMetrics.physicalCounter.get()), efficiency)));
             sender.sendMessage(" ");
-            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsNetworkBandwidth, PulseMetrics.networkSpeedKbs));
-            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsNetworkOptimizedChunks, PulseMetrics.optimizedChunks.get()));
+            sender.sendMessage(mm.deserialize(String.format("<grey>Bandwidth:      <green>%.2f<white> kB/s", PulseMetrics.networkSpeedKbs)));
+            sender.sendMessage(mm.deserialize(String.format("<grey>Optimized Chunks: <gold>%d <grey>(mass updates prevented)", PulseMetrics.optimizedChunks.get())));
             sender.sendMessage(" ");
         }
 
         if (type.equals("cpu") || type.equals("all")) {
             double diff = PulseMetrics.vanillaCpuEst - PulseMetrics.cpuUsage;
             if (diff < 0) diff = 0;
-            sender.sendMessage(PulseMessages.getRaw(PulseMessages.statsCpuHeader));
-            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsCpuUsage, PulseMetrics.cpuUsage));
-            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsCpuVanillaEst, PulseMetrics.vanillaCpuEst));
+            sender.sendMessage(mm.deserialize("<grey>--- [ <white>Pulse CPU Analyzer</white> ] ---"));
+            sender.sendMessage(mm.deserialize(String.format("<grey>Current Usage: %.2f%%", PulseMetrics.cpuUsage)));
+            sender.sendMessage(mm.deserialize(String.format("<grey>Vanilla Est:   %.2f%%", PulseMetrics.vanillaCpuEst)));
             sender.sendMessage(" ");
-            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsCpuEfficiency, diff));
+            sender.sendMessage(mm.deserialize(String.format("<white>Pulse Efficiency: <#ff2929>-%.3f%% Total Load", diff)));
             sender.sendMessage(" ");
         }
 
         if (type.equals("ram") || type.equals("all")) {
-            sender.sendMessage(PulseMessages.getRaw(PulseMessages.statsRamHeader));
-            sender.sendMessage(PulseMessages.getRawFormatted(PulseMessages.statsRamSavedAllocations, (PulseMetrics.savedAllocationsBytes / 1024 / 1024)));
+            sender.sendMessage(mm.deserialize("<grey>--- [ <white>Pulse Memory</white> ] ---"));
+            sender.sendMessage(mm.deserialize(String.format("<grey>Saved Allocations: <white>%d MB <grey>(Total)", (PulseMetrics.savedAllocationsBytes / 1024 / 1024))));
             sender.sendMessage(" ");
         }
 

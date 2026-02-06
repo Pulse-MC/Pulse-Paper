@@ -40,7 +40,7 @@ public record ServerBuildInfoImpl(
 
     @Override
     public String brandName() {
-        return dev.pulsemc.config.ConfigManager.serverBrandName;
+        return this.brandName;
     }
 
     private ServerBuildInfoImpl(final Manifest manifest) {

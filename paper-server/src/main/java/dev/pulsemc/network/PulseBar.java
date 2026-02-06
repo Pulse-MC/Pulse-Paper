@@ -1,7 +1,6 @@
 package dev.pulsemc.network;
 
 import dev.pulsemc.config.ConfigManager;
-import dev.pulsemc.config.PulseMessages;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -16,6 +15,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class PulseBar {
+    private static final String PREFIX = "<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| ";
     private static final MiniMessage mm = MiniMessage.miniMessage();
     private static final BossBar bossBar = BossBar.bossBar(
         Component.empty(),
@@ -33,11 +33,11 @@ public class PulseBar {
         if (viewers.contains(player.getUniqueId())) {
             viewers.remove(player.getUniqueId());
             player.hideBossBar(bossBar);
-            player.sendMessage(PulseMessages.get(PulseMessages.barDisabled));
+            player.sendMessage(mm.deserialize(PREFIX + "<grey>Metrics bar <red>disabled<grey>."));
         } else {
             viewers.add(player.getUniqueId());
             player.showBossBar(bossBar);
-            player.sendMessage(PulseMessages.get(PulseMessages.barEnabled));
+            player.sendMessage(mm.deserialize(PREFIX + "<grey>Metrics bar <green>enabled<grey>."));
         }
     }
 
@@ -83,7 +83,7 @@ public class PulseBar {
         }
 
         String title = String.format(
-            PulseMessages.bossBarTitle,
+            "<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <white>Eff: <color:%s>%d%%</color> <dark_gray>| <white>Vanilla: <aqua>%d p/s <dark_gray>| <white>Out: <aqua>%d p/s</aqua> <gray>(%s)",
             (efficiency > 0.75 ? "#55FF55" : (efficiency > 0.4 ? "#FFFF55" : "#FF5555")),
             (int)(efficiency * 100),
             (int) PulseMetrics.ppsLogical,

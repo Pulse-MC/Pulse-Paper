@@ -18,8 +18,6 @@ public class ConfigManager {
 
     public static boolean enabled = true;
 
-    public static String serverBrandName = "Pulse";
-
     // Batching
     public static BatchingMode batchingMode = BatchingMode.SMART_EXECUTION;
     public static int flushInterval = 25;
@@ -52,7 +50,6 @@ public class ConfigManager {
      */
     public static boolean load() {
         lastLoadReport.clear();
-        PulseMessages.load();
         try {
             if (!FILE.exists()) createDefaultConfig();
 
@@ -63,12 +60,6 @@ public class ConfigManager {
             enabled = new Setting<>(config, "core.enabled", true)
                 .validateType(Boolean.class)
                 .get();
-
-            // F3 Brand
-            String rawBrand = config.getString("core.server-brand-name", "Pulse");
-            serverBrandName = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(
-                net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(rawBrand)
-            ).replace("&", "§");
 
             // Batching
             batchingMode = new Setting<>(config, "batching.mode", BatchingMode.SMART_EXECUTION)
@@ -238,10 +229,6 @@ public class ConfigManager {
               # Enable Pulse system.
               # If false, server behaves like vanilla Paper.
               enabled: true
-            
-              # Name in F3 Brand
-              # Supports MiniMessage (<red>), HEX (<#FF5555>), and Legacy (&c).
-              server-brand-name: "Pulse"
             
             # Packet batching (core Pulse feature)
             batching:
