@@ -295,7 +295,7 @@ tasks.test {
     jvmArgumentProviders.add(provider)
 }
 
-val generatedDir: java.nio.file.Path = layout.projectDirectory.dir("../paper-server/src/generated/java").asFile.toPath() // Purpur
+val generatedDir: java.nio.file.Path = layout.projectDirectory.dir("../paper-server/src/generated/java").asFile.toPath() // Pulse
 idea {
     module {
         generatedSourceDirs.add(generatedDir.toFile())
@@ -385,6 +385,32 @@ tasks.registerRunTask("runReobfPaperclip") {
     description = "Spin up a test server from the reobf Paperclip jar"
     classpath(tasks.createReobfPaperclipJar.flatMap { it.outputZip })
     mainClass.set(null as String?)
+}
+tasks.register<Javadoc>("pulseJavadoc") {
+    group = "documentation"
+    description = "Generates Javadoc for Pulse API."
+    source = sourceSets.main.get().allJava.matching {
+        include("dev/pulsemc/pulse/api/**")
+    }
+    classpath = sourceSets.main.get().compileClasspath + sourceSets.main.get().output
+
+    destinationDir = layout.buildDirectory.dir("docs/pulse-api").get().asFile
+
+    val options = options as StandardJavadocDocletOptions
+    options.apply {
+        windowTitle = "Pulse API Documentation"
+        docTitle = "Pulse Networking Engine API"
+        header = "<b>Pulse</b>"
+
+        memberLevel = JavadocMemberLevel.PUBLIC
+        encoding = "UTF-8"
+        charSet = "UTF-8"
+        addStringOption("Xdoclint:none", "-quiet")
+
+        links("https://docs.oracle.com/en/java/javase/21/docs/api/")
+        links("https://jd.papermc.io/paper/1.21.11/")
+    }
+    dependsOn(tasks.compileJava)
 }
 
 /* fill { // pulse - we don't use fill

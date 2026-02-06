@@ -91,16 +91,6 @@ public class Metrics {
         }, 1, interval, TimeUnit.SECONDS);
     }
 
-    private static final java.util.concurrent.atomic.AtomicInteger savedPackets = new java.util.concurrent.atomic.AtomicInteger(0);
-
-    public static void recordSavedPacket() {
-        savedPackets.incrementAndGet();
-    }
-
-    public static int getAndResetSavedPackets() {
-        return savedPackets.getAndSet(0);
-    }
-
     public static void reload() {
         start();
     }

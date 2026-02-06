@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: tizis0 <hexgames84@gmail.com>
+Date: Sat, 7 Feb 2026 00:21:46 +0600
+Subject: [PATCH] Fix metrics
+
+
+diff --git a/src/main/java/com/destroystokyo/paper/Metrics.java b/src/main/java/com/destroystokyo/paper/Metrics.java
+index 421f72984a03368c1c3774533e74b7c4dd18e698..0471a7fc1148726d65c5bf8c9c9addbc21429468 100644
+--- a/src/main/java/com/destroystokyo/paper/Metrics.java
++++ b/src/main/java/com/destroystokyo/paper/Metrics.java
+@@ -601,7 +601,12 @@ public class Metrics {
+ 
+                 metrics.addCustomChart(new Metrics.SingleLineChart("players", () -> Bukkit.getOnlinePlayers().size()));
+ 
+-                metrics.addCustomChart(new Metrics.SingleLineChart("saved_packets", dev.pulsemc.pulse.metrics.Metrics::getAndResetSavedPackets));
++                metrics.addCustomChart(new Metrics.SingleLineChart(
++                    "saved_packets",
++                    () -> (int) Math.abs((dev.pulsemc.pulse.metrics.Metrics.logicalCounter.get())
++                        - Math.abs(dev.pulsemc.pulse.metrics.Metrics.physicalCounter.get()))
++                ));
++
+                 final String paperVersion = DedicatedServer.getServer().name();
+ 
+                 metrics.addCustomChart(new Metrics.SimplePie("version", () -> paperVersion));

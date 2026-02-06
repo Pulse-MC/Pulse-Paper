@@ -70,15 +70,6 @@ subprojects {
         maven(paperMavenPublicUrl)
         maven("https://jitpack.io")
     }
-
-    // extensions.configure<PublishingExtension> {
-    //     repositories {
-    //         maven("https://repo.purpurmc.org/snapshots") {
-    //             name = "pulse"
-    //             credentials(PasswordCredentials::class)
-    //         }
-    //     }
-    // }
 }
 
 tasks.register("printMinecraftVersion") {
