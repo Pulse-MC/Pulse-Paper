@@ -68,9 +68,10 @@ public class ConfigManager {
                 .get();
 
             // F3 Brand
-            serverBrandName = new Setting<>(config, "core.server-brand-name", "Pulse")
-                .validateType(String.class)
-                .get();
+            String rawBrand = config.getString("core.server-brand-name", "Pulse");
+            serverBrandName = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(
+                net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(rawBrand)
+            ).replace("&", "§");
 
             // Native Transport
             useIoUring = false;

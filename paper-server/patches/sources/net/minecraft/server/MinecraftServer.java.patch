@@ -1094,8 +1094,7 @@
      @DontObfuscate
      public String getServerModName() {
 -        return "vanilla";
-+        //return io.papermc.paper.ServerBuildInfo.buildInfo().brandName(); // Paper
-+        return ConfigManager.serverBrandName;
++        return io.papermc.paper.ServerBuildInfo.buildInfo().brandName();
      }
  
      public SystemReport fillSystemReport(SystemReport systemReport) {

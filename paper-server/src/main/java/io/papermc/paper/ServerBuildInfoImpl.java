@@ -38,6 +38,11 @@ public record ServerBuildInfoImpl(
         this(JarManifests.manifest(CraftServer.class));
     }
 
+    @Override
+    public String brandName() {
+        return dev.pulsemc.config.ConfigManager.serverBrandName;
+    }
+
     private ServerBuildInfoImpl(final Manifest manifest) {
         this(
             getManifestAttribute(manifest, ATTRIBUTE_BRAND_ID)

@@ -203,7 +203,7 @@ tasks.jar {
             "Specification-Version" to project.version,
             "Specification-Vendor" to "PulseMC Team", // Pulse
             "Brand-Id" to "pulsemc:pulse", // Pulse
-            "Brand-Name" to "Paper", // Pulse
+            "Brand-Name" to "Pulse", // Pulse
             "Build-Number" to (build ?: ""),
             "Build-Time" to buildTime.toString(),
             "Git-Branch" to gitBranch,
