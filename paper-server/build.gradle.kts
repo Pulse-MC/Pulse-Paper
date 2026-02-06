@@ -145,8 +145,6 @@ dependencies {
         isTransitive = false
     }
     implementation("io.netty:netty-all:4.1.115.Final")
-    implementation("io.netty.incubator:netty-incubator-transport-native-io_uring:0.0.26.Final")
-    runtimeOnly("io.netty.incubator:netty-incubator-transport-native-io_uring:0.0.26.Final:linux-x86_64")
     implementation("io.netty:netty-codec-haproxy:4.1.115.Final") // Add support for proxy protocol
     implementation("org.apache.logging.log4j:log4j-iostreams:2.24.1")
     implementation("org.ow2.asm:asm-commons:9.7.1")

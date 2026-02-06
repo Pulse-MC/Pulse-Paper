@@ -20,9 +20,6 @@ public class ConfigManager {
 
     public static String serverBrandName = "Pulse";
 
-    // Native Transport
-    public static boolean useIoUring = false;
-
     // Batching
     public static BatchingMode batchingMode = BatchingMode.SMART_EXECUTION;
     public static int flushInterval = 25;
@@ -72,12 +69,6 @@ public class ConfigManager {
             serverBrandName = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(
                 net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(rawBrand)
             ).replace("&", "§");
-
-            // Native Transport
-            useIoUring = false;
-            /*useIoUring = new Setting<>(config, "core.use-io-uring", false)
-                .validateType(Boolean.class)
-                .get();*/
 
             // Batching
             batchingMode = new Setting<>(config, "batching.mode", BatchingMode.SMART_EXECUTION)
@@ -130,6 +121,10 @@ public class ConfigManager {
                 .validateType(Integer.class)
                 .validate(val -> val >= 1, "Interval must be at least 1 second! Provided: %s")
                 .get();
+
+            moduleNetwork = config.getBoolean("metrics.modules.network", true);
+            moduleCPU = config.getBoolean("metrics.modules.cpu-estimation", true);
+            moduleRAM = config.getBoolean("metrics.modules.memory-impact", true);
 
             // Compatibility
             emulateEvents = new Setting<>(config, "compatibility.emulate-events", true)
@@ -245,25 +240,31 @@ public class ConfigManager {
               enabled: true
             
               # Name in F3 Brand
+              # Supports MiniMessage (<red>), HEX (<#FF5555>), and Legacy (&c).
               server-brand-name: "Pulse"
             
             # Packet batching (core Pulse feature)
             batching:
               # Mode of batching:
-              # SMART_EXECUTION - default, flushes when necessary or on tick end.
+              # SMART_EXECUTION - (Recommended) flushes when necessary or on tick end.
               # STRICT_TICK     - flushes ONLY on tick end (max throughput, highest latency).
               # INTERVAL        - flushes every X milliseconds (defined below).
               mode: SMART_EXECUTION
             
-              # Flush interval for INTERVAL mode (in milliseconds)
-              flush-interval: 25
+              # Limit of packets in one batch.
+              # TIPS:
+              # - For 0-50 players:  64-128 is recommended.
+              # - For 100+ players:  256-512 is recommended.
+              # - If players experience latency/delay - LOWER this value.
+              # - If server has high CPU usage from networking - INCREASE this value.
+              max-batch-size: 128
             
               # MTU safety limit.
               # Buffer is flushed immediately if this size is exceeded.
               max-batch-bytes: 32000
             
-              # Number of packets in batch limit
-              max-batch-size: 4096
+              # Flush interval for INTERVAL mode (in milliseconds)
+              flush-interval: 25
             
               # Packets that bypass batching (critical for PvP)
               instant-packets:
@@ -281,6 +282,7 @@ public class ConfigManager {
               explosions:
                 enabled: true
                 # Re-send whole chunk if block changes exceed this value
+                # Much faster than sending hundreds of block change packets.
                 block-change-threshold: 512
             
             
@@ -293,7 +295,6 @@ public class ConfigManager {
             
               # Packets that Pulse will never batch or modify
               ignored-packets: []
-            #    - ClientboundMapItemDataPacket
             
             
             metrics:

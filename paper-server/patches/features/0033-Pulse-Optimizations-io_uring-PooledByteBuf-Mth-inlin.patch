@@ -20,9 +20,6 @@ index 4ed9611994c5c8da01fede690197527c5b3a5731..f38564699af4dddd1172786ce886d16b
  import io.netty.channel.epoll.Epoll;
  import io.netty.channel.epoll.EpollEventLoopGroup;
  import io.netty.channel.epoll.EpollSocketChannel;
-+import io.netty.incubator.channel.uring.IOUring;
-+import io.netty.incubator.channel.uring.IOUringEventLoopGroup;
-+import io.netty.incubator.channel.uring.IOUringSocketChannel;
  import io.netty.channel.local.LocalChannel;
  import io.netty.channel.local.LocalServerChannel;
  import io.netty.channel.nio.NioEventLoopGroup;
@@ -30,9 +27,6 @@ index 4ed9611994c5c8da01fede690197527c5b3a5731..f38564699af4dddd1172786ce886d16b
      public static final Supplier<EpollEventLoopGroup> NETWORK_EPOLL_WORKER_GROUP = Suppliers.memoize(
          () -> new EpollEventLoopGroup(0, new ThreadFactoryBuilder().setNameFormat("Netty Epoll Client IO #%d").setDaemon(true).setUncaughtExceptionHandler(new net.minecraft.DefaultUncaughtExceptionHandlerWithName(LOGGER)).build()) // Paper
      );
-+    public static final Supplier<IOUringEventLoopGroup> NETWORK_IOURING_WORKER_GROUP = Suppliers.memoize(
-+        () -> new IOUringEventLoopGroup(0, new ThreadFactoryBuilder().setNameFormat("Netty io_uring Client IO #%d").setDaemon(true).setUncaughtExceptionHandler(new net.minecraft.DefaultUncaughtExceptionHandlerWithName(LOGGER)).build())
-+    );
      public static final Supplier<DefaultEventLoopGroup> LOCAL_WORKER_GROUP = Suppliers.memoize(
          () -> new DefaultEventLoopGroup(0, new ThreadFactoryBuilder().setNameFormat("Netty Local Client IO #%d").setDaemon(true).setUncaughtExceptionHandler(new net.minecraft.DefaultUncaughtExceptionHandlerWithName(LOGGER)).build()) // Paper
      );
@@ -70,9 +64,6 @@ index bd07e6a5aa1883786d789ea71711a0c0c0a95c26..ceac63704931f996a9806f529c188458
  import io.netty.channel.epoll.Epoll;
  import io.netty.channel.epoll.EpollEventLoopGroup;
  import io.netty.channel.epoll.EpollServerSocketChannel;
-+import io.netty.incubator.channel.uring.IOUring;
-+import io.netty.incubator.channel.uring.IOUringEventLoopGroup;
-+import io.netty.incubator.channel.uring.IOUringServerSocketChannel;
  import io.netty.channel.local.LocalAddress;
  import io.netty.channel.local.LocalServerChannel;
  import io.netty.channel.nio.NioEventLoopGroup;
@@ -80,9 +71,6 @@ index bd07e6a5aa1883786d789ea71711a0c0c0a95c26..ceac63704931f996a9806f529c188458
      public static final Supplier<EpollEventLoopGroup> SERVER_EPOLL_EVENT_GROUP = Suppliers.memoize(
          () -> new EpollEventLoopGroup(0, new ThreadFactoryBuilder().setNameFormat("Netty Epoll Server IO #%d").setDaemon(true).setUncaughtExceptionHandler(new net.minecraft.DefaultUncaughtExceptionHandlerWithName(LOGGER)).build()) // Paper
      );
-+    public static final Supplier<IOUringEventLoopGroup> SERVER_IOURING_EVENT_GROUP = Suppliers.memoize(
-+        () -> new IOUringEventLoopGroup(0, new ThreadFactoryBuilder().setNameFormat("Netty io_uring Server IO #%d").setDaemon(true).setUncaughtExceptionHandler(new net.minecraft.DefaultUncaughtExceptionHandlerWithName(LOGGER)).build())
-+    );
      final MinecraftServer server;
      public volatile boolean running;
      private final List<ChannelFuture> channels = Collections.synchronizedList(Lists.newArrayList());
@@ -91,11 +79,7 @@ index bd07e6a5aa1883786d789ea71711a0c0c0a95c26..ceac63704931f996a9806f529c188458
              Class<? extends io.netty.channel.ServerChannel> clazz; // Paper - Unix domain socket support
              EventLoopGroup eventLoopGroup;
 -            if (Epoll.isAvailable() && this.server.isEpollEnabled()) {
-+            if (dev.pulsemc.config.ConfigManager.useIoUring && IOUring.isAvailable()) {
-+                clazz = IOUringServerSocketChannel.class;
-+                eventLoopGroup = SERVER_IOURING_EVENT_GROUP.get();
-+                LOGGER.info("Using io_uring channel type");
-+            } else if (Epoll.isAvailable() && this.server.isEpollEnabled()) {
++            if (Epoll.isAvailable() && this.server.isEpollEnabled()) {
                  // Paper start - Unix domain socket support
                  if (address instanceof io.netty.channel.unix.DomainSocketAddress) {
                      clazz = io.netty.channel.epoll.EpollServerDomainSocketChannel.class;
