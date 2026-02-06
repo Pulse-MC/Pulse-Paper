@@ -90,7 +90,6 @@ public class PulseBuffer {
                     flush(FlushReason.INSTANT);
                     listener.connection.send(packet, sendListener, true);
                     Metrics.physicalCounter.incrementAndGet();
-                    Metrics.recordSavedPacket();
                     return;
                 }
             }
@@ -107,7 +106,6 @@ public class PulseBuffer {
             flush(FlushReason.INSTANT);
             listener.connection.send(packet, sendListener, true);
             Metrics.physicalCounter.incrementAndGet();
-            Metrics.recordSavedPacket();
             return;
         }
 
@@ -156,7 +154,6 @@ public class PulseBuffer {
         bufferedCount.set(0);
         currentBatchBytes.set(0);
         Metrics.physicalCounter.incrementAndGet();
-        Metrics.recordSavedPacket();
     }
 
     public void flush() {
