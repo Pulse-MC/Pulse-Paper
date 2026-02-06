@@ -1,0 +1,62 @@
+# JVM crash related
+core.*
+hs_err_pid*
+
+# Intellij
+/.idea/*
+!/.idea/runConfigurations
+!/.idea/icon.svg
+*.iml
+*.ipr
+*.iws
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# netbeans
+nbproject/
+nbactions.xml
+
+# Gradle
+!gradle-wrapper.jar
+.gradle/
+build/
+*/build/
+
+# we use maven!
+build.xml
+
+# Maven
+log/
+target/
+dependency-reduced-pom.xml
+
+# various other potential build files
+build/
+bin/
+dist/
+manifest.mf
+
+# Mac
+.DS_Store/
+.DS_Store
+
+# vim
+.*.sw[a-p]
+
+# Linux temp files
+*~
+
+# other stuff
+/run
+
+/purpur-server/build.gradle.kts
+/purpur-server/src/minecraft
+/paper-server
+/purpur-api/build.gradle.kts
+/paper-api
+*.jar
+test-plugin.settings.gradle.kts

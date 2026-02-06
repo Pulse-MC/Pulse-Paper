@@ -1,0 +1,140 @@
+name: PulseMC Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release Version'
+        required: true
+        default: '1.21.11'
+      changelog:
+        description: 'Changelog'
+        required: true
+        type: string
+        default: '- Initial Release'
+
+jobs:
+  build-and-deploy:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, '[pulse:devbuild')
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure Metadata
+        id: meta
+        run: |
+          MODE="devbuild"
+          VERSION="1.21.11"
+          
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            MODE="release"
+            VERSION="${{ inputs.version }}"
+          
+            echo "MANUAL_CHANGELOG<<EOF" >> $GITHUB_ENV
+            echo "${{ inputs.changelog }}" | sed 's/<n>/\n/g' >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+
+          else
+            MSG="${{ github.event.head_commit.message }}"
+            if [[ "$MSG" == *"[pulse:devbuild:"* ]]; then
+               CUSTOM=$(echo "$MSG" | sed -n 's/.*\[pulse:devbuild:\([^]]*\)\].*/\1/p')
+               if [ ! -z "$CUSTOM" ]; then VERSION="$CUSTOM"; fi
+            fi
+          
+            COMMIT_MSG=$(echo "$MSG" | tr -d '"' | head -n 1)
+            echo "MANUAL_CHANGELOG=$COMMIT_MSG" >> $GITHUB_ENV
+          fi
+
+          echo "mode=$MODE" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+
+      - name: Configure Git Identity
+        run: |
+          git config --global user.email "builder@pulsemc.dev"
+          git config --global user.name "PulseMC Builder"
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Apply Patches
+        run: ./gradlew applyPatches --build-cache --stacktrace
+
+      - name: Build Paperclip Jar
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: ./gradlew createMojmapPaperclipJar --build-cache --stacktrace
+
+      - name: Prepare Artifact
+        id: prepare_file
+        run: |
+          JAR_FILE=$(find . -type f -name "*paperclip*.jar" | head -n 1)
+          
+          if [ -z "$JAR_FILE" ]; then
+            exit 1
+          fi
+          
+          if [ "${{ steps.meta.outputs.mode }}" == "release" ]; then
+             FILENAME="Pulse-${{ steps.meta.outputs.version }}-b${{ github.run_number }}.jar"
+          else
+             FILENAME="PulseDev-${{ steps.meta.outputs.version }}-b${{ github.run_number }}.jar"
+          fi
+          
+          NEW_PATH="release/$FILENAME"
+          mkdir -p release
+          mv "$JAR_FILE" "$NEW_PATH"
+          
+          echo "file_path=$NEW_PATH" >> $GITHUB_OUTPUT
+          echo "file_name=$FILENAME" >> $GITHUB_OUTPUT
+
+      - name: Upload DevBuild
+        if: steps.meta.outputs.mode == 'devbuild'
+        env:
+          API_URL: "https://api.pulsemc.dev/devbuild"
+          API_TOKEN: ${{ secrets.PULSE_API_TOKEN }}
+          FILE_PATH: ${{ steps.prepare_file.outputs.file_path }}
+        run: |
+          curl -v -X POST "$API_URL" \
+            -H "Authorization: Bearer $API_TOKEN" \
+            -F "version=${{ steps.meta.outputs.version }}" \
+            -F "build_id=${{ github.run_number }}" \
+            -F "commit_hash=${{ github.sha }}" \
+            -F "author=${{ github.actor }}" \
+            -F "commit_message=$MANUAL_CHANGELOG" \
+            -F "platform=Paper" \
+            -F "file=@$FILE_PATH"
+
+      - name: Upload Release
+        if: steps.meta.outputs.mode == 'release'
+        env:
+          API_URL: "https://api.pulsemc.dev/release"
+          API_TOKEN: ${{ secrets.PULSE_API_TOKEN }}
+          FILE_PATH: ${{ steps.prepare_file.outputs.file_path }}
+        run: |
+          curl -v -X POST "$API_URL" \
+            -H "Authorization: Bearer $API_TOKEN" \
+            -F "version=${{ steps.meta.outputs.version }}" \
+            -F "build_id=${{ github.run_number }}" \
+            -F "platform=Paper" \
+            -F "changelog=$MANUAL_CHANGELOG" \
+            -F "file=@$FILE_PATH"
