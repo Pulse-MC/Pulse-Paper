@@ -1,8 +1,6 @@
 Contributing to Pulse
 ==========================
 
-(TODO: UPDATE GUIDE TO NEW PAPERWEIGHT SYSTEM)
-
 PulseMC is happy you're willing to contribute to our projects. We are usually
 very lenient with all submitted PRs, but there are still some guidelines you
 can follow to make the approval process go more smoothly.
@@ -20,40 +18,81 @@ To get started, you'll need:
 - `git`;
 - A Java 21 or later JDK (we recommend [Adoptium](https://adoptium.net/)).
 
-## Understanding Patches
+## Understanding the Paperweight Patch System
 
-Modifications to Minecraft source files are done through patches.
-Because this entire structure is based on patches and git, a basic understanding
-of how to use git is required.
+Pulse is built on top of Paper using the **paperweight fork system**.
+
+This means:
+- The Paper source code is downloaded automatically;
+- Pulse does **not** directly modify upstream Paper sources;
+- All changes are stored and tracked as **patches**;
+- During build time, Paper is checked out and Pulse patches are applied on top.
+
+Because of this, **you never edit generated sources directly**.
+All meaningful changes must be converted into patch files.
+
+A basic understanding of `git`, rebasing, and commits is required.
+
+## Getting Started
 
 Assuming you have already forked the repository:
 
 1. Clone your fork to your local machine;
-2. Run `./gradlew applyAllPatches` in a terminal to apply the patches.
-   (On Windows, remove the `./` at the beginning);
-3. Navigate into `paper-server` for server changes, and `paper-api` for API changes.
+2. Run `./gradlew applyAllPatches` to:
+   - Download Paper sources;
+   - Apply all existing Pulse patches.
+   (On Windows, remove the `./` prefix);
+3. Navigate into:
+   - `pulse-server` for server-side changes;
+   - `pulse-api` for API changes;
+   - `paper-server` for Paper-side server changes;
+   - `paper-api` for Paper API changes.
 
-**Only changes made in `paper-server/src/minecraft` have to deal with the patch system.**
+**Only changes made in `pulse-server/src/minecraft` / `paper-api|server/src` are part of the patch system.**
 
 ## Workflow
 
-### 1. Making Changes
-1. Modify the files in `paper-server/src/minecraft`;
-2. Run `./gradlew rebuildPatches` in the root directory.
-   This will convert your changes into `.patch` files in the `patches` directory.
+### 1. Making Changes (Server)
 
-### 2. Resolving Conflicts (If git complains)
-If you run into conflicts, you can fix them manually via rebase:
-1. `cd` into `paper-server/src/minecraft/java`;
-2. Run `git rebase -i base`;
-3. Edit the conflicting commits, fix code, run `git add .` and `git rebase --continue`;
-4. Go back to root and run `./gradlew rebuildPatches`.
+1. Make your code changes in:
+```
+paper-server/src/main
+pulse-server/src/minecraft/java
+```
+2. Once your changes compile and behave correctly, **commit them**:
+```
+git add .
+git commit -am "Your change description"
+```
+This commit acts as the base for patch generation.
+3. Go back to the project root and run:
+```
+./gradlew rebuildAllServerPatches
+```
+This will:
+- Compare your commit against upstream Paper;
+- Generate `.patch` files;
+- Reset the working directory back to a clean state.
+
+⚠️ **Never manually edit files inside `/minecraft-patches` or `/paper-patches`.**
+They are always generated.
+
+### 2. API Changes
+
+For API-only changes:
+1. Work inside `pulse-api`/`pulse-server`;
+2. Commit your changes normally;
+3. No patch rebuild is required unless Minecraft sources were touched.
 
 ## Formatting & Code Style (CRITICAL)
 
 ### 1. The File Marker (`// PULSE_MODIFIED`)
-If you modify a vanilla or non-pulse file, you **MUST** add the `// PULSE_MODIFIED` comment immediately after the imports section.
-This flag allows us to quickly identify modified files, even if the changes are small.
+
+If you modify a vanilla or non-pulse file, you **MUST** add the
+`// PULSE_MODIFIED` comment **immediately after the imports section**.
+
+This allows us to quickly identify modified files during reviews and rebases,
+even if the changes are small.
 
 **Example:**
 ```java
@@ -64,29 +103,48 @@ import net.minecraft.network.protocol.Packet;
 // PULSE_MODIFIED
 
 public class ServerCommonPacketListenerImpl {
-    // ...
+ // ...
 }
-```
+````
 
-### 2. Marking Changes (Blocks)
-Specific code changes inside the file should be marked with comments.
+### 2. Marking Changes (Code Blocks)
 
-- Multi-line changes:
+All Pulse-specific logic must be clearly marked.
+
+* Multi-line changes:
+
   ```java
   // Pulse start - <DESCRIPTION>
   server.doSomethingOptimized();
   // Pulse end - <DESCRIPTION>
   ```
-- One-line changes:
+
+* One-line changes:
+
   ```java
   server.doSomething(); // Pulse - <DESCRIPTION>
   ```
 
+Descriptions should be short, clear, and explain *why* the change exists.
 
 ## Tips
 
-- **IntelliJ IDEA:** Disable "Sync external changes periodically" to avoid lag during patching.
-- **Triggering a Build:** By default, commits do **NOT** trigger a CI build (to save resources).
-  If you want to build a release JAR (Paperclip), you must include `[pulse:buildclip]` in your commit message.
+* **IntelliJ IDEA:** Disable *"Sync external changes periodically"* to avoid lag
+  during patch application and rebuilds.
 
-  *Example:* `[pulse:buildclip] Optimized chunk sending logic`
+* **Triggering a DevBuild:**
+  By default, commits do **NOT** trigger a CI build (to save resources).
+
+  To force building a release JAR (Paperclip), include:
+
+  ```
+  [pulse:devbuild:version]
+  ```
+
+  anywhere in your commit message.
+
+  **Example:**
+
+  ```
+  [pulse:devbuild:1.21.11] Optimize chunk packet batching
+  ```
