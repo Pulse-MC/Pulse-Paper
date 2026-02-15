@@ -30,7 +30,7 @@ public class PulseMetrics {
     public static double vanillaCpuEst = 0;
     public static long savedAllocationsBytes = 0;
     public static long totalSavedSyscalls = 0;
-    public static double networkSpeedKbs = 0; // Скорость в КБ/с
+    public static double networkSpeedKbs = 0; // Speed in  Kb/sec
 
     public static final AtomicLong flushReasonLimit = new AtomicLong(0);
     public static final AtomicLong flushReasonTick = new AtomicLong(0);
@@ -75,4 +75,5 @@ public class PulseMetrics {
 
         }, 1, ConfigManager.metricsUpdateInterval, TimeUnit.SECONDS);
     }
+
 }

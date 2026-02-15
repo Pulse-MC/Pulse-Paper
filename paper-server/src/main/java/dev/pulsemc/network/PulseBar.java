@@ -15,6 +15,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class PulseBar {
+    private static final String PREFIX = "<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| ";
     private static final MiniMessage mm = MiniMessage.miniMessage();
     private static final BossBar bossBar = BossBar.bossBar(
         Component.empty(),
@@ -32,11 +33,11 @@ public class PulseBar {
         if (viewers.contains(player.getUniqueId())) {
             viewers.remove(player.getUniqueId());
             player.hideBossBar(bossBar);
-            player.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <grey>Metrics bar <red>disabled<grey>."));
+            player.sendMessage(mm.deserialize(PREFIX + "<grey>Metrics bar <red>disabled<grey>."));
         } else {
             viewers.add(player.getUniqueId());
             player.showBossBar(bossBar);
-            player.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <grey>Metrics bar <green>enabled<grey>."));
+            player.sendMessage(mm.deserialize(PREFIX + "<grey>Metrics bar <green>enabled<grey>."));
         }
     }
 
@@ -94,4 +95,5 @@ public class PulseBar {
         bossBar.progress((float) efficiency);
         bossBar.color(color);
     }
+
 }

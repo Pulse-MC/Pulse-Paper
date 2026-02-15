@@ -17,6 +17,7 @@ import org.bukkit.command.CommandSender;
 import java.util.concurrent.CompletableFuture;
 
 public class PulseCommands {
+    private static final String PREFIX = "<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| ";
     private static final MiniMessage mm = MiniMessage.miniMessage();
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -50,18 +51,18 @@ public class PulseCommands {
         return builder.buildFuture();
     }
 
-
     private static int reload(CommandContext<CommandSourceStack> ctx) {
         CommandSender sender = ctx.getSource().getBukkitSender();
 
         boolean hasIssues = ConfigManager.load();
 
         PulseBar.reload();
+        dev.pulsemc.network.PulseBuffer.reload();
 
         if (!hasIssues) {
-            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <green>Configuration reloaded successfully!"));
+            sender.sendMessage(mm.deserialize(PREFIX + "<green>Configuration reloaded successfully!"));
         } else {
-            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <red>Configuration reloaded with ISSUES:"));
+            sender.sendMessage(mm.deserialize(PREFIX + "<red>Configuration reloaded with ISSUES:"));
             sender.sendMessage(" ");
 
             for (net.kyori.adventure.text.Component line : ConfigManager.lastLoadReport) {
@@ -78,7 +79,7 @@ public class PulseCommands {
             PulseBar.toggle(nmsPlayer.getBukkitEntity());
         } else {
             CommandSender sender = ctx.getSource().getBukkitSender();
-            sender.sendMessage(mm.deserialize("<bold><gradient:#FF005D:#FF0048>Pulse</gradient></bold> <dark_gray>| <red>Only for players!"));
+            sender.sendMessage(mm.deserialize(PREFIX + "<red>Only for players!"));
         }
         return 1;
     }
@@ -90,12 +91,12 @@ public class PulseCommands {
         if (type.equals("network") || type.equals("all")) {
             double efficiency = 100 - (PulseMetrics.ppsPhysical / Math.max(1, PulseMetrics.ppsLogical) * 100);
             sender.sendMessage(mm.deserialize("<grey>--- [ <white>Pulse Network</white> ] ---"));
-            sender.sendMessage(mm.deserialize("<grey>PPS (Logical):  <white>" + (int)PulseMetrics.ppsLogical + " pkt/s <grey>(Vanilla)"));
-            sender.sendMessage(mm.deserialize("<grey>PPS (Physical): <white>" + (int)PulseMetrics.ppsPhysical + " pkt/s <#ff2929>(Pulse)"));
-            sender.sendMessage(mm.deserialize("<grey>Calls Saved:    <white>" + (int)(PulseMetrics.logicalCounter.get() - PulseMetrics.physicalCounter.get()) + "/s" + "+" + String.format("%.1f", efficiency) + "%)"));
+            sender.sendMessage(mm.deserialize(String.format("<grey>PPS (Logical):  <white>%d pkt/s <grey>(Vanilla)", (int) PulseMetrics.ppsLogical)));
+            sender.sendMessage(mm.deserialize(String.format("<grey>PPS (Physical): <white>%d pkt/s <#ff2929>(Pulse)", (int) PulseMetrics.ppsPhysical)));
+            sender.sendMessage(mm.deserialize(String.format("<grey>Calls Saved:    <white>%d/s <grey>(+%.1f%%)", (int) (PulseMetrics.logicalCounter.get() - PulseMetrics.physicalCounter.get()), efficiency)));
             sender.sendMessage(" ");
-            sender.sendMessage(mm.deserialize("<grey>Bandwidth:      <green>" + String.format("%.2f", PulseMetrics.networkSpeedKbs) + "<white> kB/s"));
-            sender.sendMessage(mm.deserialize("<grey>Optimized Chunks: <gold>" + PulseMetrics.optimizedChunks.get() + " <grey>(mass updates prevented)"));
+            sender.sendMessage(mm.deserialize(String.format("<grey>Bandwidth:      <green>%.2f<white> kB/s", PulseMetrics.networkSpeedKbs)));
+            sender.sendMessage(mm.deserialize(String.format("<grey>Optimized Chunks: <gold>%d <grey>(mass updates prevented)", PulseMetrics.optimizedChunks.get())));
             sender.sendMessage(" ");
         }
 
@@ -103,19 +104,20 @@ public class PulseCommands {
             double diff = PulseMetrics.vanillaCpuEst - PulseMetrics.cpuUsage;
             if (diff < 0) diff = 0;
             sender.sendMessage(mm.deserialize("<grey>--- [ <white>Pulse CPU Analyzer</white> ] ---"));
-            sender.sendMessage(mm.deserialize("<grey>Current Usage: " + String.format("%.2f", PulseMetrics.cpuUsage) + "%"));
-            sender.sendMessage(mm.deserialize("<grey>Vanilla Est:   " + String.format("%.2f", PulseMetrics.vanillaCpuEst) + "%"));
+            sender.sendMessage(mm.deserialize(String.format("<grey>Current Usage: %.2f%%", PulseMetrics.cpuUsage)));
+            sender.sendMessage(mm.deserialize(String.format("<grey>Vanilla Est:   %.2f%%", PulseMetrics.vanillaCpuEst)));
             sender.sendMessage(" ");
-            sender.sendMessage(mm.deserialize("<white>Pulse Efficiency: <#ff2929>-" + String.format("%.3f", diff) + "% Total Load"));
+            sender.sendMessage(mm.deserialize(String.format("<white>Pulse Efficiency: <#ff2929>-%.3f%% Total Load", diff)));
             sender.sendMessage(" ");
         }
 
         if (type.equals("ram") || type.equals("all")) {
             sender.sendMessage(mm.deserialize("<grey>--- [ <white>Pulse Memory</white> ] ---"));
-            sender.sendMessage(mm.deserialize("<grey>Saved Allocations: <white>" + (PulseMetrics.savedAllocationsBytes / 1024 / 1024) + " MB <grey>(Total)"));
+            sender.sendMessage(mm.deserialize(String.format("<grey>Saved Allocations: <white>%d MB <grey>(Total)", (PulseMetrics.savedAllocationsBytes / 1024 / 1024))));
             sender.sendMessage(" ");
         }
 
         return 1;
     }
+
 }

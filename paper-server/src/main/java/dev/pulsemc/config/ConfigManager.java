@@ -61,18 +61,32 @@ public class ConfigManager {
                 .validateType(Boolean.class)
                 .get();
 
-
             // Batching
-            maxBatchSize = new Setting<>(config, "batching.max-batch-size", 50)
+            batchingMode = new Setting<>(config, "batching.mode", BatchingMode.SMART_EXECUTION)
+                .parser(val -> {
+                    try {
+                        return BatchingMode.valueOf(val.toString().toUpperCase());
+                    } catch (Exception e) {
+                        return BatchingMode.SMART_EXECUTION;
+                    }
+                })
+                .get();
+
+            flushInterval = new Setting<>(config, "batching.flush-interval", 25)
+                .validateType(Integer.class)
+                .validate(val -> val >= 1, "Flush interval must be at least 1ms!")
+                .get();
+
+            maxBatchSize = new Setting<>(config, "batching.max-batch-size", 4096)
                 .validateType(Integer.class)
                 .validate(val -> val > 0, "Batch size must be > 0!")
                 .warn(val -> val <= 4096, "Values > 4096 may cause packet loss/disconnects!")
                 .get();
 
-            maxBatchBytes = new Setting<>(config, "batching.max-batch-bytes", 1460)
+            maxBatchBytes = new Setting<>(config, "batching.max-batch-bytes", 32000)
                 .validateType(Integer.class)
                 .validate(val -> val >= 512, "MTU limit too low (<512)! Network may stall.")
-                .warn(val -> val <= 32000, "> 32000 bytes is dangerous due to multiple exceeding of MTU standard")
+                .warn(val -> val <= 64000, "> 64000 bytes is dangerous due to packet fragmentation risks")
                 .get();
 
             safetyMargin = new Setting<>(config, "batching.safety-margin-bytes", 64)
@@ -80,7 +94,7 @@ public class ConfigManager {
                 .get();
 
             instantPackets = config.getStringList("batching.instant-packets");
-            if (instantPackets.isEmpty()) instantPackets = List.of("ClientboundHurtAnimationPacket", "ClientboundDamageEventPacket");
+            if (instantPackets.isEmpty()) instantPackets = List.of("ClientboundHurtAnimationPacket", "ClientboundDamageEventPacket", "ClientboundBlockEntityDataPacket");
 
             // Optimizations
             optExplosions = new Setting<>(config, "optimization.explosions.enabled", true)
@@ -98,6 +112,10 @@ public class ConfigManager {
                 .validateType(Integer.class)
                 .validate(val -> val >= 1, "Interval must be at least 1 second! Provided: %s")
                 .get();
+
+            moduleNetwork = config.getBoolean("metrics.modules.network", true);
+            moduleCPU = config.getBoolean("metrics.modules.cpu-estimation", true);
+            moduleRAM = config.getBoolean("metrics.modules.memory-impact", true);
 
             // Compatibility
             emulateEvents = new Setting<>(config, "compatibility.emulate-events", true)
@@ -214,18 +232,32 @@ public class ConfigManager {
             
             # Packet batching (core Pulse feature)
             batching:
+              # Mode of batching:
+              # SMART_EXECUTION - (Recommended) flushes when necessary or on tick end.
+              # STRICT_TICK     - flushes ONLY on tick end (max throughput, highest latency).
+              # INTERVAL        - flushes every X milliseconds (defined below).
+              mode: SMART_EXECUTION
+            
+              # Limit of packets in one batch.
+              # TIPS:
+              # - For 0-50 players:  64-128 is recommended.
+              # - For 100+ players:  256-512 is recommended.
+              # - If players experience latency/delay - LOWER this value.
+              # - If server has high CPU usage from networking - INCREASE this value.
+              max-batch-size: 128
             
               # MTU safety limit.
               # Buffer is flushed immediately if this size is exceeded.
-              max-batch-bytes: 1460
+              max-batch-bytes: 32000
             
-              # Number of packets in batch limit
-              max-batch-size: 4096
+              # Flush interval for INTERVAL mode (in milliseconds)
+              flush-interval: 25
             
               # Packets that bypass batching (critical for PvP)
               instant-packets:
                 - ClientboundHurtAnimationPacket
                 - ClientboundDamageEventPacket
+                - ClientboundBlockEntityDataPacket
             
               # Pulse will flush the buffer BEFORE adding a new packet if remaining space is less than this.
               # Prevents MTU overflow without expensive per-packet size calculation.
@@ -238,6 +270,7 @@ public class ConfigManager {
               explosions:
                 enabled: true
                 # Re-send whole chunk if block changes exceed this value
+                # Much faster than sending hundreds of block change packets.
                 block-change-threshold: 512
             
             
@@ -250,7 +283,6 @@ public class ConfigManager {
             
               # Packets that Pulse will never batch or modify
               ignored-packets: []
-            #    - ClientboundMapItemDataPacket
             
             
             metrics:
@@ -278,4 +310,5 @@ public class ConfigManager {
             """;
         Files.writeString(FILE.toPath(), template);
     }
+
 }
