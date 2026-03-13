@@ -82,8 +82,8 @@ subprojects {
                 isAllowInsecureProtocol = true
 
                 credentials {
-                    username = (project.findProperty("pulseRepoUser") ?: System.getenv("REPO_USERNAME")).toString()
-                    password = (project.findProperty("pulseRepoPassword") ?: System.getenv("REPO_PASSWORD")).toString()
+                    username = (project.findProperty("pulseRepoUser") ?: System.getenv("REPO_USERNAME") ?: "").toString()
+                    password = (project.findProperty("pulseRepoPassword") ?: System.getenv("REPO_PASSWORD") ?: "").toString()
                 }
             }
         }
