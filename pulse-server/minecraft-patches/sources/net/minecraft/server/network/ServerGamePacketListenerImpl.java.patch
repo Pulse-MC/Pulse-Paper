@@ -1,0 +1,80 @@
+--- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
++++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+@@ -245,6 +_,7 @@
+ import org.bukkit.event.player.PlayerToggleFlightEvent;
+ import org.bukkit.event.player.PlayerToggleSprintEvent;
+ // CraftBukkit end
++// PULSE_MODIFIED
+ 
+ public class ServerGamePacketListenerImpl
+     extends ServerCommonPacketListenerImpl
+@@ -387,6 +_,12 @@
+                 this.disconnect(Component.translatable("multiplayer.disconnect.idling"), org.bukkit.event.player.PlayerKickEvent.Cause.IDLING); // Paper - kick event cause
+             }
+         }
++
++        // Pulse start - connect PulseBuffer
++        if (this.pulseBuffer != null) {
++            this.pulseBuffer.flush();
++        }
++        // Pulse end - connect PulseBuffer
+     }
+ 
+     private boolean tickPlayer() {
+@@ -2072,6 +_,29 @@
+                 case START_DESTROY_BLOCK:
+                 case ABORT_DESTROY_BLOCK:
+                 case STOP_DESTROY_BLOCK:
++                    // Pulse start - Virtual Block Interaction & Break
++                    if (action == ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK) {
++                        if (this.player.isCreative()) {
++                            if (dev.pulsemc.pulse.network.impl.VirtualActionDispatcher.handleBreak(this.player, pos)) {
++                                this.ackBlockChangesUpTo(packet.getSequence());
++                                return;
++                            }
++                        } else {
++                            if (dev.pulsemc.pulse.network.impl.VirtualActionDispatcher.handleInteract(this.player, pos, org.bukkit.event.block.Action.LEFT_CLICK_BLOCK)) {
++                                this.ackBlockChangesUpTo(packet.getSequence());
++                                return;
++                            }
++                        }
++                    } else if (action == ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK) {
++                        if (!this.player.isCreative()) {
++                            if (dev.pulsemc.pulse.network.impl.VirtualActionDispatcher.handleBreak(this.player, pos)) {
++                                this.ackBlockChangesUpTo(packet.getSequence());
++                                return;
++                            }
++                        }
++                    }
++                    // Pulse end - Virtual Block Interaction & Break
++
+                     // Paper start - Don't allow digging into unloaded chunks
+                     if (this.player.level().getChunkIfLoadedImmediately(pos.getX() >> 4, pos.getZ() >> 4) == null || !this.player.isWithinBlockInteractionRange(pos, 1.0)) {
+                         this.player.connection.ackBlockChangesUpTo(packet.getSequence());
+@@ -2148,6 +_,12 @@
+         PacketUtils.ensureRunningOnSameThread(packet, this, this.player.level());
+         if (this.player.isImmobile()) return; // CraftBukkit
+         if (!this.checkLimit(packet.timestamp)) return; // Spigot - check limit
++        // Pulse start - Virtual Block Interaction & Break
++        if (dev.pulsemc.pulse.network.impl.VirtualActionDispatcher.handleInteract(this.player, packet.getHitResult().getBlockPos(), org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK)) {
++            this.ackBlockChangesUpTo(packet.getSequence());
++            return;
++        }
++        // Pulse end - Virtual Block Interaction & Break
+         if (this.hasClientLoaded()) {
+             this.ackBlockChangesUpTo(packet.getSequence());
+             ServerLevel serverLevel = this.player.level();
+@@ -2317,6 +_,13 @@
+         } else {
+             this.processedDisconnect = true;
+         }
++
++        // Pulse start - Cleanup virtual entities
++        if (this.pulseBuffer != null) {
++            new dev.pulsemc.pulse.network.impl.PulsePlayerImpl(this.player.getBukkitEntity()).getVirtualEntityManager().clearAll();
++        }
++        // Pulse end - Cleanup virtual entities
++
+         // CraftBukkit end
+         LOGGER.info("{} lost connection: {}", this.player.getPlainTextName(), details.reason().getString());
+         // Paper start - Fix kick event leave message not being sent

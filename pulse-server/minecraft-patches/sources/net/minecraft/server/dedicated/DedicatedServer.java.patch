@@ -1,0 +1,24 @@
+--- a/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -75,6 +_,7 @@
+ import net.minecraft.world.level.storage.LevelStorageSource;
+ import org.jspecify.annotations.Nullable;
+ import org.slf4j.Logger;
++// PULSE_MODIFIED
+ 
+ public class DedicatedServer extends MinecraftServer implements ServerInterface {
+     static final Logger LOGGER = LogUtils.getLogger();
+@@ -358,6 +_,13 @@
+             }
+         }
+         // Purpur end - UPnP Port Forwarding
++
++        // Pulse start - Init Config and Commands
++        dev.pulsemc.pulse.ConfigManager.load();
++        dev.pulsemc.pulse.metrics.Metrics.start();
++        dev.pulsemc.pulse.api.network.PulseEngine.provider = (player) -> new dev.pulsemc.pulse.network.impl.PulsePlayerImpl(player);
++        dev.pulsemc.pulse.metrics.extensions.MetricsBar.start();
++        // Pulse end - Init Config and Commands
+ 
+         // CraftBukkit start
+         this.server.loadPlugins();

@@ -1,0 +1,22 @@
+--- a/net/minecraft/server/level/ChunkMap.java
++++ b/net/minecraft/server/level/ChunkMap.java
+@@ -107,6 +_,7 @@
+ import org.apache.commons.lang3.mutable.MutableBoolean;
+ import org.jspecify.annotations.Nullable;
+ import org.slf4j.Logger;
++// PULSE_MODIFIED
+ 
+ public class ChunkMap extends SimpleRegionStorage implements ChunkHolder.PlayerProvider, GeneratingChunkMap, ca.spottedleaf.moonrise.patches.chunk_system.level.ChunkSystemChunkMap { // Paper - rewrite chunk system
+     private static final ChunkResult<List<ChunkAccess>> UNLOADED_CHUNK_LIST_RESULT = ChunkResult.error("Unloaded chunks found in range");
+@@ -1355,6 +_,11 @@
+         }
+ 
+         public void updatePlayer(ServerPlayer player) {
++            // Pulse start - Virtual Entity Visibility Logic
++            if (this.entity.pulseIsVirtual() && !this.entity.pulseVirtualViewers.contains(player.getUUID())) {
++                return;
++            }
++            // Pulse end - Virtual Entity Visibility Logic
+             org.spigotmc.AsyncCatcher.catchOp("player tracker update"); // Spigot
+             if (player != this.entity) {
+                 // Paper start - remove allocation of Vec3D here

@@ -1,0 +1,25 @@
+--- a/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java
++++ b/net/minecraft/network/protocol/game/ClientboundSectionBlocksUpdatePacket.java
+@@ -11,15 +_,18 @@
+ import net.minecraft.world.level.block.Block;
+ import net.minecraft.world.level.block.state.BlockState;
+ import net.minecraft.world.level.chunk.LevelChunkSection;
+-
++// PULSE_MODIFIED
+ public class ClientboundSectionBlocksUpdatePacket implements Packet<ClientGamePacketListener> {
+     public static final StreamCodec<FriendlyByteBuf, ClientboundSectionBlocksUpdatePacket> STREAM_CODEC = Packet.codec(
+         ClientboundSectionBlocksUpdatePacket::write, ClientboundSectionBlocksUpdatePacket::new
+     );
+     private static final int POS_IN_SECTION_BITS = 12;
+-    private final SectionPos sectionPos;
+-    private final short[] positions;
+-    private final BlockState[] states;
++
++    // Pulse start - make public for chunk optimizations
++    public final SectionPos sectionPos;
++    public final short[] positions;
++    public final BlockState[] states;
++    // Pulse end - make public for chunk optimizations
+ 
+     public ClientboundSectionBlocksUpdatePacket(SectionPos sectionPos, ShortSet positions, LevelChunkSection section) {
+         this.sectionPos = sectionPos;

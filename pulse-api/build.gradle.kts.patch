@@ -1,0 +1,97 @@
+--- a/purpur-api/build.gradle.kts
++++ b/purpur-api/build.gradle.kts
+@@ -91,7 +_,7 @@
+     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+ }
+ 
+-val generatedDir: java.nio.file.Path = rootProject.layout.projectDirectory.dir("paper-api/src/generated/java").asFile.toPath()
++val generatedDir: java.nio.file.Path = rootProject.layout.projectDirectory.dir("upstream/paper/paper-api/src/generated/java").asFile.toPath()
+ idea {
+     module {
+         generatedSourceDirs.add(generatedDir.toFile())
+@@ -101,18 +_,22 @@
+     main {
+         java {
+             srcDir(generatedDir)
+-            srcDir(file("../paper-api/src/main/java"))
++            srcDir(file("../upstream/paper/paper-api/src/main/java"))
++            srcDir(file("../upstream/purpur/purpur-api/src/main/java"))
+         }
+         resources {
+-            srcDir(file("../paper-api/src/main/resources"))
++            srcDir(file("../upstream/paper/paper-api/src/main/resources"))
++            srcDir(file("../upstream/purpur/purpur-api/src/main/resources"))
+         }
+     }
+     test {
+         java {
+-            srcDir(file("../paper-api/src/test/java"))
++            srcDir(file("../upstream/paper/paper-api/src/test/java"))
++            srcDir(file("../upstream/purpur/purpur-api/src/test/java"))
+         }
+         resources {
+-            srcDir(file("../paper-api/src/test/resources"))
++            srcDir(file("../upstream/paper/paper-api/src/test/resources"))
++            srcDir(file("../upstream/purpur/purpur-api/src/test/resources"))
+         }
+     }
+ }
+@@ -196,7 +_,7 @@
+ tasks.withType<Javadoc>().configureEach {
+     (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet") // Purpur - silence Paper's bajillion javadoc warnings
+     val options = options as StandardJavadocDocletOptions
+-    options.overview = "../paper-api/src/main/javadoc/overview.html"
++    options.overview = "../upstream/paper/paper-api/src/main/javadoc/overview.html"
+     options.use()
+     options.isDocFilesSubDirs = true
+     options.links(
+@@ -229,16 +_,47 @@
+     }
+ 
+     // workaround for https://github.com/gradle/gradle/issues/4046
+-    inputs.dir("../paper-api/src/main/javadoc").withPropertyName("javadoc-sourceset")
++    inputs.dir("../upstream/paper/paper-api/src/main/javadoc").withPropertyName("javadoc-sourceset")
+     val fsOps = services.fileSystemOperations
+     doLast {
+         fsOps.copy {
+-            from("../paper-api/src/main/javadoc") {
++            from("../upstream/paper/paper-api/src/main/javadoc") {
+                 include("**/doc-files/**")
+             }
+             into("build/docs/javadoc")
+         }
+     }
++}
++
++tasks.register<Javadoc>("pulseJavadoc") {
++    group = "documentation"
++    description = "Generates Javadoc for Pulse API."
++    source = sourceSets.main.get().allJava.matching {
++        include("dev/pulsemc/pulse/api/**")
++    }
++    classpath = sourceSets.main.get().compileClasspath + sourceSets.main.get().output
++
++    destinationDir = layout.buildDirectory.dir("docs/pulse-api").get().asFile
++
++    val options = options as StandardJavadocDocletOptions
++
++    options.overview = null
++
++    options.apply {
++        windowTitle = "Pulse API Documentation"
++        docTitle = "Pulse Networking API"
++        header = "<b>Pulse</b>"
++
++        memberLevel = JavadocMemberLevel.PUBLIC
++        encoding = "UTF-8"
++        charSet = "UTF-8"
++        addStringOption("Xdoclint:none", "-quiet")
++
++        links("https://docs.oracle.com/en/java/javase/21/docs/api/")
++
++        links("https://jd.papermc.io/paper/1.21.11/")
++    }
++    dependsOn(tasks.compileJava)
+ }
+ 
+ tasks.test {

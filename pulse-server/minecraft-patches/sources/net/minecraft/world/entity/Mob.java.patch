@@ -1,0 +1,32 @@
+--- a/net/minecraft/world/entity/Mob.java
++++ b/net/minecraft/world/entity/Mob.java
+@@ -99,6 +_,7 @@
+ import org.bukkit.event.entity.EntityTransformEvent;
+ import org.bukkit.event.entity.EntityUnleashEvent;
+ // CraftBukkit end
++// PULSE_MODIFIED
+ 
+ public abstract class Mob extends LivingEntity implements EquipmentUser, Leashable, Targeting {
+     private static final EntityDataAccessor<Byte> DATA_MOB_FLAGS_ID = SynchedEntityData.defineId(Mob.class, EntityDataSerializers.BYTE);
+@@ -264,6 +_,7 @@
+ 
+     public void setTarget(@Nullable LivingEntity target) {
+         // CraftBukkit start - fire event
++
+         this.setTarget(target, EntityTargetEvent.TargetReason.UNKNOWN);
+     }
+ 
+@@ -271,6 +_,13 @@
+         if (this.getTarget() == target) {
+             return false;
+         }
++        // Pulse start - connect Virtual Entities
++        if (this.pulseVirtualViewers != null) {
++            if (target != null && !this.pulseVirtualViewers.contains(target.getUUID())) {
++                return false;
++            }
++        }
++        // Pulse end - connect Virtual Entities
+         if (reason != null) {
+             if (reason == EntityTargetEvent.TargetReason.UNKNOWN && this.getTarget() != null && target == null) {
+                 reason = this.getTarget().isAlive() ? EntityTargetEvent.TargetReason.FORGOT_TARGET : EntityTargetEvent.TargetReason.TARGET_DIED;

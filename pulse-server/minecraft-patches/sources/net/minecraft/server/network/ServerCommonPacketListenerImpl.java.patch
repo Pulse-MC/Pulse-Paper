@@ -1,0 +1,75 @@
+--- a/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
++++ b/net/minecraft/server/network/ServerCommonPacketListenerImpl.java
+@@ -29,6 +_,7 @@
+ import net.minecraft.util.profiling.Profiler;
+ import org.jspecify.annotations.Nullable;
+ import org.slf4j.Logger;
++// PULSE_MODIFIED
+ 
+ public abstract class ServerCommonPacketListenerImpl implements ServerCommonPacketListener {
+     private static final Logger LOGGER = LogUtils.getLogger();
+@@ -63,6 +_,7 @@
+     public @Nullable String playerBrand;
+     public final java.util.Set<String> pluginMessagerChannels;
+     // Paper end - retain certain values
++    public dev.pulsemc.pulse.network.PulseBuffer pulseBuffer; // Pulse - connect PulseBuffer
+ 
+     public ServerCommonPacketListenerImpl(MinecraftServer server, Connection connection, CommonListenerCookie cookie) {
+         this.server = server;
+@@ -76,6 +_,7 @@
+         this.pluginMessagerChannels = cookie.channels();
+         this.keepAlive = cookie.keepAlive();
+         // Paper end
++        this.pulseBuffer = new dev.pulsemc.pulse.network.PulseBuffer(this); // Pulse - connect PulseBuffer
+     }
+ 
+     // Paper start - configuration phase API
+@@ -351,27 +_,31 @@
+         this.send(packet, null);
+     }
+ 
+-    public void send(Packet<?> packet, @Nullable ChannelFutureListener sendListener) {
+-        // CraftBukkit start
+-        if (packet == null || this.processedDisconnect) { // Spigot
++    public void send(Packet<?> packet, @Nullable ChannelFutureListener  sendListener) {
++        if (packet == null || this.processedDisconnect) return;
++
++        // PulseMC start - Smart Batching V3 (1.21.4 Fix)
++        if (this.pulseBuffer != null) {
++            this.pulseBuffer.add(packet, sendListener);
++
++            if (packet.isTerminal()) {
++                this.pulseBuffer.flush();
++                this.close();
++            }
+             return;
+-        } else if (packet instanceof net.minecraft.network.protocol.game.ClientboundSetDefaultSpawnPositionPacket defaultSpawnPositionPacket && this instanceof ServerGamePacketListenerImpl serverGamePacketListener) {
+-            serverGamePacketListener.player.compassTarget = org.bukkit.craftbukkit.util.CraftLocation.toBukkit(defaultSpawnPositionPacket.respawnData().pos(), serverGamePacketListener.getPlayer().level());
+-        }
+-        // CraftBukkit end
+-        if (packet.isTerminal()) {
+-            this.close();
+-        }
+-
+-        boolean flag = !this.suspendFlushingOnServerThread || !this.server.isSameThread();
++        }
++        // PulseMC end
++
++        if (packet instanceof net.minecraft.network.protocol.game.ClientboundSetDefaultSpawnPositionPacket p && this instanceof ServerGamePacketListenerImpl s) {
++            s.player.compassTarget = org.bukkit.craftbukkit.util.CraftLocation.toBukkit(p.respawnData().pos(), s.getPlayer().level());
++        }
++
++        if (packet.isTerminal()) this.close();
+ 
+         try {
+-            this.connection.send(packet, sendListener, flag);
++            this.connection.send(packet, sendListener, true);
+         } catch (Throwable var7) {
+-            CrashReport crashReport = CrashReport.forThrowable(var7, "Sending packet");
+-            CrashReportCategory crashReportCategory = crashReport.addCategory("Packet being sent");
+-            crashReportCategory.setDetail("Packet class", () -> packet.getClass().getCanonicalName());
+-            throw new ReportedException(crashReport);
++            throw new net.minecraft.ReportedException(net.minecraft.CrashReport.forThrowable(var7, "Sending packet"));
+         }
+     }
+ 

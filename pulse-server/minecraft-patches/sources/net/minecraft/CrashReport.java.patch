@@ -1,0 +1,19 @@
+--- a/net/minecraft/CrashReport.java
++++ b/net/minecraft/CrashReport.java
+@@ -19,6 +_,7 @@
+ import org.apache.commons.lang3.ArrayUtils;
+ import org.jspecify.annotations.Nullable;
+ import org.slf4j.Logger;
++// PULSE_MODIFIED
+ 
+ public class CrashReport {
+     private static final Logger LOGGER = LogUtils.getLogger();
+@@ -30,7 +_,7 @@
+     private boolean trackingStackTrace = true;
+     private StackTraceElement[] uncategorizedStackTrace = new StackTraceElement[0];
+     private final SystemReport systemReport = new SystemReport();
+-    private List<String> extraInfo = List.of("", "DO NOT REPORT THIS TO PAPER! REPORT TO PURPUR INSTEAD!", ""); // Purpur - Rebrand
++    private List<String> extraInfo = List.of("", "DO NOT REPORT THIS TO PAPER OR PULSE! REPORT TO PURPUR INSTEAD!", ""); // Purpur - Rebrand // Pulse - Rebrand
+ 
+     public CrashReport(String title, Throwable exception) {
+         io.papermc.paper.util.StacktraceDeobfuscator.INSTANCE.deobfuscateThrowable(exception); // Paper
