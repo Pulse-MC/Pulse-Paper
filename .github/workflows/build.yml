@@ -128,7 +128,7 @@ jobs:
             -F "commit_hash=${{ github.sha }}" \
             -F "author=${{ github.actor }}" \
             -F "commit_message=$MANUAL_CHANGELOG" \
-            -F "platform=Paper" \
+            -F "platform=Pulse" \
             -F "file=@$FILE_PATH"
 
       - name: Upload Release
@@ -142,6 +142,6 @@ jobs:
             -H "Authorization: Bearer $API_TOKEN" \
             -F "version=${{ steps.meta.outputs.version }}" \
             -F "build_id=${{ github.run_number }}" \
-            -F "platform=Paper" \
+            -F "platform=Pulse" \
             -F "changelog=$MANUAL_CHANGELOG" \
             -F "file=@$FILE_PATH"
